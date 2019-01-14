@@ -118,7 +118,7 @@ NoteChartImporter.processLineData = function(self, line)
 	for indexDataIndex = 1, messageLength do
 		local value = indexDataString:sub(2 * indexDataIndex - 1, 2 * indexDataIndex)
 		if value ~= "00" then
-			local measureTime = measureIndex + ncdk.Fraction:new(indexDataIndex - 1, messageLength)
+			local measureTime = ncdk.Fraction:new(indexDataIndex - 1, messageLength) + measureIndex
 			local measureTimeString = tostring(measureTime)
 			
 			local timeData
