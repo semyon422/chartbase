@@ -34,6 +34,7 @@ NoteChartImporter.import = function(self, noteChartString)
 	self:processMeasureLines()
 	
 	self.noteChart.inputMode:setInputCount("key", 7)
+	self.noteChart.type = "o2jam"
 	
 	self.noteChart:compute()
 end
@@ -82,7 +83,7 @@ NoteChartImporter.processData = function(self)
 			noteData.inputType = event.channel:find("NOTE") and "key" or "auto"
 			noteData.inputIndex = event.channel:find("NOTE") and tonumber(event.channel:sub(-1, -1)) or 0
 			
-			noteData.soundFileIndex = event.value
+			noteData.soundFileName = event.value
 			
 			if noteData.inputType == "auto" then
 				noteData.noteType = "SoundNote"

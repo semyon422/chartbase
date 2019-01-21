@@ -71,11 +71,11 @@ OJM.process = function(self)
 	local buffer = byte.buffer(byte.read(self.buffer, 0, 4), true)
 	self.signature = byte.getInteger(buffer, 4)
 	
-	if signature == self.M30_SIGNATURE then
+	if self.signature == self.M30_SIGNATURE then
 		self:parseM30()
-	elseif signature == self.OMC_SIGNATURE then 
+	elseif self.signature == self.OMC_SIGNATURE then 
 		self:parseOMC(true)
-	elseif signature == self.OJM_SIGNATURE then
+	elseif self.signature == self.OJM_SIGNATURE then
 		self:parseOMC(false)
 	end
 end

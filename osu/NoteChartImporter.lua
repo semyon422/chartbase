@@ -30,6 +30,7 @@ NoteChartImporter.import = function(self, noteChartString)
 	self:stage2_process()
 	
 	self.noteChart.inputMode:setInputCount("key", self.metaData.CircleSize)
+	self.noteChart.type = "osu"
 	
 	self.noteChart:compute()
 end
@@ -135,6 +136,7 @@ NoteChartImporter.processAudio = function(self)
 		noteData.inputType = "auto"
 		noteData.inputIndex = 0
 		noteData.soundFileName = audioFileName
+		self.noteChart:addResource("sound", noteData.soundFileName)
 		
 		noteData.zeroClearVisualStartTime = self.backgroundLayerData:getVisualTime(timePoint, self.backgroundLayerData:getZeroTimePoint(), true)
 		noteData.currentVisualStartTime = noteData.zeroClearVisualStartTime
@@ -214,6 +216,7 @@ NoteChartImporter.stage1_addNoteParser = function(self, line)
 	local noteDataImporter = NoteDataImporter:new()
 	noteDataImporter.line = line
 	noteDataImporter.noteChartImporter = self
+	noteDataImporter.noteChart = self.noteChart
 	noteDataImporter:init()
 	
 	table.insert(self.noteDataImporters, noteDataImporter)

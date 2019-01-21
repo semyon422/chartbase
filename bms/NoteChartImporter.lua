@@ -50,6 +50,7 @@ NoteChartImporter.import = function(self, noteChartString)
 	for inputType, inputCount in pairs(self.inputMode) do
 		self.noteChart.inputMode:setInputCount(inputType, inputCount)
 	end
+	self.noteChart.type = "bms"
 	
 	self.noteChart:compute()
 end
@@ -232,7 +233,7 @@ NoteChartImporter.processData = function(self)
 					noteData.inputIndex = channelInfo.inputIndex
 					
 					noteData.soundFileName = self.wavDataSequence[value]
-					noteData.soundFileCode = value
+					self.noteChart:addResource("sound", noteData.soundFileName)
 					
 					if channelInfo.inputType == "auto" then
 						noteData.noteType = "SoundNote"
