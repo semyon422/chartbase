@@ -34,7 +34,9 @@ NoteDataImporter.init = function(self)
 	self.additionHitSoundVolume = tonumber(self.additionLineTable[4])
 	self.additionCustomHitSound = self.additionLineTable[5]
 	
-	self.noteChart:addResource("sound", self.additionCustomHitSound)
+	if noteData.soundFileName ~= "" then
+		self.noteChart:addResource("sound", self.additionCustomHitSound)
+	end
 	
 	local keymode = self.noteChartImporter.metaData.CircleSize
 	local interval = 512 / keymode
