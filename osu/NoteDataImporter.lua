@@ -34,7 +34,7 @@ NoteDataImporter.init = function(self)
 	self.additionHitSoundVolume = tonumber(self.additionLineTable[4])
 	self.additionCustomHitSound = self.additionLineTable[5]
 	
-	if noteData.soundFileName ~= "" then
+	if self.additionCustomHitSound ~= "" then
 		self.noteChart:addResource("sound", self.additionCustomHitSound)
 	end
 	
