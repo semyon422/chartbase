@@ -50,9 +50,23 @@ NoteChartImporter.processMetaData = function(self)
 	self.noteChart:hashSet("duration", self.ojn.charts[self.chartIndex].duration)
 end
 
+NoteChartImporter.addFirstTempo = function(self)
+	local measureTime = ncdk.Fraction:new(0)
+	self.currentTempoData = ncdk.TempoData:new(
+		measureTime,
+		self.ojn.bpm
+	)
+	self.foregroundLayerData:addTempoData(self.currentTempoData)
+	
+	local timePoint = self.foregroundLayerData:getTimePoint(measureTime, -1)
+	self.currentVelocityData = ncdk.VelocityData:new(timePoint, ncdk.Fraction:new():fromNumber(self.currentTempoData.tempo / self.primaryTempo, 1000))
+	self.foregroundLayerData:addVelocityData(self.currentVelocityData)
+end
+
 NoteChartImporter.processData = function(self)
 	local longNoteData = {}
 	
+	self:addFirstTempo()
 	for _, event in ipairs(self.ojn.charts[self.chartIndex].event_list) do
 		if event.measure > self.measureCount then
 			self.measureCount = event.measure
