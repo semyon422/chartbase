@@ -60,6 +60,13 @@ NoteChartImporter.stage1_process = function(self)
 	self:processAudio()
 end
 
+local compareTdi = function(a, b)
+	if a.startTime == b.startTime then
+		return a.timingChange and a.timingChange ~= b.timingChange
+	else
+		return a.startTime < b.startTime
+	end
+end
 NoteChartImporter.processTimingDataImporters = function(self)
 	local redTimingData = {}
 	local greenTimingData = {}
@@ -68,7 +75,7 @@ NoteChartImporter.processTimingDataImporters = function(self)
 		local tdi = self.tempTimingDataImporters[i]
 		if tdi.timingChange and not redTimingData[tdi.offset] then
 			redTimingData[tdi.offset] = tdi
-		elseif not tdi.timingChange and not redTimingData[tdi.offset] then
+		elseif not tdi.timingChange and not greenTimingData[tdi.offset] then
 			greenTimingData[tdi.offset] = tdi
 		end
 	end
@@ -81,13 +88,7 @@ NoteChartImporter.processTimingDataImporters = function(self)
 		table.insert(self.timingDataImporters, timingDataImporter)
 	end
 	
-	table.sort(self.timingDataImporters, function(a, b)
-		if a.startTime == b.startTime then
-			return a.timingChange
-		else
-			return a.startTime < b.startTime
-		end
-	end)
+	table.sort(self.timingDataImporters, compareTdi)
 end
 
 NoteChartImporter.updatePrimaryBPM = function(self)
@@ -245,27 +246,23 @@ NoteChartImporter.processMeasureLines = function(self)
 	local lines = {}
 	for i = 1, #self.timingDataImporters do
 		local currentTdi = self.timingDataImporters[i]
-		local nextTdi
-		for j = i + 1, #self.timingDataImporters do
-			if self.timingDataImporters[j].timingChange then
-				nextTdi = self.timingDataImporters[j]
-				break
-			end
-		end
-		local nextLastTime = nextTdi and nextTdi.offset or self.totalLength
 		if currentTdi.timingChange then
-			local measureLength
-			if currentTdi.measureLength < 1 then
-				measureLength = math.huge
-			else
-				measureLength = currentTdi.measureLength
+			local nextTdi
+			for j = i + 1, #self.timingDataImporters do
+				if self.timingDataImporters[j].timingChange then
+					nextTdi = self.timingDataImporters[j]
+					break
+				end
 			end
+			
+			local nextLastTime = nextTdi and nextTdi.offset - 1 or self.totalLength
+			
 			while true do
-				if nextLastTime - offset > 1 then
+				if offset < nextLastTime then
 					table.insert(lines, offset)
-					offset = math.min(offset + measureLength, nextLastTime)
+					offset = offset + currentTdi.measureLength
 				else
-					offset = nextLastTime
+					offset = nextLastTime + 1
 					break
 				end
 			end
