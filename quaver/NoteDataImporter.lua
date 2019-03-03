@@ -1,4 +1,5 @@
 local ncdk = require("ncdk")
+local osuNoteDataImporter = require("osu.NoteDataImporter")
 
 local NoteDataImporter = {}
 
@@ -16,7 +17,6 @@ end
 NoteDataImporter.inputType = "key"
 
 NoteDataImporter.init = function(self)
-	self.inputType = "key"
 	self.inputIndex = self.hitObject.Lane
 	self.startTime = self.hitObject.StartTime
 	self.endTime = self.hitObject.EndTime
@@ -27,33 +27,6 @@ NoteDataImporter.init = function(self)
 	end
 end
 
-NoteDataImporter.getNoteData = function(self)
-	local startNoteData, endNoteData
-	
-	local startTimePoint = self.noteChartImporter.foregroundLayerData:getTimePoint(self.startTime / 1000)
-	
-	startNoteData = ncdk.NoteData:new(startTimePoint)
-	startNoteData.inputType = self.inputType
-	startNoteData.inputIndex = self.inputIndex
-	
-	if not self.endTime then
-		startNoteData.noteType = "ShortNote"
-	else
-		startNoteData.noteType = "LongNoteStart"
-		
-		local endTimePoint = self.noteChartImporter.foregroundLayerData:getTimePoint(self.endTime / 1000)
-		
-		endNoteData = ncdk.NoteData:new(endTimePoint)
-		endNoteData.inputType = self.inputType
-		endNoteData.inputIndex = self.inputIndex
-	
-		endNoteData.noteType = "LongNoteEnd"
-		
-		endNoteData.startNoteData = startNoteData
-		startNoteData.endNoteData = endNoteData
-	end
-	
-	return startNoteData, endNoteData
-end
+NoteDataImporter.getNoteData = osuNoteDataImporter.getNoteData
 
 return NoteDataImporter
