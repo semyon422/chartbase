@@ -34,7 +34,9 @@ NoteDataImporter.init = function(self)
 	self.additionHitSoundVolume = tonumber(self.additionLineTable[4])
 	self.additionCustomHitSound = self.additionLineTable[5]
 	
+	self.sounds = {}
 	if self.additionCustomHitSound and self.additionCustomHitSound ~= "" then
+		self.sounds[1] = self.additionCustomHitSound
 		self.noteChart:addResource("sound", self.additionCustomHitSound)
 	end
 	
@@ -53,6 +55,27 @@ NoteDataImporter.init = function(self)
 	end
 end
 
+NoteDataImporter.initEvent = function(self)
+	self.lineTable = self.line:split(",")
+	
+	self.startTime = tonumber(self.lineTable[2])
+	self.hitSound = self.lineTable[4]:match("\"(.+)\"")
+	self.volume = tonumber(self.lineTable[5])
+	
+	self.sounds = {}
+	if self.hitSound and self.hitSound ~= "" then
+		self.sounds[1] = self.hitSound
+		self.noteChart:addResource("sound", self.hitSound)
+	end
+	
+	self.inputType = "auto"
+	self.inputIndex = 0
+	
+	if self.startTime > self.noteChartImporter.totalLength then
+		self.noteChartImporter.totalLength = self.startTime
+	end
+end
+
 NoteDataImporter.getNoteData = function(self)
 	local startNoteData, endNoteData
 	
@@ -61,6 +84,7 @@ NoteDataImporter.getNoteData = function(self)
 	startNoteData = ncdk.NoteData:new(startTimePoint)
 	startNoteData.inputType = self.inputType
 	startNoteData.inputIndex = self.inputIndex
+	startNoteData.sounds = self.sounds
 	
 	if not self.endTime then
 		startNoteData.noteType = "ShortNote"

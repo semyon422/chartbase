@@ -136,8 +136,8 @@ NoteChartImporter.processAudio = function(self)
 		noteData = ncdk.NoteData:new(timePoint)
 		noteData.inputType = "auto"
 		noteData.inputIndex = 0
-		noteData.soundFileName = audioFileName
-		self.noteChart:addResource("sound", noteData.soundFileName)
+		noteData.sounds = {audioFileName}
+		self.noteChart:addResource("sound", audioFileName)
 		
 		noteData.zeroClearVisualStartTime = self.backgroundLayerData:getVisualTime(timePoint, self.backgroundLayerData:getZeroTimePoint(), true)
 		noteData.currentVisualStartTime = noteData.zeroClearVisualStartTime
@@ -198,6 +198,12 @@ NoteChartImporter.processLine = function(self, line)
 			self.noteChart:hashSet(key, value:trim())
 		elseif self.currentBlockName == "TimingPoints" and line:find("^.+,.+,.+,.+,.+,.+,.+,.+$") then
 			self:stage1_addTimingPointParser(line)
+		elseif self.currentBlockName == "Events" and (
+				line:find("^5,.+,.+,\".+\",.+$") or
+				line:find("^Sample,.+,.+,\".+\",.+$")
+			)
+		then
+			self:stage1_addNoteParser(line, true)
 		elseif self.currentBlockName == "HitObjects" and line:trim() ~= "" then
 			self:stage1_addNoteParser(line)
 		end
@@ -213,12 +219,16 @@ NoteChartImporter.stage1_addTimingPointParser = function(self, line)
 	table.insert(self.tempTimingDataImporters, timingDataImporter)
 end
 
-NoteChartImporter.stage1_addNoteParser = function(self, line)
+NoteChartImporter.stage1_addNoteParser = function(self, line, event)
 	local noteDataImporter = NoteDataImporter:new()
 	noteDataImporter.line = line
 	noteDataImporter.noteChartImporter = self
 	noteDataImporter.noteChart = self.noteChart
-	noteDataImporter:init()
+	if not event then
+		noteDataImporter:init()
+	else
+		noteDataImporter:initEvent()
+	end
 	
 	table.insert(self.noteDataImporters, noteDataImporter)
 end
