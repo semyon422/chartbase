@@ -232,9 +232,11 @@ NoteChartImporter.processData = function(self)
 					noteData.inputType = channelInfo.inputType
 					noteData.inputIndex = channelInfo.inputIndex
 					
-					noteData.soundFileName = self.wavDataSequence[value]
-					if noteData.soundFileName then
-						self.noteChart:addResource("sound", noteData.soundFileName)
+					local sound = self.wavDataSequence[value]
+					noteData.sounds = {}
+					if sound and not channelInfo.mine then
+						noteData.sounds[1] = sound
+						self.noteChart:addResource("sound", sound)
 					end
 					
 					if channelInfo.inputType == "auto" then
@@ -242,8 +244,6 @@ NoteChartImporter.processData = function(self)
 						self.backgroundLayerData:addNoteData(noteData)
 					elseif channelInfo.mine then
 						noteData.noteType = "SoundNote"
-						noteData.soundFileName = nil
-						noteData.soundFileCode = nil
 						self.foregroundLayerData:addNoteData(noteData)
 					elseif channelInfo.long then
 						if not longNoteData[channelIndex] then
