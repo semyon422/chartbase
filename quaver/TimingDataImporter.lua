@@ -13,7 +13,6 @@ end
 
 TimingDataImporter.init = function(self)
 	self.startTime = self.timingPoint.StartTime
-	self.offset = self.timingPoint.StartTime
 	self.singature = self.timingPoint.Singature or 4
 	self.bpm = self.timingPoint.Bpm
 	self.multiplier = self.timingPoint.Multiplier

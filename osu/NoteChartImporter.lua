@@ -26,8 +26,7 @@ NoteChartImporter.import = function(self, noteChartString)
 	self.backgroundLayerData.timeData:setMode(ncdk.TimeData.Modes.Absolute)
 	
 	self.noteChartString = noteChartString
-	self:stage1_process()
-	self:stage2_process()
+	self:process()
 	
 	self.noteChart.inputMode:setInputCount("key", self.metaData.CircleSize)
 	self.noteChart.type = "osu"
@@ -35,7 +34,7 @@ NoteChartImporter.import = function(self, noteChartString)
 	self.noteChart:compute()
 end
 
-NoteChartImporter.stage1_process = function(self)
+NoteChartImporter.process = function(self)
 	self.metaData = {}
 	self.eventParsers = {}
 	self.tempTimingDataImporters = {}
@@ -58,6 +57,13 @@ NoteChartImporter.stage1_process = function(self)
 	self:processMeasureLines()
 	
 	self:processAudio()
+	
+	self:processVelocityData()
+	
+	for _, noteParser in ipairs(self.noteDataImporters) do
+		self.foregroundLayerData:addNoteData(noteParser:getNoteData())
+	end
+	self.foregroundLayerData.noteDataSequence:sort()
 end
 
 local compareTdi = function(a, b)
@@ -73,10 +79,10 @@ NoteChartImporter.processTimingDataImporters = function(self)
 	
 	for i = #self.tempTimingDataImporters, 1, -1 do
 		local tdi = self.tempTimingDataImporters[i]
-		if tdi.timingChange and not redTimingData[tdi.offset] then
-			redTimingData[tdi.offset] = tdi
-		elseif not tdi.timingChange and not greenTimingData[tdi.offset] then
-			greenTimingData[tdi.offset] = tdi
+		if tdi.timingChange and not redTimingData[tdi.startTime] then
+			redTimingData[tdi.startTime] = tdi
+		elseif not tdi.timingChange and not greenTimingData[tdi.startTime] then
+			greenTimingData[tdi.startTime] = tdi
 		end
 	end
 	
@@ -103,11 +109,11 @@ NoteChartImporter.updatePrimaryBPM = function(self)
 			currentBeatLength = tdi.beatLength
 		end
 		
-		if not (currentBeatLength == 0 or tdi.offset > lastTime or (not tdi.timingChange and i > 1)) then
+		if not (currentBeatLength == 0 or tdi.startTime > lastTime or (not tdi.timingChange and i > 1)) then
 			bpmDurations[currentBeatLength] = bpmDurations[currentBeatLength] or 0
-			bpmDurations[currentBeatLength] = bpmDurations[currentBeatLength] + (lastTime - (i == 1 and 0 or tdi.offset))
+			bpmDurations[currentBeatLength] = bpmDurations[currentBeatLength] + (lastTime - (i == 1 and 0 or tdi.startTime))
 			
-			lastTime = tdi.offset
+			lastTime = tdi.startTime
 		end
 	end
 	
@@ -154,15 +160,15 @@ NoteChartImporter.processVelocityData = function(self)
 	for i = 1, #self.timingDataImporters do
 		local tdi = self.timingDataImporters[i]
 		
-		rawVelocity[tdi.offset] = rawVelocity[tdi.offset] or 1
+		rawVelocity[tdi.startTime] = rawVelocity[tdi.startTime] or 1
 		
 		if tdi.timingChange then
 			currentBeatLength = tdi.beatLength
-			rawVelocity[tdi.offset]
+			rawVelocity[tdi.startTime]
 				= self.primaryBeatLength
 				/ currentBeatLength
 		else
-			rawVelocity[tdi.offset]
+			rawVelocity[tdi.startTime]
 				= tdi.velocity
 				* self.primaryBeatLength
 				/ currentBeatLength
@@ -181,15 +187,6 @@ NoteChartImporter.processVelocityData = function(self)
 	self.foregroundLayerData.spaceData.velocityDataSequence:sort()
 end
 
-NoteChartImporter.stage2_process = function(self)
-	self:processVelocityData()
-	
-	for _, noteParser in ipairs(self.noteDataImporters) do
-		self.foregroundLayerData:addNoteData(noteParser:getNoteData())
-	end
-	self.foregroundLayerData.noteDataSequence:sort()
-end
-
 NoteChartImporter.processLine = function(self, line)
 	if line:find("^%[") then
 		self.currentBlockName = line:match("^%[(.+)%]")
@@ -199,23 +196,23 @@ NoteChartImporter.processLine = function(self, line)
 			self.metaData[key] = value:trim()
 			self.noteChart:hashSet(key, value:trim())
 		elseif self.currentBlockName == "TimingPoints" and line:find("^.+,.+,.+,.+,.+,.+,.+,.+$") then
-			self:stage1_addTimingPointParser(line)
+			self:addTimingPointParser(line)
 		elseif self.currentBlockName == "Events" and (
 				line:find("^5,.+,.+,\".+\",.+$") or
 				line:find("^Sample,.+,.+,\".+\",.+$")
 			)
 		then
-			self:stage1_addNoteParser(line, true)
+			self:addNoteParser(line, true)
 		elseif self.currentBlockName == "Events" and line:find("^0,.+,\".+\",.+$") then
 			local path = line:match("^0,.+,\"(.+)\",.+$")
 			self.noteChart:hashSet("Background", path)
 		elseif self.currentBlockName == "HitObjects" and line:trim() ~= "" then
-			self:stage1_addNoteParser(line)
+			self:addNoteParser(line)
 		end
 	end
 end
 
-NoteChartImporter.stage1_addTimingPointParser = function(self, line)
+NoteChartImporter.addTimingPointParser = function(self, line)
 	local timingDataImporter = TimingDataImporter:new(line)
 	timingDataImporter.line = line
 	timingDataImporter.noteChartImporter = self
@@ -224,7 +221,7 @@ NoteChartImporter.stage1_addTimingPointParser = function(self, line)
 	table.insert(self.tempTimingDataImporters, timingDataImporter)
 end
 
-NoteChartImporter.stage1_addNoteParser = function(self, line, event)
+NoteChartImporter.addNoteParser = function(self, line, event)
 	local noteDataImporter = NoteDataImporter:new()
 	noteDataImporter.line = line
 	noteDataImporter.noteChartImporter = self
@@ -246,7 +243,7 @@ NoteChartImporter.processMeasureLines = function(self)
 		local tdi = self.timingDataImporters[i]
 		if tdi.timingChange then
 			firstTdi = tdi
-			offset = firstTdi.offset
+			offset = firstTdi.startTime
 			break
 		end
 	end
@@ -270,7 +267,7 @@ NoteChartImporter.processMeasureLines = function(self)
 				end
 			end
 			
-			local nextLastTime = nextTdi and nextTdi.offset - 1 or self.totalLength
+			local nextLastTime = nextTdi and nextTdi.startTime - 1 or self.totalLength
 			
 			while true do
 				if offset < nextLastTime then
