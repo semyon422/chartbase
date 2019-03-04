@@ -25,6 +25,12 @@ TimingDataImporter.init = function(self)
 	
 	self.startTime = self.offset
 	self.measureLength = math.abs(self.beatLength * self.timingSignature)
+	
+	if self.timingChange then
+		self.beatLength = math.abs(self.beatLength)
+	else
+		self.velocity = math.min(math.max(0.1, math.abs(-100 / self.beatLength)), 10)
+	end
 end
 
 return TimingDataImporter

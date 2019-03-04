@@ -149,7 +149,6 @@ end
 
 NoteChartImporter.processVelocityData = function(self)
 	local currentBeatLength = self.primaryBeatLength
-	local currentVelocity = 1
 	
 	local rawVelocity = {}
 	for i = 1, #self.timingDataImporters do
@@ -159,11 +158,14 @@ NoteChartImporter.processVelocityData = function(self)
 		
 		if tdi.timingChange then
 			currentBeatLength = tdi.beatLength
-			currentVelocity = 1
-			rawVelocity[tdi.offset] = rawVelocity[tdi.offset] * self.primaryBeatLength / currentBeatLength
+			rawVelocity[tdi.offset]
+				= self.primaryBeatLength
+				/ currentBeatLength
 		else
-			currentVelocity = -100 / tdi.beatLength
-			rawVelocity[tdi.offset] = rawVelocity[tdi.offset] * currentVelocity
+			rawVelocity[tdi.offset]
+				= tdi.velocity
+				* self.primaryBeatLength
+				/ currentBeatLength
 		end
 	end
 	
@@ -204,6 +206,9 @@ NoteChartImporter.processLine = function(self, line)
 			)
 		then
 			self:stage1_addNoteParser(line, true)
+		elseif self.currentBlockName == "Events" and line:find("^0,.+,\".+\",.+$") then
+			local path = line:match("^0,.+,\"(.+)\",.+$")
+			self.noteChart:hashSet("Background", path)
 		elseif self.currentBlockName == "HitObjects" and line:trim() ~= "" then
 			self:stage1_addNoteParser(line)
 		end

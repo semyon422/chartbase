@@ -18,13 +18,14 @@ TimingDataImporter.init = function(self)
 	self.bpm = self.timingPoint.Bpm
 	self.multiplier = self.timingPoint.Multiplier
 	
-	self.timingChange = self.bpm ~= nil
 	
 	if self.bpm then
+		self.timingChange = true
 		self.beatLength = 60000 / self.bpm
-		self.measureLength = math.abs(60000 / self.bpm * self.singature)
+		self.measureLength = math.abs(self.beatLength * self.singature)
 	else
-		self.beatLength = -100 / self.multiplier
+		self.timingChange = false
+		self.velocity = self.multiplier
 	end
 end
 
