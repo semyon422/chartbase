@@ -20,16 +20,18 @@ TimingDataImporter.init = function(self)
 	self.sampleSetId = tonumber(self.lineTable[4])
 	self.customSampleIndex = tonumber(self.lineTable[5])
 	self.sampleVolume = tonumber(self.lineTable[6])
-	self.timingChange = tonumber(self.lineTable[7]) == 1
+	self.timingChange = tonumber(self.lineTable[7])
 	self.kiaiTimeActive = tonumber(self.lineTable[8])
 	
 	self.startTime = self.offset
-	self.measureLength = math.abs(self.beatLength * self.timingSignature)
 	
-	if self.timingChange then
+	if self.beatLength >= 0 then
 		self.beatLength = math.abs(self.beatLength)
+		self.measureLength = math.abs(self.beatLength * self.timingSignature)
+		self.timingChange = true
 	else
 		self.velocity = math.min(math.max(0.1, math.abs(-100 / self.beatLength)), 10)
+		self.timingChange = false
 	end
 end
 
