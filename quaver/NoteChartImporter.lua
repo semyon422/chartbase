@@ -45,6 +45,7 @@ NoteChartImporter.process = function(self)
 	self.noteDataImporters = {}
 	
 	self.totalLength = 0
+	self.noteCount = 0
 	
 	self.qua = tinyyaml.parse(self.noteChartString)
 	
@@ -65,6 +66,9 @@ NoteChartImporter.process = function(self)
 		self:addNoteParser(HitObjects[i])
 	end
 	
+	self.noteChart:hashSet("totalLength", self.totalLength)
+	self.noteChart:hashSet("noteCount", #HitObjects)
+	
 	self:processTimingDataImporters()
 	table.sort(self.noteDataImporters, function(a, b) return a.startTime < b.startTime end)
 	
@@ -72,6 +76,8 @@ NoteChartImporter.process = function(self)
 	self.backgroundLayerData:updateZeroTimePoint()
 	
 	self:updatePrimaryBPM()
+	self.noteChart:hashSet("primaryBPM", self.primaryBPM)
+	
 	self:processMeasureLines()
 	
 	self.metaData["AudioFilename"] = self.qua.AudioFile

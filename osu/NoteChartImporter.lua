@@ -42,10 +42,14 @@ NoteChartImporter.process = function(self)
 	self.noteDataImporters = {}
 	
 	self.totalLength = 0
+	self.noteCount = 0
 	
 	for _, line in ipairs(self.noteChartString:split("\n")) do
 		self:processLine(line)
 	end
+	
+	self.noteChart:hashSet("totalLength", self.totalLength)
+	self.noteChart:hashSet("noteCount", self.noteCount)
 	
 	self:processTimingDataImporters()
 	table.sort(self.noteDataImporters, function(a, b) return a.startTime < b.startTime end)
@@ -54,10 +58,10 @@ NoteChartImporter.process = function(self)
 	self.backgroundLayerData:updateZeroTimePoint()
 	
 	self:updatePrimaryBPM()
+	self.noteChart:hashSet("primaryBPM", self.primaryBPM)
+	
 	self:processMeasureLines()
-	
 	self:processAudio()
-	
 	self:processVelocityData()
 	
 	for _, noteParser in ipairs(self.noteDataImporters) do
@@ -228,6 +232,7 @@ NoteChartImporter.addNoteParser = function(self, line, event)
 	noteDataImporter.noteChart = self.noteChart
 	if not event then
 		noteDataImporter:init()
+		self.noteCount = self.noteCount + 1
 	else
 		noteDataImporter:initEvent()
 	end

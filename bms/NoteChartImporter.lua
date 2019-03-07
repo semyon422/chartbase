@@ -44,7 +44,10 @@ NoteChartImporter.import = function(self, noteChartString)
 	end)
 	
 	self:importBaseTimingData()
+	
 	self:processData()
+	self.noteChart:hashSet("noteCount", self.noteCount)
+	
 	self:processMeasureLines()
 	
 	for inputType, inputCount in pairs(self.inputMode) do
@@ -53,6 +56,13 @@ NoteChartImporter.import = function(self, noteChartString)
 	self.noteChart.type = "bms"
 	
 	self.noteChart:compute()
+	
+	if self.maxTimePoint and self.minTimePoint then
+		self.totalLength = self.maxTimePoint:getAbsoluteTime() - self.minTimePoint:getAbsoluteTime()
+	else
+		self.totalLength = 0
+	end
+	self.noteChart:hashSet("totalLength", self.totalLength)
 end
 
 NoteChartImporter.processLine = function(self, line)
@@ -171,6 +181,12 @@ end
 NoteChartImporter.processData = function(self)
 	local longNoteData = {}
 	
+	self.totalLength = 0
+	self.noteCount = 0
+	
+	self.minTimePoint = nil
+	self.maxTimePoint = nil
+	
 	for _, timeData in ipairs(self.data) do
 		if timeData[enums.BackChannelEnum["Tempo"]] then
 			local value = timeData[enums.BackChannelEnum["Tempo"]][1]
@@ -268,6 +284,18 @@ NoteChartImporter.processData = function(self)
 							longNoteData[channelIndex] = noteData
 						end
 						self.foregroundLayerData:addNoteData(noteData)
+					end
+					
+					if channelInfo.inputType ~= "auto" and not channelInfo.mine then
+						self.noteCount = self.noteCount + 1
+						
+						if not self.minTimePoint or timePoint < self.minTimePoint then
+							self.minTimePoint = timePoint
+						end
+						
+						if not self.maxTimePoint or timePoint > self.maxTimePoint then
+							self.maxTimePoint = timePoint
+						end
 					end
 				end
 			end
