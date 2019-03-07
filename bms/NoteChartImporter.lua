@@ -176,7 +176,6 @@ end
 NoteChartImporter.processData = function(self)
 	local longNoteData = {}
 	
-	self.totalLength = 0
 	self.noteCount = 0
 	
 	self.minTimePoint = nil
@@ -281,7 +280,7 @@ NoteChartImporter.processData = function(self)
 						self.foregroundLayerData:addNoteData(noteData)
 					end
 					
-					if channelInfo.inputType ~= "auto" and not channelInfo.mine then
+					if channelInfo.inputType ~= "auto" and not channelInfo.mine and noteData.noteType ~= "LongNoteEnd" then
 						self.noteCount = self.noteCount + 1
 						
 						if not self.minTimePoint or timePoint < self.minTimePoint then

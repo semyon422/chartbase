@@ -20,23 +20,27 @@ end
 
 NoteChartImporter.import = function(self, noteChartString)
 	self.foregroundLayerData = self.noteChart.layerDataSequence:requireLayerData(1)
-	self.backgroundLayerData = self.noteChart.layerDataSequence:requireLayerData(2)
-	self.backgroundLayerData.invisible = true
 	
 	self.foregroundLayerData.timeData:setMode(ncdk.TimeData.Modes.Measure)
-	self.backgroundLayerData.timeData:setMode(ncdk.TimeData.Modes.Measure)
-	
-	self.backgroundLayerData.timeData = self.foregroundLayerData.timeData
 	
 	self.ojn = OJN:new(noteChartString)
 	self:processMetaData()
 	self:processData()
+	self.noteChart:hashSet("noteCount", self.noteCount)
+	
 	self:processMeasureLines()
 	
 	self.noteChart.inputMode:setInputCount("key", 7)
 	self.noteChart.type = "o2jam"
 	
 	self.noteChart:compute()
+	
+	if self.maxTimePoint and self.minTimePoint then
+		self.totalLength = self.maxTimePoint:getAbsoluteTime() - self.minTimePoint:getAbsoluteTime()
+	else
+		self.totalLength = 0
+	end
+	self.noteChart:hashSet("totalLength", self.totalLength)
 end
 
 NoteChartImporter.processMetaData = function(self)
@@ -65,6 +69,11 @@ end
 
 NoteChartImporter.processData = function(self)
 	local longNoteData = {}
+	
+	self.noteCount = 0
+	
+	self.minTimePoint = nil
+	self.maxTimePoint = nil
 	
 	self:addFirstTempo()
 	for _, event in ipairs(self.ojn.charts[self.chartIndex].event_list) do
@@ -101,7 +110,7 @@ NoteChartImporter.processData = function(self)
 			
 			if noteData.inputType == "auto" then
 				noteData.noteType = "SoundNote"
-				self.backgroundLayerData:addNoteData(noteData)
+				self.foregroundLayerData:addNoteData(noteData)
 			else
 				if longNoteData[noteData.inputIndex] and event.type == "RELEASE" then
 					longNoteData[noteData.inputIndex].noteType = "LongNoteStart"
@@ -113,6 +122,16 @@ NoteChartImporter.processData = function(self)
 					noteData.noteType = "ShortNote"
 					if event.type == "HOLD" then
 						longNoteData[noteData.inputIndex] = noteData
+					end
+					
+					self.noteCount = self.noteCount + 1
+					
+					if not self.minTimePoint or timePoint < self.minTimePoint then
+						self.minTimePoint = timePoint
+					end
+					
+					if not self.maxTimePoint or timePoint > self.maxTimePoint then
+						self.maxTimePoint = timePoint
 					end
 				end
 				self.foregroundLayerData:addNoteData(noteData)
