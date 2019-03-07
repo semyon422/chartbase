@@ -142,7 +142,7 @@ NoteChartImporter.processAudio = function(self)
 		noteData = ncdk.NoteData:new(timePoint)
 		noteData.inputType = "auto"
 		noteData.inputIndex = 0
-		noteData.sounds = {audioFileName}
+		noteData.sounds = {{audioFileName, 1}}
 		self.noteChart:addResource("sound", audioFileName)
 		
 		noteData.zeroClearVisualStartTime = self.foregroundLayerData:getVisualTime(timePoint, self.foregroundLayerData:getZeroTimePoint(), true)

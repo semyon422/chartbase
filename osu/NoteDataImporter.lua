@@ -35,8 +35,11 @@ NoteDataImporter.init = function(self)
 	self.additionCustomHitSound = self.additionLineTable[5]
 	
 	self.sounds = {}
+	if self.additionHitSoundVolume == 0 then
+		self.additionHitSoundVolume = 100
+	end
 	if self.additionCustomHitSound and self.additionCustomHitSound ~= "" then
-		self.sounds[1] = self.additionCustomHitSound
+		self.sounds[1] = {self.additionCustomHitSound, self.additionHitSoundVolume / 100}
 		self.noteChart:addResource("sound", self.additionCustomHitSound)
 	end
 	
@@ -63,7 +66,7 @@ NoteDataImporter.initEvent = function(self)
 	
 	self.sounds = {}
 	if self.hitSound and self.hitSound ~= "" then
-		self.sounds[1] = self.hitSound
+		self.sounds[1] = {self.hitSound, self.volume / 100}
 		self.noteChart:addResource("sound", self.hitSound)
 	end
 	
