@@ -40,18 +40,17 @@ NoteDataImporter.init = function(self)
 		self.noteChart:addResource("sound", self.additionCustomHitSound)
 	end
 	
-	local keymode = self.noteChartImporter.metaData.CircleSize
-	local interval = 512 / keymode
-	for currentInputIndex = 1, keymode do
-		if self.x >= interval * (currentInputIndex - 1) and self.x < currentInputIndex * interval then
-			self.inputIndex = currentInputIndex
-			break
-		end
+	local keymode = self.noteChartImporter.noteChart:hashGet("CircleSize")
+	self.inputIndex = math.ceil(self.x / 512 * keymode)
+	
+	local firstTime = math.min(self.endTime or self.startTime, self.startTime)
+	if not self.noteChartImporter.minTime or firstTime < self.noteChartImporter.minTime then
+		self.noteChartImporter.minTime = firstTime
 	end
 	
-	local lastTime = self.endTime or self.startTime
-	if lastTime > self.noteChartImporter.totalLength then
-		self.noteChartImporter.totalLength = lastTime
+	local lastTime = math.max(self.endTime or self.startTime, self.startTime)
+	if not self.noteChartImporter.maxTime or lastTime > self.noteChartImporter.maxTime then
+		self.noteChartImporter.maxTime = lastTime
 	end
 end
 
@@ -70,10 +69,6 @@ NoteDataImporter.initEvent = function(self)
 	
 	self.inputType = "auto"
 	self.inputIndex = 0
-	
-	if self.startTime > self.noteChartImporter.totalLength then
-		self.noteChartImporter.totalLength = self.startTime
-	end
 end
 
 NoteDataImporter.getNoteData = function(self)
@@ -86,7 +81,9 @@ NoteDataImporter.getNoteData = function(self)
 	startNoteData.inputIndex = self.inputIndex
 	startNoteData.sounds = self.sounds
 	
-	if not self.endTime then
+	if self.inputType == "auto" then
+		startNoteData.noteType ="SoundNote"
+	elseif not self.endTime then
 		startNoteData.noteType = "ShortNote"
 	else
 		startNoteData.noteType = "LongNoteStart"

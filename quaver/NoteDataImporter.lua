@@ -28,11 +28,6 @@ NoteDataImporter.init = function(self)
 	self.startTime = self.hitObject.StartTime
 	self.endTime = self.hitObject.EndTime
 	
-	local lastTime = self.endTime or self.startTime
-	if lastTime > self.noteChartImporter.totalLength then
-		self.noteChartImporter.totalLength = lastTime
-	end
-	
 	self.sounds = {}
 	self.hitSound = self.hitObject.HitSound
 	if not self.hitSound then
@@ -47,6 +42,16 @@ NoteDataImporter.init = function(self)
 	
 	for _, sound in ipairs(self.sounds) do
 		self.noteChart:addResource("sound", sound)
+	end
+	
+	local firstTime = math.min(self.endTime or self.startTime, self.startTime)
+	if not self.noteChartImporter.minTime or firstTime < self.noteChartImporter.minTime then
+		self.noteChartImporter.minTime = firstTime
+	end
+	
+	local lastTime = math.max(self.endTime or self.startTime, self.startTime)
+	if not self.noteChartImporter.maxTime or lastTime > self.noteChartImporter.maxTime then
+		self.noteChartImporter.maxTime = lastTime
 	end
 end
 

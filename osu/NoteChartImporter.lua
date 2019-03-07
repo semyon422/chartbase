@@ -19,35 +19,31 @@ end
 
 NoteChartImporter.import = function(self, noteChartString)
 	self.foregroundLayerData = self.noteChart.layerDataSequence:requireLayerData(1)
-	self.backgroundLayerData = self.noteChart.layerDataSequence:requireLayerData(2)
-	self.backgroundLayerData.invisible = true
 	
 	self.foregroundLayerData.timeData:setMode(ncdk.TimeData.Modes.Absolute)
-	self.backgroundLayerData.timeData:setMode(ncdk.TimeData.Modes.Absolute)
 	
 	self.noteChartString = noteChartString
 	self:process()
 	
-	self.noteChart.inputMode:setInputCount("key", self.metaData.CircleSize)
+	self.noteChart.inputMode:setInputCount("key", self.noteChart:hashGet("CircleSize"))
 	self.noteChart.type = "osu"
 	
 	self.noteChart:compute()
 end
 
 NoteChartImporter.process = function(self)
-	self.metaData = {}
 	self.eventParsers = {}
 	self.tempTimingDataImporters = {}
 	self.timingDataImporters = {}
 	self.noteDataImporters = {}
 	
-	self.totalLength = 0
 	self.noteCount = 0
 	
 	for _, line in ipairs(self.noteChartString:split("\n")) do
 		self:processLine(line)
 	end
 	
+	self.totalLength = self.maxTime - self.minTime
 	self.noteChart:hashSet("totalLength", self.totalLength)
 	self.noteChart:hashSet("noteCount", self.noteCount)
 	
@@ -55,19 +51,19 @@ NoteChartImporter.process = function(self)
 	table.sort(self.noteDataImporters, function(a, b) return a.startTime < b.startTime end)
 	
 	self.foregroundLayerData:updateZeroTimePoint()
-	self.backgroundLayerData:updateZeroTimePoint()
 	
 	self:updatePrimaryBPM()
 	self.noteChart:hashSet("primaryBPM", self.primaryBPM)
 	
 	self:processMeasureLines()
+	
+	self.audioFileName = self.noteChart:hashGet("AudioFilename")
 	self:processAudio()
 	self:processVelocityData()
 	
 	for _, noteParser in ipairs(self.noteDataImporters) do
 		self.foregroundLayerData:addNoteData(noteParser:getNoteData())
 	end
-	self.foregroundLayerData.noteDataSequence:sort()
 end
 
 local compareTdi = function(a, b)
@@ -136,12 +132,12 @@ NoteChartImporter.updatePrimaryBPM = function(self)
 end
 
 NoteChartImporter.processAudio = function(self)
-	local audioFileName = self.metaData["AudioFilename"]
+	local audioFileName = self.audioFileName
 	
 	if audioFileName and audioFileName ~= "virtual" then
-		local timePoint = self.backgroundLayerData:getZeroTimePoint()
+		local timePoint = self.foregroundLayerData:getZeroTimePoint()
 		
-		timePoint.velocityData = self.backgroundLayerData:getVelocityDataByTimePoint(timePoint)
+		timePoint.velocityData = self.foregroundLayerData:getVelocityDataByTimePoint(timePoint)
 		
 		noteData = ncdk.NoteData:new(timePoint)
 		noteData.inputType = "auto"
@@ -149,11 +145,11 @@ NoteChartImporter.processAudio = function(self)
 		noteData.sounds = {audioFileName}
 		self.noteChart:addResource("sound", audioFileName)
 		
-		noteData.zeroClearVisualStartTime = self.backgroundLayerData:getVisualTime(timePoint, self.backgroundLayerData:getZeroTimePoint(), true)
+		noteData.zeroClearVisualStartTime = self.foregroundLayerData:getVisualTime(timePoint, self.foregroundLayerData:getZeroTimePoint(), true)
 		noteData.currentVisualStartTime = noteData.zeroClearVisualStartTime
 	
 		noteData.noteType = "SoundNote"
-		self.backgroundLayerData:addNoteData(noteData)
+		self.foregroundLayerData:addNoteData(noteData)
 	end
 end
 
@@ -197,7 +193,6 @@ NoteChartImporter.processLine = function(self, line)
 	else
 		if line:find("^%a+:.*$") then
 			local key, value = line:match("^(%a+):%s?(.*)")
-			self.metaData[key] = value:trim()
 			self.noteChart:hashSet(key, value:trim())
 		elseif self.currentBlockName == "TimingPoints" and line:find("^.+,.+,.+,.+,.+,.+,.+,.+$") then
 			self:addTimingPointParser(line)

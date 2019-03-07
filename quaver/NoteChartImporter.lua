@@ -22,11 +22,8 @@ end
 
 NoteChartImporter.import = function(self, noteChartString)
 	self.foregroundLayerData = self.noteChart.layerDataSequence:requireLayerData(1)
-	self.backgroundLayerData = self.noteChart.layerDataSequence:requireLayerData(2)
-	self.backgroundLayerData.invisible = true
 	
 	self.foregroundLayerData.timeData:setMode(ncdk.TimeData.Modes.Absolute)
-	self.backgroundLayerData.timeData:setMode(ncdk.TimeData.Modes.Absolute)
 	
 	self.noteChartString = noteChartString
 	self:process()
@@ -44,7 +41,6 @@ NoteChartImporter.process = function(self)
 	self.timingDataImporters = {}
 	self.noteDataImporters = {}
 	
-	self.totalLength = 0
 	self.noteCount = 0
 	
 	self.qua = tinyyaml.parse(self.noteChartString)
@@ -66,6 +62,7 @@ NoteChartImporter.process = function(self)
 		self:addNoteParser(HitObjects[i])
 	end
 	
+	self.totalLength = self.maxTime - self.minTime
 	self.noteChart:hashSet("totalLength", self.totalLength)
 	self.noteChart:hashSet("noteCount", #HitObjects)
 	
@@ -73,14 +70,13 @@ NoteChartImporter.process = function(self)
 	table.sort(self.noteDataImporters, function(a, b) return a.startTime < b.startTime end)
 	
 	self.foregroundLayerData:updateZeroTimePoint()
-	self.backgroundLayerData:updateZeroTimePoint()
 	
 	self:updatePrimaryBPM()
 	self.noteChart:hashSet("primaryBPM", self.primaryBPM)
 	
 	self:processMeasureLines()
 	
-	self.metaData["AudioFilename"] = self.qua.AudioFile
+	self.audioFileName = self.qua.AudioFile
 	self:processAudio()
 	
 	self:processVelocityData()
@@ -88,7 +84,6 @@ NoteChartImporter.process = function(self)
 	for _, noteParser in ipairs(self.noteDataImporters) do
 		self.foregroundLayerData:addNoteData(noteParser:getNoteData())
 	end
-	self.foregroundLayerData.noteDataSequence:sort()
 end
 
 NoteChartImporter.processTimingDataImporters = osuNoteChartImporter.processTimingDataImporters

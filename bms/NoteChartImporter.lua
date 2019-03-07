@@ -27,13 +27,8 @@ end
 
 NoteChartImporter.import = function(self, noteChartString)
 	self.foregroundLayerData = self.noteChart.layerDataSequence:requireLayerData(1)
-	self.backgroundLayerData = self.noteChart.layerDataSequence:requireLayerData(2)
-	self.backgroundLayerData.invisible = true
 	
 	self.foregroundLayerData.timeData:setMode(ncdk.TimeData.Modes.Measure)
-	self.backgroundLayerData.timeData:setMode(ncdk.TimeData.Modes.Measure)
-	
-	self.backgroundLayerData.timeData = self.foregroundLayerData.timeData
 	
 	for _, line in ipairs(noteChartString:split("\n")) do
 		self:processLine(line:trim())
@@ -257,7 +252,7 @@ NoteChartImporter.processData = function(self)
 					
 					if channelInfo.inputType == "auto" then
 						noteData.noteType = "SoundNote"
-						self.backgroundLayerData:addNoteData(noteData)
+						self.foregroundLayerData:addNoteData(noteData)
 					elseif channelInfo.mine then
 						noteData.noteType = "SoundNote"
 						self.foregroundLayerData:addNoteData(noteData)
