@@ -31,17 +31,17 @@ NoteDataImporter.init = function(self)
 	self.sounds = {}
 	self.hitSound = self.hitObject.HitSound
 	if not self.hitSound then
-		self.sounds[1] = self.HitSounds.Normal
+		self.sounds[1] = {self.HitSounds.Normal, 1}
 	else
-		local soundsTable = self.hitSound:split(",")
-		for _, sound in ipairs(soundsTable) do
+		for _, sound in ipairs(self.hitSound:split(",")) do
 			sound = sound:trim()
-			self.sounds[#self.sounds + 1] = NoteDataImporter.HitSounds[sound] or sound
+			sound = NoteDataImporter.HitSounds[sound] or sound
+			self.sounds[#self.sounds + 1] = {sound, 1}
 		end
 	end
 	
 	for _, sound in ipairs(self.sounds) do
-		self.noteChart:addResource("sound", sound)
+		self.noteChart:addResource("sound", sound[1])
 	end
 	
 	local firstTime = math.min(self.endTime or self.startTime, self.startTime)
