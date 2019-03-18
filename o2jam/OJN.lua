@@ -1,4 +1,4 @@
-local byte = require("byte")
+local byte = require("aqua.byte")
 
 local OJN = {}
 
