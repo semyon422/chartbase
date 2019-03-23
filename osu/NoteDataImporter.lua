@@ -101,6 +101,11 @@ NoteDataImporter.getNoteData = function(self)
 		
 		endNoteData.startNoteData = startNoteData
 		startNoteData.endNoteData = endNoteData
+		
+		if self.endTime < self.startTime then
+			startNoteData.noteType = "ShortNote"
+			endNoteData.noteType = "SoundNote"
+		end
 	end
 	
 	return startNoteData, endNoteData
