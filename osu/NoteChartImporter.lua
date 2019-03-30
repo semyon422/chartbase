@@ -139,7 +139,7 @@ NoteChartImporter.processAudio = function(self)
 		
 		timePoint.velocityData = self.foregroundLayerData:getVelocityDataByTimePoint(timePoint)
 		
-		noteData = ncdk.NoteData:new(timePoint)
+		local noteData = ncdk.NoteData:new(timePoint)
 		noteData.inputType = "auto"
 		noteData.inputIndex = 0
 		noteData.sounds = {{audioFileName, 1}}
