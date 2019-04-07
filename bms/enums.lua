@@ -7,6 +7,15 @@ enums.ChannelEnum = {
 	["08"] = {name = "ExtendedTempo"},
 	["09"] = {name = "Stop"},
 	
+	["04"] = {name = "BGA", inputType = "bmsbga", inputIndex = 0x04},
+	["06"] = {name = "BGA", inputType = "bmsbga", inputIndex = 0x06},
+	["07"] = {name = "BGA", inputType = "bmsbga", inputIndex = 0x07},
+	["0A"] = {name = "BGA", inputType = "bmsbga", inputIndex = 0x0A},
+	["0B"] = {name = "BGA", inputType = "bmsbga", inputIndex = 0x0B},
+	["0C"] = {name = "BGA", inputType = "bmsbga", inputIndex = 0x0C},
+	["0D"] = {name = "BGA", inputType = "bmsbga", inputIndex = 0x0D},
+	["0E"] = {name = "BGA", inputType = "bmsbga", inputIndex = 0x0E},
+	
 	["11"] = {name = "Note", inputType = "key", inputIndex = 1},
 	["12"] = {name = "Note", inputType = "key", inputIndex = 2},
 	["13"] = {name = "Note", inputType = "key", inputIndex = 3},

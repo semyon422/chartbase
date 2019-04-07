@@ -10,6 +10,7 @@ NoteChartImporter.new = function(self)
 	
 	noteChartImporter.wavDataSequence = {}
 	noteChartImporter.bpmDataSequence = {}
+	noteChartImporter.bmpDataSequence = {}
 	noteChartImporter.stopDataSequence = {}
 	
 	noteChartImporter.primaryTempo = 120
@@ -61,14 +62,17 @@ NoteChartImporter.import = function(self, noteChartString)
 end
 
 NoteChartImporter.processLine = function(self, line)
-	if line:find("^#WAV.. .+$") then
-		local index, fileName = line:match("^#WAV(..) (.+)$")
+	if line:find("^#[wW][aA][vV].. .+$") then
+		local index, fileName = line:match("^#[wW][aA][vV](..) (.+)$")
 		self.wavDataSequence[index] = fileName
-	elseif line:find("^#BPM.. .+$") then
-		local index, tempo = line:match("^#BPM(..) (.+)$")
+	elseif line:find("^#[bB][pP][mM].. .+$") then
+		local index, tempo = line:match("^#[bB][pP][mM](..) (.+)$")
 		self.bpmDataSequence[index] = tonumber(tempo)
-	elseif line:find("^#STOP.. .+$") then
-		local index, duration = line:match("^#STOP(..) (.+)$")
+	elseif line:find("^#[bB][mM][pP].. .+$") then
+		local index, path = line:match("^#[bB][mM][pP](..) (.+)$")
+		self.bmpDataSequence[index] = path
+	elseif line:find("^#[sS][tT][oO][pP].. .+$") then
+		local index, duration = line:match("^#[sS][tT][oO][pP](..) (.+)$")
 		self.stopDataSequence[index] = tonumber(duration)
 	elseif line:find("^#%d%d%d..:.+$") then
 		self:processLineData(line)
@@ -234,7 +238,12 @@ NoteChartImporter.processData = function(self)
 				channelInfo = enums.ChannelEnum[channelIndex]
 			end
 			
-			if channelInfo and (channelInfo.name == "Note" or channelInfo.name == "BGM") then
+			if channelInfo and (
+				channelInfo.name == "Note" or
+				channelInfo.name == "BGM" or
+				channelInfo.name == "BGA"
+			)
+			then
 				for _, value in ipairs(indexDataValues) do
 					local timePoint = self.foregroundLayerData:getTimePoint(timeData.measureTime, -1)
 					
@@ -242,14 +251,25 @@ NoteChartImporter.processData = function(self)
 					noteData.inputType = channelInfo.inputType
 					noteData.inputIndex = channelInfo.inputIndex
 					
-					local sound = self.wavDataSequence[value]
 					noteData.sounds = {}
-					if sound and not channelInfo.mine then
-						noteData.sounds[1] = {sound, 1}
-						self.noteChart:addResource("sound", sound)
+					noteData.images = {}
+					if channelInfo.name == "Note" or channelInfo.name == "BGM" then
+						local sound = self.wavDataSequence[value]
+						if sound and not channelInfo.mine then
+							noteData.sounds[1] = {sound, 1}
+							self.noteChart:addResource("sound", sound)
+						end
+					elseif channelInfo.name == "BGA" then
+						local image = self.bmpDataSequence[value]
+						if image then
+							noteData.images[1] = {image, 1}
+							self.noteChart:addResource("image", image)
+						end
 					end
 					
-					if channelInfo.inputType == "auto" or channelInfo.mine then
+					if channelInfo.name == "BGA" then
+						noteData.noteType = "ImageNote"
+					elseif channelInfo.inputType == "auto" or channelInfo.mine then
 						noteData.noteType = "SoundNote"
 					elseif channelInfo.long then
 						if not longNoteData[channelIndex] then
@@ -275,7 +295,12 @@ NoteChartImporter.processData = function(self)
 					end
 					self.foregroundLayerData:addNoteData(noteData)
 					
-					if channelInfo.inputType ~= "auto" and not channelInfo.mine and noteData.noteType ~= "LongNoteEnd" then
+					if
+						channelInfo.inputType ~= "auto" and
+						not channelInfo.mine and
+						noteData.noteType ~= "LongNoteEnd" and
+						channelInfo.name ~= "BGA"
+					then
 						self.noteCount = self.noteCount + 1
 						
 						if not self.minTimePoint or timePoint < self.minTimePoint then
@@ -316,6 +341,7 @@ end
 
 NoteChartImporter.processHeaderLine = function(self, line)
 	local key, value = line:match("^#(%S+) (.+)$")
+	key = key:upper()
 	self.noteChart:hashSet(key, value)
 	
 	if key == "BPM" then
