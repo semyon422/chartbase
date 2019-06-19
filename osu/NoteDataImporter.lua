@@ -5,8 +5,8 @@ local NoteDataImporter = {}
 local NoteDataImporter_metatable = {}
 NoteDataImporter_metatable.__index = NoteDataImporter
 
-NoteDataImporter.new = function(self)
-	local noteDataImporter = {}
+NoteDataImporter.new = function(self, note)
+	local noteDataImporter = note or {}
 	
 	setmetatable(noteDataImporter, NoteDataImporter_metatable)
 	
@@ -16,35 +16,15 @@ end
 NoteDataImporter.inputType = "key"
 
 NoteDataImporter.init = function(self)
-	self.lineTable = self.line:split(",")
-	self.additionLineTable = self.lineTable[6]:split(":")
-	
-	self.x = tonumber(self.lineTable[1])
-	self.y = tonumber(self.lineTable[2])
-	self.startTime = tonumber(self.lineTable[3])
-	self.type = tonumber(self.lineTable[4])
-	self.hitSoundBitmap = tonumber(self.lineTable[5])
-	if bit.band(self.type, 128) == 128 then
-		self.endTime = tonumber(self.additionLineTable[1])
-		table.remove(self.additionLineTable, 1)
-	end
-	self.additionSampleSetId = tonumber(self.additionLineTable[1])
-	self.additionAdditionalSampleSetId = tonumber(self.additionLineTable[2])
-	self.additionCustomSampleSetIndex = tonumber(self.additionLineTable[3])
-	self.additionHitSoundVolume = tonumber(self.additionLineTable[4])
-	self.additionCustomHitSound = self.additionLineTable[5]
-	
 	self.sounds = {}
-	if self.additionHitSoundVolume == 0 then
-		self.additionHitSoundVolume = 100
+	if self.hitSoundVolume == 0 then
+		self.hitSoundVolume = 100
 	end
-	if self.additionCustomHitSound and self.additionCustomHitSound ~= "" then
-		self.sounds[1] = {self.additionCustomHitSound, self.additionHitSoundVolume / 100}
-		self.noteChart:addResource("sound", self.additionCustomHitSound)
+	if self.customHitSound and self.customHitSound ~= "" then
+		self.sounds[1] = {self.customHitSound, self.hitSoundVolume / 100}
+		self.noteChart:addResource("sound", self.customHitSound)
 	end
-	
-	local keymode = self.noteChartImporter.noteChart:hashGet("CircleSize")
-	self.inputIndex = math.ceil(self.x / 512 * keymode)
+	self.inputIndex = self.key
 	
 	local firstTime = math.min(self.endTime or self.startTime, self.startTime)
 	if not self.noteChartImporter.minTime or firstTime < self.noteChartImporter.minTime then
@@ -60,14 +40,10 @@ end
 NoteDataImporter.initEvent = function(self)
 	self.lineTable = self.line:split(",")
 	
-	self.startTime = tonumber(self.lineTable[2])
-	self.hitSound = self.lineTable[4]:match("\"(.+)\"")
-	self.volume = tonumber(self.lineTable[5])
-	
 	self.sounds = {}
-	if self.hitSound and self.hitSound ~= "" then
-		self.sounds[1] = {self.hitSound, self.volume / 100}
-		self.noteChart:addResource("sound", self.hitSound)
+	if self.sound and self.sound ~= "" then
+		self.sounds[1] = {self.sound, self.volume / 100}
+		self.noteChart:addResource("sound", self.sound)
 	end
 	
 	self.inputType = "auto"

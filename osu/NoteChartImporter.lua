@@ -1,4 +1,5 @@
 local ncdk = require("ncdk")
+local Osu = require("osu.Osu")
 local NoteDataImporter = require("osu.NoteDataImporter")
 local TimingDataImporter = require("osu.TimingDataImporter")
 
@@ -18,11 +19,12 @@ NoteChartImporter.new = function(self)
 end
 
 NoteChartImporter.import = function(self, noteChartString)
-	self.foregroundLayerData = self.noteChart.layerDataSequence:requireLayerData(1)
+	self.osu = Osu:new()
+	self.osu:import(noteChartString)
 	
+	self.foregroundLayerData = self.noteChart.layerDataSequence:requireLayerData(1)
 	self.foregroundLayerData.timeData:setMode(ncdk.TimeData.Modes.Absolute)
 	
-	self.noteChartString = noteChartString
 	self:process()
 	
 	self.noteChart.inputMode:setInputCount("key", self.noteChart:hashGet("CircleSize"))
@@ -39,9 +41,23 @@ NoteChartImporter.process = function(self)
 	
 	self.noteCount = 0
 	
-	for _, line in ipairs(self.noteChartString:split("\n")) do
-		self:processLine(line)
+	for key, value in pairs(self.osu.metadata) do
+		self.noteChart:hashSet(key, value:trim())
 	end
+	
+	self.noteChart:hashSet("Background", self.osu.background)
+	for _, event in ipairs(self.osu.events) do
+		self:addNoteParser(event, true)
+	end
+	
+	for _, tp in ipairs(self.osu.timingPoints) do
+		self:addTimingPointParser(tp)
+	end
+	
+	for _, note in ipairs(self.osu.hitObjects) do
+		self:addNoteParser(note)
+	end
+	
 	
 	self.totalLength = self.maxTime - self.minTime
 	self.noteChart:hashSet("totalLength", self.totalLength)
@@ -187,42 +203,16 @@ NoteChartImporter.processVelocityData = function(self)
 	self.foregroundLayerData.spaceData.velocityDataSequence:sort()
 end
 
-NoteChartImporter.processLine = function(self, line)
-	if line:find("^%[") then
-		self.currentBlockName = line:match("^%[(.+)%]")
-	else
-		if line:find("^%a+:.*$") then
-			local key, value = line:match("^(%a+):%s?(.*)")
-			self.noteChart:hashSet(key, value:trim())
-		elseif self.currentBlockName == "TimingPoints" and line:find("^.+,.+,.+,.+,.+,.+,.+,.+$") then
-			self:addTimingPointParser(line)
-		elseif self.currentBlockName == "Events" and (
-				line:find("^5,.+,.+,\".+\",.+$") or
-				line:find("^Sample,.+,.+,\".+\",.+$")
-			)
-		then
-			self:addNoteParser(line, true)
-		elseif self.currentBlockName == "Events" and line:find("^0,.+,\".+\",.+$") then
-			local path = line:match("^0,.+,\"(.+)\",.+$")
-			self.noteChart:hashSet("Background", path)
-		elseif self.currentBlockName == "HitObjects" and line:trim() ~= "" then
-			self:addNoteParser(line)
-		end
-	end
-end
-
-NoteChartImporter.addTimingPointParser = function(self, line)
-	local timingDataImporter = TimingDataImporter:new(line)
-	timingDataImporter.line = line
+NoteChartImporter.addTimingPointParser = function(self, tp)
+	local timingDataImporter = TimingDataImporter:new(tp)
 	timingDataImporter.noteChartImporter = self
 	timingDataImporter:init()
 	
 	table.insert(self.tempTimingDataImporters, timingDataImporter)
 end
 
-NoteChartImporter.addNoteParser = function(self, line, event)
-	local noteDataImporter = NoteDataImporter:new()
-	noteDataImporter.line = line
+NoteChartImporter.addNoteParser = function(self, note, event)
+	local noteDataImporter = NoteDataImporter:new(note)
 	noteDataImporter.noteChartImporter = self
 	noteDataImporter.noteChart = self.noteChart
 	if not event then
