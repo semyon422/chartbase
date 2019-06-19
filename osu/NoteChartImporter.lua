@@ -19,8 +19,10 @@ NoteChartImporter.new = function(self)
 end
 
 NoteChartImporter.import = function(self, noteChartString)
-	self.osu = Osu:new()
-	self.osu:import(noteChartString)
+	if not self.osu then
+		self.osu = Osu:new()
+		self.osu:import(noteChartString)
+	end
 	
 	self.foregroundLayerData = self.noteChart.layerDataSequence:requireLayerData(1)
 	self.foregroundLayerData.timeData:setMode(ncdk.TimeData.Modes.Absolute)
@@ -153,17 +155,12 @@ NoteChartImporter.processAudio = function(self)
 	if audioFileName and audioFileName ~= "virtual" then
 		local timePoint = self.foregroundLayerData:getZeroTimePoint()
 		
-		timePoint.velocityData = self.foregroundLayerData:getVelocityDataByTimePoint(timePoint)
-		
 		local noteData = ncdk.NoteData:new(timePoint)
 		noteData.inputType = "auto"
 		noteData.inputIndex = 0
 		noteData.sounds = {{audioFileName, 1}}
 		self.noteChart:addResource("sound", audioFileName)
 		
-		noteData.zeroClearVisualStartTime = self.foregroundLayerData:getVisualTime(timePoint, self.foregroundLayerData:getZeroTimePoint(), true)
-		noteData.currentVisualStartTime = noteData.zeroClearVisualStartTime
-	
 		noteData.noteType = "SoundNote"
 		self.foregroundLayerData:addNoteData(noteData)
 	end
@@ -272,7 +269,6 @@ NoteChartImporter.processMeasureLines = function(self)
 	end
 	
 	for _, startTime in ipairs(lines) do
-		local measureTime = ncdk.Fraction:new(measureIndex)
 		local timePoint = self.foregroundLayerData:getTimePoint(startTime / 1000)
 		
 		local startNoteData = ncdk.NoteData:new(timePoint)
