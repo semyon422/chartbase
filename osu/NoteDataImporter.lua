@@ -38,8 +38,6 @@ NoteDataImporter.init = function(self)
 end
 
 NoteDataImporter.initEvent = function(self)
-	self.lineTable = self.line:split(",")
-	
 	self.sounds = {}
 	if self.sound and self.sound ~= "" then
 		self.sounds[1] = {self.sound, self.volume / 100}

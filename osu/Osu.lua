@@ -53,16 +53,16 @@ end
 Osu.addEvent = function(self, line)
 	local split = line:split(",")
 	
-	if line[1] == "5" or line[1] == "Sample" then
+	if split[1] == "5" or split[1] == "Sample" then
 		local event = {}
 		
 		event.type = "sample"
-		event.time = tonumber(split[2])
+		event.startTime = tonumber(split[2])
 		event.sound = split[4]:match("\"(.+)\"")
 		event.volume = tonumber(split[5])
 		
 		self.events[#self.events + 1] = event
-	elseif line[1] == "0" then
+	elseif split[1] == "0" then
 		self.background = line:match("^0,.+,\"(.+)\",.+$")
 	end
 end
