@@ -23,7 +23,7 @@ end
 NoteChartImporter.import = function(self, noteChartString)
 	self.foregroundLayerData = self.noteChart.layerDataSequence:requireLayerData(1)
 	
-	self.foregroundLayerData.timeData:setMode(ncdk.TimeData.Modes.Absolute)
+	self.foregroundLayerData:setTimeMode("absolute")
 	
 	self.noteChartString = noteChartString
 	self:process()

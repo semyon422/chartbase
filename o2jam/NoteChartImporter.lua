@@ -21,7 +21,7 @@ end
 NoteChartImporter.import = function(self, noteChartString)
 	self.foregroundLayerData = self.noteChart.layerDataSequence:requireLayerData(1)
 	
-	self.foregroundLayerData.timeData:setMode(ncdk.TimeData.Modes.Measure)
+	self.foregroundLayerData:setTimeMode("measure")
 	
 	self.ojn = OJN:new(noteChartString)
 	self:processMetaData()
@@ -140,28 +140,6 @@ NoteChartImporter.processData = function(self)
 	end
 end
 
-NoteChartImporter.processHeaderLine = function(self, line)
-	local key, value = line:match("^#(%S+) (.+)$")
-	self.noteChart:hashSet(key, value)
-	
-	if key == "BPM" then
-		self.baseTempo = tonumber(value)
-	elseif key == "LNOBJ" then
-		self.lnobj = value
-	end
-end
-
-NoteChartImporter.importBaseTimingData = function(self)
-	if self.baseTempo then
-		local measureTime = ncdk.Fraction:new(-1, 6)
-		self.currentTempoData = ncdk.TempoData:new(measureTime, self.baseTempo)
-		self.foregroundLayerData:addTempoData(self.currentTempoData)
-		
-		local timePoint = self.foregroundLayerData:getTimePoint(measureTime, 1)
-		self.currentVelocityData = ncdk.VelocityData:new(timePoint, ncdk.Fraction:new():fromNumber(self.baseTempo / self.primaryTempo, 1000))
-		self.foregroundLayerData:addVelocityData(self.currentVelocityData)
-	end
-end
 
 NoteChartImporter.processMeasureLines = function(self)
 	for measureIndex = 0, self.measureCount do

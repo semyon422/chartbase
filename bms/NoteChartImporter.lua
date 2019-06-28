@@ -29,7 +29,7 @@ end
 NoteChartImporter.import = function(self, noteChartString)
 	self.foregroundLayerData = self.noteChart.layerDataSequence:requireLayerData(1)
 	
-	self.foregroundLayerData.timeData:setMode(ncdk.TimeData.Modes.Measure)
+	self.foregroundLayerData:setTimeMode("measure")
 	
 	for _, line in ipairs(noteChartString:split("\n")) do
 		self:processLine(line:trim())
