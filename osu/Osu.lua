@@ -94,7 +94,7 @@ end
 
 Osu.addHitObject = function(self, line)
 	local split = line:split(",")
-	local addition = split[6]:split(":")
+	local addition = split[6] and split[6]:split(":") or {}
 	local note = {}
 	
 	note.x = tonumber(split[1])
@@ -106,11 +106,11 @@ Osu.addHitObject = function(self, line)
 		note.endTime = tonumber(addition[1])
 		table.remove(addition, 1)
 	end
-	note.sampleSetId = tonumber(addition[1])
-	note.additionalSampleSetId = tonumber(addition[2])
-	note.customSampleSetIndex = tonumber(addition[3])
-	note.hitSoundVolume = tonumber(addition[4])
-	note.customHitSound = addition[5]
+	note.sampleSetId = tonumber(addition[1]) or 0
+	note.additionalSampleSetId = tonumber(addition[2]) or 0
+	note.customSampleSetIndex = tonumber(addition[3]) or 0
+	note.hitSoundVolume = tonumber(addition[4]) or 0
+	note.customHitSound = addition[5] or ""
 	
 	local keymode = self.metadata["CircleSize"]
 	note.key = math.ceil(note.x / 512 * keymode)

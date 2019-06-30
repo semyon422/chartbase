@@ -42,6 +42,8 @@ NoteChartImporter.process = function(self)
 	self.noteDataImporters = {}
 	
 	self.noteCount = 0
+	self.maxTime = 0
+	self.minTime = 0
 	
 	for key, value in pairs(self.osu.metadata) do
 		self.noteChart:hashSet(key, value:trim())
@@ -233,6 +235,9 @@ NoteChartImporter.processMeasureLines = function(self)
 			offset = firstTdi.startTime
 			break
 		end
+	end
+	if not firstTdi then
+		return
 	end
 	while true do
 		if offset - firstTdi.measureLength <= 0 then
