@@ -19,9 +19,13 @@ end
 
 NoteChartImporter.import = function(self, noteChartString)
 	self.foregroundLayerData = self.noteChart.layerDataSequence:requireLayerData(1)
-	
 	self.foregroundLayerData:setTimeMode("measure")
 	self.foregroundLayerData:setSignatureMode("long")
+	
+	self.backgroundLayerData = self.noteChart.layerDataSequence:requireLayerData(2)
+	self.backgroundLayerData.invisible = true
+	self.backgroundLayerData:setTimeMode("absolute")
+	self.backgroundLayerData:setSignatureMode("long")
 	
 	self.ksh = Ksh:new()
 	self.ksh:import(noteChartString)
@@ -30,6 +34,7 @@ NoteChartImporter.import = function(self, noteChartString)
 	self:processData()
 	self.noteChart:hashSet("noteCount", self.noteCount)
 	
+	self.measureCount = #self.ksh.measureStrings
 	self:processMeasureLines()
 	
 	self.noteChart.inputMode:setInputCount("bt", 4)
@@ -54,6 +59,7 @@ NoteChartImporter.import = function(self, noteChartString)
 	else
 		self.audioFileName = audio
 	end
+	self.noteChart:hashSet("audio", self.audioFileName)
 	self:processAudio()
 end
 
@@ -67,7 +73,8 @@ NoteChartImporter.processAudio = function(self)
 	local audioFileName = self.audioFileName
 	
 	if audioFileName then
-		local timePoint = self.foregroundLayerData:getZeroTimePoint()
+		local startTime = -(tonumber(self.ksh.options.o) or 0) / 1000
+		local timePoint = self.backgroundLayerData:getTimePoint(startTime, -1)
 		
 		local noteData = ncdk.NoteData:new(timePoint)
 		noteData.inputType = "auto"
@@ -76,7 +83,7 @@ NoteChartImporter.processAudio = function(self)
 		self.noteChart:addResource("sound", audioFileName)
 		
 		noteData.noteType = "SoundNote"
-		self.foregroundLayerData:addNoteData(noteData)
+		self.backgroundLayerData:addNoteData(noteData)
 	end
 end
 
@@ -104,7 +111,7 @@ NoteChartImporter.processData = function(self)
 	for _, signatureData in ipairs(self.ksh.timeSignatures) do
 		self.foregroundLayerData:setSignature(
 			signatureData.measureIndex,
-			ncdk.Fraction:new(signatureData.n)
+			ncdk.Fraction:new(signatureData.n * 4, signatureData.d)
 		)
 	end
 	
@@ -146,7 +153,6 @@ NoteChartImporter.processData = function(self)
 				end
 			end
 		end
-		
 		
 		startNoteData.sounds = {}
 		
