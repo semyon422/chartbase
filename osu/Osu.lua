@@ -18,6 +18,7 @@ end
 
 Osu.import = function(self, noteChartString)
 	self.noteChartString = noteChartString
+	self:setDefaultMetadata()
 	self:process()
 end
 
@@ -84,6 +85,12 @@ Osu.addTimingPoint = function(self, line)
 		tp.beatLength = math.abs(tp.beatLength)
 		tp.measureLength = math.abs(tp.beatLength * tp.timingSignature)
 		tp.timingChange = true
+		if tp.beatLength < 1e-3 then
+			tp.beatLength = 1
+		end
+		if tp.measureLength < 1e-3 then
+			tp.measureLength = 1
+		end
 	else
 		tp.velocity = math.min(math.max(0.1, math.abs(-100 / tp.beatLength)), 10)
 		tp.timingChange = false
@@ -116,6 +123,23 @@ Osu.addHitObject = function(self, line)
 	note.key = math.ceil(note.x / 512 * keymode)
 	
 	self.hitObjects[#self.hitObjects + 1] = note
+end
+
+Osu.setDefaultMetadata = function(self)
+	self.metadata = {
+		AudioFilename = "",
+		PreviewTime = "0",
+		Mode = "3",
+		Title = "",
+		TitleUnicode = "",
+		Artist = "",
+		ArtistUnicode = "",
+		Creator = "",
+		Version = "",
+		Source = "",
+		Tags = "",
+		CircleSize = "0"
+	}
 end
 
 return Osu
