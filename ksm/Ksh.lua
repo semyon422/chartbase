@@ -62,12 +62,21 @@ Ksh.import = function(self, noteChartString)
 				
 				if key == "t" then
 					if not value:find("-") then
-						self.tempos[#self.tempos + 1] = {
+						local lastTempo = self.tempos[#self.tempos]
+						local newTempo = {
 							measureOffset = measureIndex - 1,
 							lineOffset = lineOffset,
 							lineCount = self.measureLineCounts[measureIndex],
 							tempo = tonumber(value)
 						}
+						if lastTempo and (
+							lastTempo.measureOffset == newTempo.measureOffset and
+							lastTempo.lineOffset == newTempo.lineOffset
+						) then
+							self.tempos[#self.tempos] = newTempo
+						else
+							self.tempos[#self.tempos + 1] = newTempo
+						end
 					end
 				elseif key == "beat" then
 					local values = value:split("/")
