@@ -81,6 +81,10 @@ Osu.addTimingPoint = function(self, line)
 	tp.timingChange = tonumber(split[7])
 	tp.kiaiTimeActive = tonumber(split[8])
 	
+	if tp.timingSignature == 0 then
+		tp.timingSignature = 4
+	end
+	
 	if tp.beatLength >= 0 then
 		tp.beatLength = math.abs(tp.beatLength)
 		tp.measureLength = math.abs(tp.beatLength * tp.timingSignature)
