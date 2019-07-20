@@ -20,6 +20,7 @@ Osu.import = function(self, noteChartString)
 	self.noteChartString = noteChartString
 	self:setDefaultMetadata()
 	self:process()
+	self:checkMissing()
 end
 
 Osu.process = function(self)
@@ -30,7 +31,9 @@ end
 
 Osu.processLine = function(self, line)
 	if line:find("^%[") then
-		self.currentBlockName = line:match("^%[(.+)%]")
+		local currentBlockName, lineEnd = line:match("^%[(.+)%](.*)$")
+		self.currentBlockName = currentBlockName
+		self:processLine(lineEnd)
 	else
 		if line:trim() == "" then
 			--skip
@@ -60,7 +63,7 @@ Osu.addEvent = function(self, line)
 		event.type = "sample"
 		event.startTime = tonumber(split[2])
 		event.sound = split[4]:match("\"(.+)\"")
-		event.volume = tonumber(split[5])
+		event.volume = tonumber(split[5]) or 100
 		
 		self.events[#self.events + 1] = event
 	elseif split[1] == "0" then
@@ -74,12 +77,12 @@ Osu.addTimingPoint = function(self, line)
 	
 	tp.offset = tonumber(split[1])
 	tp.beatLength = tonumber(split[2])
-	tp.timingSignature = tonumber(split[3])
-	tp.sampleSetId = tonumber(split[4])
-	tp.customSampleIndex = tonumber(split[5])
-	tp.sampleVolume = tonumber(split[6])
-	tp.timingChange = tonumber(split[7])
-	tp.kiaiTimeActive = tonumber(split[8])
+	tp.timingSignature = tonumber(split[3]) or 4
+	tp.sampleSetId = tonumber(split[4]) or 0
+	tp.customSampleIndex = tonumber(split[5]) or 0
+	tp.sampleVolume = tonumber(split[6]) or 100
+	tp.timingChange = tonumber(split[7]) or 1
+	tp.kiaiTimeActive = tonumber(split[8]) or 0
 	
 	if tp.timingSignature == 0 then
 		tp.timingSignature = 4
@@ -144,6 +147,12 @@ Osu.setDefaultMetadata = function(self)
 		Tags = "",
 		CircleSize = "0"
 	}
+end
+
+Osu.checkMissing = function(self)
+	if #self.timingPoints == 0 then
+		self:addTimingPoint("0,1000,4,2,0,100,1,0")
+	end
 end
 
 return Osu

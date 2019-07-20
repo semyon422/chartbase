@@ -25,7 +25,7 @@ NoteDataImporter.HitSounds = {
 
 NoteDataImporter.init = function(self)
 	self.inputIndex = self.hitObject.Lane
-	self.startTime = self.hitObject.StartTime
+	self.startTime = self.hitObject.StartTime or 0
 	self.endTime = self.hitObject.EndTime
 	
 	self.sounds = {}
