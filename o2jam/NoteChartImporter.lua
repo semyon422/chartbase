@@ -55,6 +55,7 @@ NoteChartImporter.processMetaData = function(self)
 end
 
 NoteChartImporter.addFirstTempo = function(self)
+	self.firstTempoAdded = true
 	local measureTime = ncdk.Fraction:new(0)
 	self.currentTempoData = ncdk.TempoData:new(
 		measureTime,
@@ -74,8 +75,8 @@ NoteChartImporter.processData = function(self)
 	
 	self.minTimePoint = nil
 	self.maxTimePoint = nil
+	self.tempoAtStart = false
 	
-	self:addFirstTempo()
 	for _, event in ipairs(self.ojn.charts[self.chartIndex].event_list) do
 		if event.measure > self.measureCount then
 			self.measureCount = event.measure
@@ -83,6 +84,10 @@ NoteChartImporter.processData = function(self)
 		
 		local measureTime = ncdk.Fraction:new():fromNumber(event.measure + event.position, 1000)
 		if event.channel == "BPM_CHANGE" then
+			if measureTime:tonumber() == 0 then
+				self.tempoAtStart = true
+			end
+			
 			self.currentTempoData = ncdk.TempoData:new(
 				measureTime,
 				event.value
@@ -137,6 +142,10 @@ NoteChartImporter.processData = function(self)
 				self.foregroundLayerData:addNoteData(noteData)
 			end
 		end
+	end
+	
+	if not self.tempoAtStart then
+		self:addFirstTempo()
 	end
 end
 
