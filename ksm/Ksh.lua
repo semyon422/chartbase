@@ -50,12 +50,9 @@ Ksh.import = function(self, noteChartString)
 		local lineOffset = 0
 		
 		for _, line in ipairs(measureString:split("\n")) do
-			local parts = line:split("=")
+			local key, value = line:match("^(.-)=(.+)$")
 			
-			if #parts == 2 then
-				local key = parts[1]
-				local value = parts[2]
-				
+			if key then
 				if not self.options[key] then
 					self.options[key] = value
 				end
