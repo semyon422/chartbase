@@ -21,11 +21,28 @@ Osu.import = function(self, noteChartString)
 	self:setDefaultMetadata()
 	self:process()
 	self:checkMissing()
+	self:postProcess()
 end
 
 Osu.process = function(self)
 	for _, line in ipairs(self.noteChartString:split("\n")) do
 		self:processLine(line)
+	end
+end
+
+Osu.postProcess = function(self)
+	local currentTimingPointIndex = 1
+	local currentTimingPoint = self.timingPoints[1]
+	local nextTimingPoint = self.timingPoints[2]
+	for _, note in ipairs(self.hitObjects) do
+		if nextTimingPoint and note.startTime >= nextTimingPoint.offset then
+			currentTimingPoint = nextTimingPoint
+			currentTimingPointIndex = currentTimingPointIndex + 1
+			nextTimingPoint = self.timingPoints[currentTimingPointIndex + 1]
+		end
+		
+		note.timingPoint = currentTimingPoint
+		self:setSounds(note)
 	end
 end
 
@@ -152,6 +169,74 @@ end
 Osu.checkMissing = function(self)
 	if #self.timingPoints == 0 then
 		self:addTimingPoint("0,1000,4,2,0,100,1,0")
+	end
+end
+
+local soundBits = {
+	{2, "whistle"},
+	{4, "finish"},
+	{8, "clap"},
+	{0, "normal"}
+}
+
+Osu.setSounds = function(self, note)
+	note.sounds = {}
+	note.fallbackSounds = {}
+	
+	if note.hitSoundVolume > 0 then
+		note.volume = note.hitSoundVolume
+	elseif note.timingPoint.sampleVolume > 0 then
+		note.volume = note.timingPoint.sampleVolume
+	else
+		note.volume = 100
+	end
+	
+	if note.customHitSound and note.customHitSound ~= "" then
+		note.sounds[1] = {note.customHitSound, note.volume}
+		note.fallbackSounds[#note.fallbackSounds + 1] = {note.customHitSound, note.volume}
+		return
+	end
+	
+	local sampleSetId
+	if note.hitSoundBitmap > 0 and note.additionalSampleSetId ~= 0 then
+		sampleSetId = note.additionalSampleSetId
+	elseif note.sampleSetId ~= 0 then
+		sampleSetId = note.sampleSetId
+	else
+		sampleSetId = note.timingPoint.sampleSetId
+	end
+	note.sampleSetName = Osu:getSampleSetName(sampleSetId)
+	
+	if note.timingPoint.customSampleIndex ~= 0 then
+		note.customSampleIndex = note.timingPoint.customSampleIndex
+	else
+		note.customSampleIndex = ""
+	end
+	
+	for i = 1, 4 do
+		local mask = soundBits[i][1]
+		local name = soundBits[i][2]
+		if
+			i < 4 and bit.band(note.hitSoundBitmap, mask) == mask or
+			i == 4 and #note.sounds == 0
+		then
+			note.sounds[#note.sounds + 1]
+				= {note.sampleSetName .. "-hit" .. name .. note.customSampleIndex, note.volume}
+			note.fallbackSounds[#note.fallbackSounds + 1]
+				= {note.sampleSetName .. "-hit" .. name, note.volume}
+		end
+	end
+end
+
+Osu.getSampleSetName = function(self, id)
+	if id == 0 then
+		return "none"
+	elseif id == 1 then
+		return "normal"
+	elseif id == 2 then
+		return "soft"
+	elseif id == 3 then
+		return "drum"
 	end
 end
 

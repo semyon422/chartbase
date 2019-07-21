@@ -16,14 +16,11 @@ end
 NoteDataImporter.inputType = "key"
 
 NoteDataImporter.init = function(self)
-	self.sounds = {}
-	if self.hitSoundVolume == 0 then
-		self.hitSoundVolume = 100
+	for i, soundData in ipairs(self.sounds) do
+		soundData[2] = soundData[2] / 100
+		self.noteChart:addResource("sound", soundData[1], {soundData[1], self.fallbackSounds[i][1]})
 	end
-	if self.customHitSound and self.customHitSound ~= "" then
-		self.sounds[1] = {self.customHitSound, self.hitSoundVolume / 100}
-		self.noteChart:addResource("sound", self.customHitSound)
-	end
+	
 	self.inputIndex = self.key
 	
 	local firstTime = math.min(self.endTime or self.startTime, self.startTime)
@@ -41,7 +38,7 @@ NoteDataImporter.initEvent = function(self)
 	self.sounds = {}
 	if self.sound and self.sound ~= "" then
 		self.sounds[1] = {self.sound, self.volume / 100}
-		self.noteChart:addResource("sound", self.sound)
+		self.noteChart:addResource("sound", self.sound, {self.sound})
 	end
 	
 	self.inputType = "auto"
