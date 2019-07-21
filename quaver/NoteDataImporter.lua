@@ -41,7 +41,7 @@ NoteDataImporter.init = function(self)
 	end
 	
 	for _, sound in ipairs(self.sounds) do
-		self.noteChart:addResource("sound", sound[1])
+		self.noteChart:addResource("sound", sound[1], {sound[1]})
 	end
 	
 	local firstTime = math.min(self.endTime or self.startTime, self.startTime)

@@ -257,13 +257,13 @@ NoteChartImporter.processData = function(self)
 						local sound = self.wavDataSequence[value]
 						if sound and not channelInfo.mine then
 							noteData.sounds[1] = {sound, 1}
-							self.noteChart:addResource("sound", sound)
+							self.noteChart:addResource("sound", sound, {sound})
 						end
 					elseif channelInfo.name == "BGA" then
 						local image = self.bmpDataSequence[value]
 						if image then
 							noteData.images[1] = {image, 1}
-							self.noteChart:addResource("image", image)
+							self.noteChart:addResource("image", image, {image})
 						end
 					end
 					
