@@ -79,7 +79,7 @@ Ksh.import = function(self, noteChartString)
 					local values = value:split("/")
 					if #values == 2 then
 						self.timeSignatures[#self.timeSignatures + 1] = {
-							measureIndex = measureIndex,
+							measureIndex = measureIndex - 1,
 							n = tonumber(values[1]),
 							d = tonumber(values[2])
 						}
