@@ -29,7 +29,13 @@ NoteChartImporter.import = function(self, noteChartString)
 	
 	self:process()
 	
-	self.noteChart.inputMode:setInputCount("key", self.noteChart:hashGet("CircleSize"))
+	if not self.specialStyle then
+		self.noteChart.inputMode:setInputCount("key", self.noteChart:hashGet("CircleSize"))
+	else
+		self.noteChart.inputMode:setInputCount("key", self.noteChart:hashGet("CircleSize") - 1)
+		self.noteChart.inputMode:setInputCount("scratch", 1)
+	end
+	
 	self.noteChart.type = "osu"
 	
 	self.noteChart:compute()
@@ -47,6 +53,9 @@ NoteChartImporter.process = function(self)
 	
 	for key, value in pairs(self.osu.metadata) do
 		self.noteChart:hashSet(key, value:trim())
+		if key == "SpecialStyle" and tonumber(value) == 1 then
+			self.specialStyle = true
+		end
 	end
 	
 	self.noteChart:hashSet("Background", self.osu.background)

@@ -144,7 +144,7 @@ Osu.addHitObject = function(self, line)
 	note.customHitSound = addition[5] or ""
 	
 	local keymode = self.metadata["CircleSize"]
-	note.key = math.ceil(note.x / 512 * keymode)
+	note.key = math.floor(note.x / 512 * keymode + 1)
 	
 	self.hitObjects[#self.hitObjects + 1] = note
 end

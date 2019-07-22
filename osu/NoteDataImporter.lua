@@ -21,7 +21,14 @@ NoteDataImporter.init = function(self)
 		self.noteChart:addResource("sound", soundData[1], {soundData[1], self.fallbackSounds[i][1]})
 	end
 	
-	self.inputIndex = self.key
+	if not self.noteChartImporter.specialStyle then
+		self.inputIndex = self.key
+	elseif self.key == 1 then
+		self.inputType = "scratch"
+		self.inputIndex = self.key
+	else
+		self.inputIndex = self.key - 1
+	end
 	
 	local firstTime = math.min(self.endTime or self.startTime, self.startTime)
 	if not self.noteChartImporter.minTime or firstTime < self.noteChartImporter.minTime then
