@@ -91,6 +91,40 @@ enums.ChannelEnum5Keys = {
 	["65"] = {name = "Note", inputType = "key", inputIndex = 10, long = true},
 }
 
+enums.ChannelEnum9Keys = {
+	["11"] = {name = "Note", inputType = "key", inputIndex = 1},
+	["12"] = {name = "Note", inputType = "key", inputIndex = 2},
+	["13"] = {name = "Note", inputType = "key", inputIndex = 3},
+	["14"] = {name = "Note", inputType = "key", inputIndex = 4},
+	["15"] = {name = "Note", inputType = "key", inputIndex = 5},
+	["18"] = {name = "Note", inputType = "key", inputIndex = 6},
+	["19"] = {name = "Note", inputType = "key", inputIndex = 7},
+	
+	["16"] = {name = "Note", inputType = "key", inputIndex = 8},
+	["17"] = {name = "Note", inputType = "key", inputIndex = 9},
+	
+	["22"] = {name = "Note", inputType = "key", inputIndex = 6},
+	["23"] = {name = "Note", inputType = "key", inputIndex = 7},
+	["24"] = {name = "Note", inputType = "key", inputIndex = 8},
+	["25"] = {name = "Note", inputType = "key", inputIndex = 9},
+	
+	["51"] = {name = "Note", inputType = "key", inputIndex = 1, long = true},
+	["52"] = {name = "Note", inputType = "key", inputIndex = 2, long = true},
+	["53"] = {name = "Note", inputType = "key", inputIndex = 3, long = true},
+	["54"] = {name = "Note", inputType = "key", inputIndex = 4, long = true},
+	["55"] = {name = "Note", inputType = "key", inputIndex = 5, long = true},
+	["58"] = {name = "Note", inputType = "key", inputIndex = 6, long = true},
+	["59"] = {name = "Note", inputType = "key", inputIndex = 7, long = true},
+	
+	["56"] = {name = "Note", inputType = "key", inputIndex = 8, long = true},
+	["57"] = {name = "Note", inputType = "key", inputIndex = 9, long = true},
+	
+	["52"] = {name = "Note", inputType = "key", inputIndex = 6, long = true},
+	["53"] = {name = "Note", inputType = "key", inputIndex = 7, long = true},
+	["54"] = {name = "Note", inputType = "key", inputIndex = 8, long = true},
+	["55"] = {name = "Note", inputType = "key", inputIndex = 9, long = true},
+}
+
 enums.BackChannelEnum = {
 	["BGM"] = "01",
 	["Signature"] = "02",

@@ -74,6 +74,11 @@ BMS.processHeaderLine = function(self, line)
 end
 
 BMS.updateMode = function(self, channel)
+	if self.pms then
+		self.mode = 9
+		return
+	end
+	
 	local inputIndex = enums.ChannelEnum[channel].inputIndex
 	if inputIndex then
 		self.mode = self.mode or 5

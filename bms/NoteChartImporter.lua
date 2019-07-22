@@ -19,10 +19,13 @@ NoteChartImporter.import = function(self, noteChartString)
 	self.foregroundLayerData:setTimeMode("measure")
 	
 	self.bms = BMS:new()
+	self.bms.pms = self.pms
 	self.bms:import(noteChartString)
 	
 	self.noteChart.inputMode:setInputCount("key", self.bms.mode)
-	if self.bms.mode > 7 then
+	if self.pms then
+		-- skip
+	elseif self.bms.mode > 7 then
 		self.noteChart.inputMode:setInputCount("scratch", 2)
 	else
 		self.noteChart.inputMode:setInputCount("scratch", 1)
