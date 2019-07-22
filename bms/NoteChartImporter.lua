@@ -9,8 +9,6 @@ NoteChartImporter_metatable.__index = NoteChartImporter
 NoteChartImporter.new = function(self)
 	local noteChartImporter = {}
 	
-	noteChartImporter.inputMode = {}
-	
 	setmetatable(noteChartImporter, NoteChartImporter_metatable)
 	
 	return noteChartImporter
@@ -30,7 +28,7 @@ NoteChartImporter.import = function(self, noteChartString)
 		self.noteChart.inputMode:setInputCount("scratch", 1)
 	end
 	
-	self:importBaseTimingData()
+	self:addFirstTempo()
 	
 	self:processData()
 	self.noteChart:hashSet("noteCount", self.noteCount)
@@ -230,9 +228,9 @@ NoteChartImporter.processMeasureLines = function(self)
 	end
 end
 
-NoteChartImporter.importBaseTimingData = function(self)
-	if self.bms.baseTempo then
-		local measureTime = ncdk.Fraction:new(-1, 6)
+NoteChartImporter.addFirstTempo = function(self)
+	if not self.bms.tempoAtStart and self.bms.baseTempo then
+		local measureTime = ncdk.Fraction:new(0)
 		self.currentTempoData = ncdk.TempoData:new(measureTime, self.bms.baseTempo)
 		self.foregroundLayerData:addTempoData(self.currentTempoData)
 		

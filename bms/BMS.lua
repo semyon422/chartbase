@@ -108,6 +108,15 @@ BMS.processLineData = function(self, line)
 		return
 	end
 	
+	if
+		(enums.ChannelEnum[channel].name == "Tempo" or
+		enums.ChannelEnum[channel].name == "ExtendedTempo") and
+		measure == 0 and
+		message:sub(1, 2) ~= "00"
+	then
+		self.tempoAtStart = true
+	end
+	
 	local compound = enums.ChannelEnum[channel].name ~= "BGM"
 	local messageLength = math.floor(#message / 2)
 	for i = 1, messageLength do
