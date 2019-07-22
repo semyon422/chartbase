@@ -55,7 +55,6 @@ NoteChartImporter.processMetaData = function(self)
 end
 
 NoteChartImporter.addFirstTempo = function(self)
-	self.firstTempoAdded = true
 	local measureTime = ncdk.Fraction:new(0)
 	self.currentTempoData = ncdk.TempoData:new(
 		measureTime,
@@ -148,7 +147,6 @@ NoteChartImporter.processData = function(self)
 		self:addFirstTempo()
 	end
 end
-
 
 NoteChartImporter.processMeasureLines = function(self)
 	for measureIndex = 0, self.measureCount do
