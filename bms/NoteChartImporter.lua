@@ -22,6 +22,8 @@ NoteChartImporter.import = function(self, noteChartString)
 	self.bms.pms = self.pms
 	self.bms:import(noteChartString)
 	
+	self:processMetadata()
+	
 	self.noteChart.inputMode:setInputCount("key", self.bms.mode)
 	if self.pms then
 		-- skip
@@ -48,6 +50,12 @@ NoteChartImporter.import = function(self, noteChartString)
 		self.totalLength = 0
 	end
 	self.noteChart:hashSet("totalLength", self.totalLength)
+end
+
+NoteChartImporter.processMetadata = function(self)
+	for key, value in pairs(self.bms.header) do
+		self.noteChart:hashSet(key, value)
+	end
 end
 
 NoteChartImporter.setTempo = function(self, timeData)
