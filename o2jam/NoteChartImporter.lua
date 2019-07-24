@@ -1,6 +1,7 @@
 local ncdk = require("ncdk")
 local OJM = require("o2jam.OJM")
 local OJN = require("o2jam.OJN")
+local bmsNoteChartImporter = require("bms.NoteChartImporter")
 
 local NoteChartImporter = {}
 
@@ -35,13 +36,10 @@ NoteChartImporter.import = function(self, noteChartString)
 	
 	self.noteChart:compute()
 	
-	if self.maxTimePoint and self.minTimePoint then
-		self.totalLength = self.maxTimePoint:getAbsoluteTime() - self.minTimePoint:getAbsoluteTime()
-	else
-		self.totalLength = 0
-	end
-	self.noteChart:hashSet("totalLength", self.totalLength)
+	self:updateLength()
 end
+
+NoteChartImporter.updateLength = bmsNoteChartImporter.updateLength
 
 NoteChartImporter.processMetaData = function(self)
 	self.noteChart:hashSet("genre", self.ojn.str_genre)

@@ -44,10 +44,18 @@ NoteChartImporter.import = function(self, noteChartString)
 	
 	self.noteChart:compute()
 	
+	self:updateLength()
+end
+
+NoteChartImporter.updateLength = function(self)
 	if self.maxTimePoint and self.minTimePoint then
 		self.totalLength = self.maxTimePoint:getAbsoluteTime() - self.minTimePoint:getAbsoluteTime()
+		self.noteChart:hashSet("minTime", self.minTimePoint:getAbsoluteTime())
+		self.noteChart:hashSet("maxTime", self.maxTimePoint:getAbsoluteTime())
 	else
 		self.totalLength = 0
+		self.noteChart:hashSet("minTime", 0)
+		self.noteChart:hashSet("maxTime", 0)
 	end
 	self.noteChart:hashSet("totalLength", self.totalLength)
 end
@@ -198,10 +206,11 @@ NoteChartImporter.processData = function(self)
 					if
 						channelInfo.inputType ~= "auto" and
 						not channelInfo.mine and
-						noteData.noteType ~= "LongNoteEnd" and
 						channelInfo.name ~= "BGA"
 					then
-						self.noteCount = self.noteCount + 1
+						if noteData.noteType ~= "LongNoteEnd" then
+							self.noteCount = self.noteCount + 1
+						end
 						
 						if not self.minTimePoint or timePoint < self.minTimePoint then
 							self.minTimePoint = timePoint

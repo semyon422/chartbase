@@ -1,5 +1,6 @@
 local ncdk = require("ncdk")
 local Ksh = require("ksm.Ksh")
+local bmsNoteChartImporter = require("bms.NoteChartImporter")
 
 local NoteChartImporter = {}
 
@@ -45,12 +46,7 @@ NoteChartImporter.import = function(self, noteChartString)
 	
 	self.noteChart:compute()
 	
-	if self.maxTimePoint and self.minTimePoint then
-		self.totalLength = self.maxTimePoint:getAbsoluteTime() - self.minTimePoint:getAbsoluteTime()
-	else
-		self.totalLength = 0
-	end
-	self.noteChart:hashSet("totalLength", self.totalLength)
+	self:updateLength()
 	
 	local audio = self.noteChart:hashGet("m")
 	local split = audio:split(";")
@@ -62,6 +58,8 @@ NoteChartImporter.import = function(self, noteChartString)
 	self.noteChart:hashSet("audio", self.audioFileName)
 	self:processAudio()
 end
+
+NoteChartImporter.updateLength = bmsNoteChartImporter.updateLength
 
 NoteChartImporter.processMetaData = function(self)
 	for key, value in pairs(self.ksh.options) do

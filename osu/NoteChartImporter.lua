@@ -48,8 +48,6 @@ NoteChartImporter.process = function(self)
 	self.noteDataImporters = {}
 	
 	self.noteCount = 0
-	self.maxTime = 0
-	self.minTime = 0
 	
 	for key, value in pairs(self.osu.metadata) do
 		self.noteChart:hashSet(key, value:trim())
@@ -71,9 +69,7 @@ NoteChartImporter.process = function(self)
 		self:addNoteParser(note)
 	end
 	
-	
-	self.totalLength = self.maxTime - self.minTime
-	self.noteChart:hashSet("totalLength", self.totalLength)
+	self:updateLength()
 	self.noteChart:hashSet("noteCount", self.noteCount)
 	
 	self:processTimingDataImporters()
@@ -93,6 +89,13 @@ NoteChartImporter.process = function(self)
 	for _, noteParser in ipairs(self.noteDataImporters) do
 		self.foregroundLayerData:addNoteData(noteParser:getNoteData())
 	end
+end
+
+NoteChartImporter.updateLength = function(self)
+	self.totalLength = self.maxTime - self.minTime
+	self.noteChart:hashSet("minTime", self.minTime / 1000)
+	self.noteChart:hashSet("maxTime", self.maxTime / 1000)
+	self.noteChart:hashSet("totalLength", self.totalLength)
 end
 
 local compareTdi = function(a, b)

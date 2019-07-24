@@ -62,8 +62,7 @@ NoteChartImporter.process = function(self)
 		self:addNoteParser(HitObjects[i])
 	end
 	
-	self.totalLength = self.maxTime - self.minTime
-	self.noteChart:hashSet("totalLength", self.totalLength)
+	self:updateLength()
 	self.noteChart:hashSet("noteCount", #HitObjects)
 	
 	self:processTimingDataImporters()
@@ -86,6 +85,7 @@ NoteChartImporter.process = function(self)
 	end
 end
 
+NoteChartImporter.updateLength = osuNoteChartImporter.updateLength
 NoteChartImporter.processTimingDataImporters = osuNoteChartImporter.processTimingDataImporters
 NoteChartImporter.updatePrimaryBPM = osuNoteChartImporter.updatePrimaryBPM
 NoteChartImporter.processAudio = osuNoteChartImporter.processAudio
