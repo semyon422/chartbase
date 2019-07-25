@@ -1,4 +1,5 @@
 local ncdk = require("ncdk")
+local NoteChart = require("ncdk.NoteChart")
 local enums = require("bms.enums")
 local BMS = require("bms.BMS")
 local NoteChartImporter = {}
@@ -15,14 +16,17 @@ NoteChartImporter.new = function(self)
 end
 
 NoteChartImporter.import = function(self, noteChartString)
+	self.noteChart = NoteChart:new()
+	self.noteChart.importer = self
+	
 	self.foregroundLayerData = self.noteChart.layerDataSequence:requireLayerData(1)
 	self.foregroundLayerData:setTimeMode("measure")
 	
-	self.bms = BMS:new()
-	self.bms.pms = self.pms
-	self.bms:import(noteChartString)
-	
-	self:processMetadata()
+	if not self.bms then
+		self.bms = BMS:new()
+		self.bms.pms = self.pms
+		self.bms:import(noteChartString)
+	end
 	
 	self.noteChart.inputMode:setInputCount("key", self.bms.mode)
 	if self.pms then
@@ -45,6 +49,8 @@ NoteChartImporter.import = function(self, noteChartString)
 	self.noteChart:compute()
 	
 	self:updateLength()
+	
+	return self.noteChart
 end
 
 NoteChartImporter.updateLength = function(self)
@@ -58,12 +64,6 @@ NoteChartImporter.updateLength = function(self)
 		self.noteChart:hashSet("maxTime", 0)
 	end
 	self.noteChart:hashSet("totalLength", self.totalLength)
-end
-
-NoteChartImporter.processMetadata = function(self)
-	for key, value in pairs(self.bms.header) do
-		self.noteChart:hashSet(key, value)
-	end
 end
 
 NoteChartImporter.setTempo = function(self, timeData)

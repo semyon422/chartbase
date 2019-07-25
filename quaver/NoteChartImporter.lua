@@ -1,4 +1,5 @@
 local tinyyaml = require("tinyyaml")
+local NoteChart = require("ncdk.NoteChart")
 local osuNoteChartImporter = require("osu.NoteChartImporter")
 
 local ncdk = require("ncdk")
@@ -21,17 +22,24 @@ NoteChartImporter.new = function(self)
 end
 
 NoteChartImporter.import = function(self, noteChartString)
-	self.foregroundLayerData = self.noteChart.layerDataSequence:requireLayerData(1)
+	self.noteChart = NoteChart:new()
+	self.noteChart.importer = self
 	
+	if not self.qua then
+		self.qua = tinyyaml.parse(noteChartString)
+	end
+	
+	self.foregroundLayerData = self.noteChart.layerDataSequence:requireLayerData(1)
 	self.foregroundLayerData:setTimeMode("absolute")
 	
-	self.noteChartString = noteChartString
 	self:process()
 	
 	self.noteChart.inputMode:setInputCount("key", tonumber(self.qua.Mode:sub(-1, -1)))
 	self.noteChart.type = "quaver"
 	
 	self.noteChart:compute()
+	
+	return self.noteChart
 end
 
 NoteChartImporter.process = function(self)
@@ -42,10 +50,6 @@ NoteChartImporter.process = function(self)
 	self.noteDataImporters = {}
 	
 	self.noteCount = 0
-	
-	self.qua = tinyyaml.parse(self.noteChartString)
-	
-	self:processMetaData()
 	
 	local TimingPoints = self.qua.TimingPoints
 	for i = 1, #TimingPoints do
@@ -71,7 +75,6 @@ NoteChartImporter.process = function(self)
 	self.foregroundLayerData:updateZeroTimePoint()
 	
 	self:updatePrimaryBPM()
-	self.noteChart:hashSet("primaryBPM", self.primaryBPM)
 	
 	self:processMeasureLines()
 	
@@ -91,22 +94,6 @@ NoteChartImporter.updatePrimaryBPM = osuNoteChartImporter.updatePrimaryBPM
 NoteChartImporter.processAudio = osuNoteChartImporter.processAudio
 NoteChartImporter.processVelocityData = osuNoteChartImporter.processVelocityData
 NoteChartImporter.processMeasureLines = osuNoteChartImporter.processMeasureLines
-
-NoteChartImporter.processMetaData = function(self)
-	self.noteChart:hashSet("AudioFile", self.qua.AudioFile)
-	self.noteChart:hashSet("SongPreviewTime", self.qua.SongPreviewTime)
-	self.noteChart:hashSet("BackgroundFile", self.qua.BackgroundFile)
-	self.noteChart:hashSet("MapId", self.qua.MapId)
-	self.noteChart:hashSet("MapSetId", self.qua.MapSetId)
-	self.noteChart:hashSet("Mode", self.qua.Mode)
-	self.noteChart:hashSet("Title", self.qua.Title)
-	self.noteChart:hashSet("Artist", self.qua.Artist)
-	self.noteChart:hashSet("Source", self.qua.Source)
-	self.noteChart:hashSet("Tags", self.qua.Tags)
-	self.noteChart:hashSet("Creator", self.qua.Creator)
-	self.noteChart:hashSet("DifficultyName", self.qua.DifficultyName)
-	self.noteChart:hashSet("Description", self.qua.Description)
-end
 
 NoteChartImporter.addTimingPointParser = function(self, timingPoint)
 	local timingDataImporter = TimingDataImporter:new()

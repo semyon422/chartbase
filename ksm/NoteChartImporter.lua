@@ -1,4 +1,5 @@
 local ncdk = require("ncdk")
+local NoteChart = require("ncdk.NoteChart")
 local Ksh = require("ksm.Ksh")
 local bmsNoteChartImporter = require("bms.NoteChartImporter")
 
@@ -19,6 +20,14 @@ NoteChartImporter.new = function(self)
 end
 
 NoteChartImporter.import = function(self, noteChartString)
+	self.noteChart = NoteChart:new()
+	self.noteChart.importer = self
+	
+	if not self.ksh then
+		self.ksh = Ksh:new()
+		self.ksh:import(noteChartString)
+	end
+	
 	self.foregroundLayerData = self.noteChart.layerDataSequence:requireLayerData(1)
 	self.foregroundLayerData:setTimeMode("measure")
 	self.foregroundLayerData:setSignatureMode("long")
@@ -28,10 +37,6 @@ NoteChartImporter.import = function(self, noteChartString)
 	self.backgroundLayerData:setTimeMode("absolute")
 	self.backgroundLayerData:setSignatureMode("long")
 	
-	self.ksh = Ksh:new()
-	self.ksh:import(noteChartString)
-	
-	self:processMetaData()
 	self:processData()
 	self.noteChart:hashSet("noteCount", self.noteCount)
 	
@@ -48,24 +53,19 @@ NoteChartImporter.import = function(self, noteChartString)
 	
 	self:updateLength()
 	
-	local audio = self.noteChart:hashGet("m")
+	local audio = self.ksh.options.m
 	local split = audio:split(";")
 	if split[1] then
 		self.audioFileName = split[1]
 	else
 		self.audioFileName = audio
 	end
-	self.noteChart:hashSet("audio", self.audioFileName)
 	self:processAudio()
+	
+	return self.noteChart
 end
 
 NoteChartImporter.updateLength = bmsNoteChartImporter.updateLength
-
-NoteChartImporter.processMetaData = function(self)
-	for key, value in pairs(self.ksh.options) do
-		self.noteChart:hashSet(key, value)
-	end
-end
 
 NoteChartImporter.processAudio = function(self)
 	local audioFileName = self.audioFileName

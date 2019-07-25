@@ -1,4 +1,5 @@
 local ncdk = require("ncdk")
+local NoteChart = require("ncdk.NoteChart")
 local OJM = require("o2jam.OJM")
 local OJN = require("o2jam.OJN")
 local bmsNoteChartImporter = require("bms.NoteChartImporter")
@@ -20,12 +21,16 @@ NoteChartImporter.new = function(self)
 end
 
 NoteChartImporter.import = function(self, noteChartString)
-	self.foregroundLayerData = self.noteChart.layerDataSequence:requireLayerData(1)
+	self.noteChart = NoteChart:new()
+	self.noteChart.importer = self
 	
+	if not ojn then
+		self.ojn = OJN:new(noteChartString)
+	end
+	
+	self.foregroundLayerData = self.noteChart.layerDataSequence:requireLayerData(1)
 	self.foregroundLayerData:setTimeMode("measure")
 	
-	self.ojn = OJN:new(noteChartString)
-	self:processMetaData()
 	self:processData()
 	self.noteChart:hashSet("noteCount", self.noteCount)
 	
@@ -37,20 +42,11 @@ NoteChartImporter.import = function(self, noteChartString)
 	self.noteChart:compute()
 	
 	self:updateLength()
+	
+	return self.noteChart
 end
 
 NoteChartImporter.updateLength = bmsNoteChartImporter.updateLength
-
-NoteChartImporter.processMetaData = function(self)
-	self.noteChart:hashSet("genre", self.ojn.str_genre)
-	self.noteChart:hashSet("bpm", self.ojn.bpm)
-	self.noteChart:hashSet("title", self.ojn.str_title)
-	self.noteChart:hashSet("artist", self.ojn.str_artist)
-	self.noteChart:hashSet("noter", self.ojn.str_noter)
-	self.noteChart:hashSet("level", self.ojn.charts[self.chartIndex].level)
-	self.noteChart:hashSet("notes", self.ojn.charts[self.chartIndex].notes)
-	self.noteChart:hashSet("duration", self.ojn.charts[self.chartIndex].duration)
-end
 
 NoteChartImporter.addFirstTempo = function(self)
 	local measureTime = ncdk.Fraction:new(0)

@@ -1,4 +1,5 @@
 local ncdk = require("ncdk")
+local NoteChart = require("ncdk.NoteChart")
 local Osu = require("osu.Osu")
 local NoteDataImporter = require("osu.NoteDataImporter")
 local TimingDataImporter = require("osu.TimingDataImporter")
@@ -19,6 +20,9 @@ NoteChartImporter.new = function(self)
 end
 
 NoteChartImporter.import = function(self, noteChartString)
+	self.noteChart = NoteChart:new()
+	self.noteChart.importer = self
+	
 	if not self.osu then
 		self.osu = Osu:new()
 		self.osu:import(noteChartString)
@@ -30,15 +34,17 @@ NoteChartImporter.import = function(self, noteChartString)
 	self:process()
 	
 	if not self.specialStyle then
-		self.noteChart.inputMode:setInputCount("key", self.noteChart:hashGet("CircleSize"))
+		self.noteChart.inputMode:setInputCount("key", self.osu.metadata["CircleSize"])
 	else
-		self.noteChart.inputMode:setInputCount("key", self.noteChart:hashGet("CircleSize") - 1)
+		self.noteChart.inputMode:setInputCount("key", self.osu.metadata["CircleSize"] - 1)
 		self.noteChart.inputMode:setInputCount("scratch", 1)
 	end
 	
 	self.noteChart.type = "osu"
 	
 	self.noteChart:compute()
+	
+	return self.noteChart
 end
 
 NoteChartImporter.process = function(self)
@@ -49,14 +55,10 @@ NoteChartImporter.process = function(self)
 	
 	self.noteCount = 0
 	
-	for key, value in pairs(self.osu.metadata) do
-		self.noteChart:hashSet(key, value:trim())
-		if key == "SpecialStyle" and tonumber(value) == 1 then
-			self.specialStyle = true
-		end
+	if tonumber(self.osu.metadata["SpecialStyle"]) == 1 then
+		self.specialStyle = true
 	end
 	
-	self.noteChart:hashSet("Background", self.osu.background)
 	for _, event in ipairs(self.osu.events) do
 		self:addNoteParser(event, true)
 	end
@@ -78,11 +80,10 @@ NoteChartImporter.process = function(self)
 	self.foregroundLayerData:updateZeroTimePoint()
 	
 	self:updatePrimaryBPM()
-	self.noteChart:hashSet("primaryBPM", self.primaryBPM)
 	
 	self:processMeasureLines()
 	
-	self.audioFileName = self.noteChart:hashGet("AudioFilename")
+	self.audioFileName = self.osu.metadata["AudioFilename"]
 	self:processAudio()
 	self:processVelocityData()
 	
@@ -95,7 +96,7 @@ NoteChartImporter.updateLength = function(self)
 	self.totalLength = self.maxTime - self.minTime
 	self.noteChart:hashSet("minTime", self.minTime / 1000)
 	self.noteChart:hashSet("maxTime", self.maxTime / 1000)
-	self.noteChart:hashSet("totalLength", self.totalLength)
+	self.noteChart:hashSet("totalLength", self.totalLength / 1000)
 end
 
 local compareTdi = function(a, b)
