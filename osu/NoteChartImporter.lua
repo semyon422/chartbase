@@ -93,6 +93,8 @@ NoteChartImporter.process = function(self)
 end
 
 NoteChartImporter.updateLength = function(self)
+	self.minTime = self.minTime or 0
+	self.maxTime = self.maxTime or 0
 	self.totalLength = self.maxTime - self.minTime
 	self.noteChart:hashSet("minTime", self.minTime / 1000)
 	self.noteChart:hashSet("maxTime", self.maxTime / 1000)
@@ -158,6 +160,12 @@ NoteChartImporter.updatePrimaryBPM = function(self)
 			longestDuration = duration
 			average = beatLength
 		end
+	end
+	
+	if longestDuration == 0 then
+		self.primaryBeatLength = 0
+		self.primaryBPM = 0
+		return
 	end
 	
 	self.primaryBeatLength = average
