@@ -187,8 +187,10 @@ Osu.setSounds = function(self, note)
 		note.volume = note.hitSoundVolume
 	elseif note.timingPoint.sampleVolume > 0 then
 		note.volume = note.timingPoint.sampleVolume
-	else
+	elseif note.customHitSound and note.customHitSound ~= "" then
 		note.volume = 100
+	else
+		note.volume = 5
 	end
 	
 	if note.customHitSound and note.customHitSound ~= "" then
