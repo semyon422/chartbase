@@ -3,6 +3,8 @@ local Osu = {}
 local Osu_metatable = {}
 Osu_metatable.__index = Osu
 
+Osu.keymode = 4
+
 Osu.new = function(self)
 	local osu = {}
 	
@@ -94,10 +96,10 @@ Osu.addTimingPoint = function(self, line)
 	
 	tp.offset = tonumber(split[1])
 	tp.beatLength = tonumber(split[2])
-	tp.timingSignature = tonumber(split[3]) or 4
-	tp.sampleSetId = tonumber(split[4]) or 0
-	tp.customSampleIndex = tonumber(split[5]) or 0
-	tp.sampleVolume = tonumber(split[6]) or 100
+	tp.timingSignature = math.max(0, tonumber(split[3]) or 4)
+	tp.sampleSetId = math.max(0, tonumber(split[4]) or 0)
+	tp.customSampleIndex = math.max(0, tonumber(split[5]) or 0)
+	tp.sampleVolume = math.max(0, tonumber(split[6]) or 100)
 	tp.timingChange = tonumber(split[7]) or 1
 	tp.kiaiTimeActive = tonumber(split[8]) or 0
 	
@@ -131,20 +133,27 @@ Osu.addHitObject = function(self, line)
 	note.x = tonumber(split[1])
 	note.y = tonumber(split[2])
 	note.startTime = tonumber(split[3])
+	
 	note.type = tonumber(split[4])
-	note.hitSoundBitmap = tonumber(split[5])
-	if bit.band(note.type, 128) == 128 then
+	if bit.band(note.type, 2) == 2 then
+		addition = {}
+		local length = tonumber(split[8])
+		if length then
+			note.endTime = note.startTime + length
+		end
+	elseif bit.band(note.type, 128) == 128 or bit.band(note.type, 12) == 12 then
 		note.endTime = tonumber(addition[1])
 		table.remove(addition, 1)
 	end
+	
+	note.hitSoundBitmap = tonumber(split[5])
 	note.sampleSetId = tonumber(addition[1]) or 0
 	note.additionalSampleSetId = tonumber(addition[2]) or 0
 	note.customSampleSetIndex = tonumber(addition[3]) or 0
 	note.hitSoundVolume = tonumber(addition[4]) or 0
 	note.customHitSound = addition[5] or ""
 	
-	local keymode = self.metadata["CircleSize"]
-	note.key = math.floor(note.x / 512 * keymode + 1)
+	note.key = math.floor(note.x / 512 * self.keymode + 1)
 	
 	self.hitObjects[#self.hitObjects + 1] = note
 end

@@ -33,7 +33,7 @@ NoteChartImporter.import = function(self, noteChartString)
 	
 	self:process()
 	
-	self.noteChart.inputMode:setInputCount("key", self.osu.metadata["CircleSize"])
+	self.noteChart.inputMode:setInputCount("key", self.osu.keymode)
 	
 	self.noteChart.type = "osu"
 	
@@ -124,7 +124,7 @@ NoteChartImporter.processTimingDataImporters = function(self)
 end
 
 NoteChartImporter.updatePrimaryBPM = function(self)
-	local lastTime = self.totalLength
+	local lastTime = self.maxTime
 	local currentBeatLength = 0
 	local bpmDurations = {}
 	
@@ -251,12 +251,17 @@ NoteChartImporter.processMeasureLines = function(self)
 	if not firstTdi then
 		return
 	end
-	while true do
-		if offset - firstTdi.measureLength <= 0 then
-			break
-		else
-			offset = offset - firstTdi.measureLength
+	
+	if offset > 0 then
+		while true do
+			if offset - firstTdi.measureLength <= 0 then
+				break
+			else
+				offset = offset - firstTdi.measureLength
+			end
 		end
+	elseif offset < 0 then
+		offset = offset + math.floor(-offset / firstTdi.measureLength) * firstTdi.measureLength
 	end
 	
 	local lines = {}
@@ -271,7 +276,7 @@ NoteChartImporter.processMeasureLines = function(self)
 				end
 			end
 			
-			local nextLastTime = nextTdi and nextTdi.startTime - 1 or self.totalLength
+			local nextLastTime = math.min(nextTdi and nextTdi.startTime - 1 or self.maxTime, self.maxTime)
 			
 			while true do
 				if offset < nextLastTime then
