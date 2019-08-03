@@ -4,6 +4,7 @@ local Osu_metatable = {}
 Osu_metatable.__index = Osu
 
 Osu.keymode = 4
+Osu.mode = 0
 
 Osu.new = function(self)
 	local osu = {}
@@ -71,6 +72,12 @@ end
 Osu.addMetadata = function(self, line)
 	local key, value = line:match("^(%a+):%s?(.*)")
 	self.metadata[key] = value
+	if key == "Mode" then
+		self.mode = tonumber(value)
+	end
+	if key == "CircleSize" and self.mode == 3 then
+		self.keymode = tonumber(value)
+	end
 end
 
 Osu.addEvent = function(self, line)
