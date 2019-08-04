@@ -93,7 +93,7 @@ Osu.addEvent = function(self, line)
 		
 		self.events[#self.events + 1] = event
 	elseif split[1] == "0" then
-		self.background = line:match("^0,.+,\"(.+)\",.+$")
+		self.background = line:match("^0,.+,\"(.+)\".*$")
 	end
 end
 
