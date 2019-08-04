@@ -134,8 +134,8 @@ end
 
 Osu.addHitObject = function(self, line)
 	local split = line:split(",")
-	local addition = split[6] and split[6]:split(":") or {}
 	local note = {}
+	local addition
 	
 	note.x = tonumber(split[1])
 	note.y = tonumber(split[2])
@@ -143,14 +143,19 @@ Osu.addHitObject = function(self, line)
 	
 	note.type = tonumber(split[4])
 	if bit.band(note.type, 2) == 2 then
-		addition = {}
+		note.repeatCount = tonumber(split[7])
 		local length = tonumber(split[8])
-		if length then
-			note.endTime = note.startTime + length
-		end
-	elseif bit.band(note.type, 128) == 128 or bit.band(note.type, 12) == 12 then
+		note.endTime = length and note.startTime + length
+		addition = split[11] and split[11]:split(":") or {}
+	elseif bit.band(note.type, 128) == 128 then
+		addition = split[6] and split[6]:split(":") or {}
 		note.endTime = tonumber(addition[1])
 		table.remove(addition, 1)
+	elseif bit.band(note.type, 8) == 8 then
+		addition = split[7] and split[7]:split(":") or {}
+		note.endTime = tonumber(split[6])
+	else
+		addition = split[6] and split[6]:split(":") or {}
 	end
 	
 	note.hitSoundBitmap = tonumber(split[5])
