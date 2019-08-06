@@ -173,6 +173,7 @@ NoteChartImporter.processAudio = function(self)
 		noteData.inputType = "auto"
 		noteData.inputIndex = 0
 		noteData.sounds = {{audioFileName, 1}}
+		noteData.stream = true
 		self.noteChart:addResource("sound", audioFileName, {audioFileName})
 		
 		noteData.noteType = "SoundNote"
