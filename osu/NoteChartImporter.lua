@@ -68,8 +68,6 @@ NoteChartImporter.process = function(self)
 	self:processTimingDataImporters()
 	table.sort(self.noteDataImporters, function(a, b) return a.startTime < b.startTime end)
 	
-	self.foregroundLayerData:updateZeroTimePoint()
-	
 	self:updatePrimaryBPM()
 	
 	self:processMeasureLines()
@@ -204,11 +202,9 @@ NoteChartImporter.processVelocityData = function(self)
 	end
 	
 	for offset, value in pairs(rawVelocity) do
-		local timePoint = self.foregroundLayerData:getTimePoint(offset / 1000)
-		local velocityData = ncdk.VelocityData:new(
-			timePoint,
-			ncdk.Fraction:new():fromNumber(value, 1000)
-		)
+		local timePoint = self.foregroundLayerData:getTimePoint(offset / 1000, 1)
+		local velocityData = ncdk.VelocityData:new(timePoint)
+		velocityData.currentSpeed = ncdk.Fraction:new():fromNumber(value, 1000, 1)
 		self.foregroundLayerData:addVelocityData(velocityData)
 	end
 	

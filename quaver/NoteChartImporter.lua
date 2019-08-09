@@ -72,8 +72,6 @@ NoteChartImporter.process = function(self)
 	self:processTimingDataImporters()
 	table.sort(self.noteDataImporters, function(a, b) return a.startTime < b.startTime end)
 	
-	self.foregroundLayerData:updateZeroTimePoint()
-	
 	self:updatePrimaryBPM()
 	
 	self:processMeasureLines()

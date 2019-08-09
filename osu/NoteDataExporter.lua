@@ -37,12 +37,12 @@ NoteDataExporter.getHitObject = function(self)
 	
 	local x = 512 / keymode * (key - 0.5)
 	local y = 192
-	local startTime = math.floor(noteData.timePoint:getAbsoluteTime() * 1000)
+	local startTime = math.floor(noteData.timePoint.absoluteTime * 1000)
 	local endTime
 	local noteType
 	local addition
 	if noteData.noteType == "LongNoteStart" then
-		endTime = math.floor(noteData.endNoteData.timePoint:getAbsoluteTime() * 1000)
+		endTime = math.floor(noteData.endNoteData.timePoint.absoluteTime * 1000)
 		noteType = 128
 		addition = longAddition:format(endTime, hitSound)
 	else
@@ -66,7 +66,7 @@ NoteDataExporter.getEventSample = function(self)
 	if soundData then
 		hitSound = soundData[1]
 	end
-	local startTime = math.floor(noteData.timePoint:getAbsoluteTime() * 1000)
+	local startTime = math.floor(noteData.timePoint.absoluteTime * 1000)
 	
 	return eventSampleString:format(startTime, hitSound)
 end

@@ -55,9 +55,9 @@ end
 
 NoteChartImporter.updateLength = function(self)
 	if self.maxTimePoint and self.minTimePoint then
-		self.totalLength = self.maxTimePoint:getAbsoluteTime() - self.minTimePoint:getAbsoluteTime()
-		self.noteChart:hashSet("minTime", self.minTimePoint:getAbsoluteTime())
-		self.noteChart:hashSet("maxTime", self.maxTimePoint:getAbsoluteTime())
+		self.totalLength = self.maxTimePoint.absoluteTime - self.minTimePoint.absoluteTime
+		self.noteChart:hashSet("minTime", self.minTimePoint.absoluteTime)
+		self.noteChart:hashSet("maxTime", self.maxTimePoint.absoluteTime)
 	else
 		self.totalLength = 0
 		self.noteChart:hashSet("minTime", 0)
@@ -76,7 +76,8 @@ NoteChartImporter.setTempo = function(self, timeData)
 		self.foregroundLayerData:addTempoData(self.currentTempoData)
 		
 		local timePoint = self.foregroundLayerData:getTimePoint(timeData.measureTime, -1)
-		self.currentVelocityData = ncdk.VelocityData:new(timePoint, ncdk.Fraction:new():fromNumber(self.currentTempoData.tempo / self.bms.primaryTempo, 1000))
+		self.currentVelocityData = ncdk.VelocityData:new(timePoint)
+		self.currentVelocityData.currentSpeed = ncdk.Fraction:new():fromNumber(self.currentTempoData.tempo / self.bms.primaryTempo, 1000)
 		self.foregroundLayerData:addVelocityData(self.currentVelocityData)
 	end
 end
@@ -91,7 +92,8 @@ NoteChartImporter.setExtendedTempo = function(self, timeData)
 		self.foregroundLayerData:addTempoData(self.currentTempoData)
 		
 		local timePoint = self.foregroundLayerData:getTimePoint(timeData.measureTime, -1)
-		self.currentVelocityData = ncdk.VelocityData:new(timePoint, ncdk.Fraction:new():fromNumber(self.currentTempoData.tempo / self.bms.primaryTempo, 1000))
+		self.currentVelocityData = ncdk.VelocityData:new(timePoint)
+		self.currentVelocityData.currentSpeed = ncdk.Fraction:new():fromNumber(self.currentTempoData.tempo / self.bms.primaryTempo, 1000)
 		self.foregroundLayerData:addVelocityData(self.currentVelocityData)
 	end
 end
@@ -100,7 +102,9 @@ NoteChartImporter.setStop = function(self, timeData)
 	if timeData[enums.BackChannelEnum["Stop"]] then
 		local value = timeData[enums.BackChannelEnum["Stop"]][1]
 		local measureDuration = ncdk.Fraction:new(self.bms.stop[value], 192)
-		local stopData = ncdk.StopData:new(timeData.measureTime, measureDuration)
+		local stopData = ncdk.StopData:new()
+		stopData.measureTime = timeData.measureTime
+		stopData.measureDuration = measureDuration
 		stopData.tempoData = self.currentTempoData
 		stopData.signature = ncdk.Fraction:new(4)
 		self.foregroundLayerData:addStopData(stopData)
@@ -109,11 +113,13 @@ NoteChartImporter.setStop = function(self, timeData)
 		if self.currentVelocityData.timePoint == timePoint then
 			self.foregroundLayerData:removeLastVelocityData()
 		end
-		self.currentVelocityData = ncdk.VelocityData:new(timePoint, ncdk.Fraction:new(0))
+		self.currentVelocityData = ncdk.VelocityData:new(timePoint)
+		self.currentVelocityData.currentSpeed = ncdk.Fraction:new(0)
 		self.foregroundLayerData:addVelocityData(self.currentVelocityData)
 		
-		local timePoint = self.foregroundLayerData:getTimePoint(timeData.measureTime)
-		self.currentVelocityData = ncdk.VelocityData:new(timePoint, ncdk.Fraction:new():fromNumber(self.currentTempoData.tempo / self.bms.primaryTempo, 1000))
+		local timePoint = self.foregroundLayerData:getTimePoint(timeData.measureTime, 1)
+		self.currentVelocityData = ncdk.VelocityData:new(timePoint)
+		self.currentVelocityData.currentSpeed = ncdk.Fraction:new():fromNumber(self.currentTempoData.tempo / self.bms.primaryTempo, 1000)
 		self.foregroundLayerData:addVelocityData(self.currentVelocityData)
 	end
 end
@@ -255,7 +261,8 @@ NoteChartImporter.addFirstTempo = function(self)
 		self.foregroundLayerData:addTempoData(self.currentTempoData)
 		
 		local timePoint = self.foregroundLayerData:getTimePoint(measureTime, 1)
-		self.currentVelocityData = ncdk.VelocityData:new(timePoint, ncdk.Fraction:new():fromNumber(self.bms.baseTempo / self.bms.primaryTempo, 1000))
+		self.currentVelocityData = ncdk.VelocityData:new(timePoint)
+		self.currentVelocityData.currentSpeed = ncdk.Fraction:new():fromNumber(self.bms.baseTempo / self.bms.primaryTempo, 1000)
 		self.foregroundLayerData:addVelocityData(self.currentVelocityData)
 	end
 end
