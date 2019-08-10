@@ -77,7 +77,7 @@ NoteChartImporter.setTempo = function(self, timeData)
 		
 		local timePoint = self.foregroundLayerData:getTimePoint(timeData.measureTime, -1)
 		self.currentVelocityData = ncdk.VelocityData:new(timePoint)
-		self.currentVelocityData.currentSpeed = ncdk.Fraction:new():fromNumber(self.currentTempoData.tempo / self.bms.primaryTempo, 1000)
+		self.currentVelocityData.currentSpeed = self.currentTempoData.tempo / self.bms.primaryTempo
 		self.foregroundLayerData:addVelocityData(self.currentVelocityData)
 	end
 end
@@ -93,7 +93,7 @@ NoteChartImporter.setExtendedTempo = function(self, timeData)
 		
 		local timePoint = self.foregroundLayerData:getTimePoint(timeData.measureTime, -1)
 		self.currentVelocityData = ncdk.VelocityData:new(timePoint)
-		self.currentVelocityData.currentSpeed = ncdk.Fraction:new():fromNumber(self.currentTempoData.tempo / self.bms.primaryTempo, 1000)
+		self.currentVelocityData.currentSpeed = self.currentTempoData.tempo / self.bms.primaryTempo
 		self.foregroundLayerData:addVelocityData(self.currentVelocityData)
 	end
 end
@@ -114,12 +114,12 @@ NoteChartImporter.setStop = function(self, timeData)
 			self.foregroundLayerData:removeLastVelocityData()
 		end
 		self.currentVelocityData = ncdk.VelocityData:new(timePoint)
-		self.currentVelocityData.currentSpeed = ncdk.Fraction:new(0)
+		self.currentVelocityData.currentSpeed = 0
 		self.foregroundLayerData:addVelocityData(self.currentVelocityData)
 		
 		local timePoint = self.foregroundLayerData:getTimePoint(timeData.measureTime, 1)
 		self.currentVelocityData = ncdk.VelocityData:new(timePoint)
-		self.currentVelocityData.currentSpeed = ncdk.Fraction:new():fromNumber(self.currentTempoData.tempo / self.bms.primaryTempo, 1000)
+		self.currentVelocityData.currentSpeed = self.currentTempoData.tempo / self.bms.primaryTempo
 		self.foregroundLayerData:addVelocityData(self.currentVelocityData)
 	end
 end
@@ -262,7 +262,7 @@ NoteChartImporter.addFirstTempo = function(self)
 		
 		local timePoint = self.foregroundLayerData:getTimePoint(measureTime, 1)
 		self.currentVelocityData = ncdk.VelocityData:new(timePoint)
-		self.currentVelocityData.currentSpeed = ncdk.Fraction:new():fromNumber(self.bms.baseTempo / self.bms.primaryTempo, 1000)
+		self.currentVelocityData.currentSpeed = self.bms.baseTempo / self.bms.primaryTempo
 		self.foregroundLayerData:addVelocityData(self.currentVelocityData)
 	end
 end

@@ -204,7 +204,7 @@ NoteChartImporter.processVelocityData = function(self)
 	for offset, value in pairs(rawVelocity) do
 		local timePoint = self.foregroundLayerData:getTimePoint(offset / 1000, 1)
 		local velocityData = ncdk.VelocityData:new(timePoint)
-		velocityData.currentSpeed = ncdk.Fraction:new():fromNumber(value, 1000, 1)
+		velocityData.currentSpeed = value
 		self.foregroundLayerData:addVelocityData(velocityData)
 	end
 	
