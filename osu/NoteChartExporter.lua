@@ -144,27 +144,59 @@ NoteChartExporter.addEvents = function(self)
 	lines[#lines + 1] = ""
 end
 
+local sortTimingStates = function(a, b)
+	return a.time < b.time
+end
 NoteChartExporter.addTimingPoints = function(self)
-	local lines = self.lines
-	
-	lines[#lines + 1] = "[TimingPoints]"
+	local timingStates = {}
 	
 	local layerData = self.noteChart:requireLayerData(1)
 	for tempoDataIndex = 1, layerData:getTempoDataCount() do
 		local tde = TimingDataExporter:new()
 		tde.tempoData = layerData:getTempoData(tempoDataIndex)
-		lines[#lines + 1] = tde:getTempo()
+		
+		local time = tde.tempoData.leftTimePoint.absoluteTime
+		timingStates[time] = timingStates[time] or {}
+		timingStates[time].tempo = tde
 	end
 	for stopDataIndex = 1, layerData:getStopDataCount() do
 		local tde = TimingDataExporter:new()
 		tde.stopData = layerData:getStopData(stopDataIndex)
-		lines[#lines + 1] = tde:getStop()
+		
+		local time = tde.stopData.leftTimePoint.absoluteTime
+		timingStates[time] = timingStates[time] or {}
+		timingStates[time].stop = tde
 	end
 	for velocityDataIndex = 1, layerData:getVelocityDataCount() do
 		local tde = TimingDataExporter:new()
 		tde.velocityData = layerData:getVelocityData(velocityDataIndex)
 		if tde.velocityData.sv then
-			lines[#lines + 1] = tde:getVelocity()
+			local time = tde.velocityData.leftTimePoint.absoluteTime
+			timingStates[time] = timingStates[time] or {}
+			timingStates[time].velocity = tde
+		end
+	end
+	
+	local timingStatesList = {}
+	for time, timingState in pairs(timingStates) do
+		timingState.time = time
+		timingStatesList[#timingStatesList + 1] = timingState
+	end
+	table.sort(timingStatesList, sortTimingStates)
+	
+	local lines = self.lines
+	
+	lines[#lines + 1] = "[TimingPoints]"
+	
+	for i = 1, #timingStatesList do
+		local timingState = timingStatesList[i]
+		if timingState.stop then
+			lines[#lines + 1] = timingState.stop:getStop()
+		elseif timingState.tempo then
+			lines[#lines + 1] = timingState.tempo:getTempo()
+		end
+		if timingState.velocity then
+			lines[#lines + 1] = timingState.velocity:getVelocity()
 		end
 	end
 	

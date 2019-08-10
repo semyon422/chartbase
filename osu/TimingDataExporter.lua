@@ -28,7 +28,7 @@ TimingDataExporter.getStop = function(self)
 		1
 	) .. "\n" ..
 	timingPointString:format(
-		self.stopData.tempoData.rightTimePoint.absoluteTime * 1000,
+		self.stopData.rightTimePoint.absoluteTime * 1000,
 		self.stopData.tempoData:getBeatDuration() * 1000,
 		1
 	)
