@@ -288,7 +288,7 @@ NoteChartImporter.processMeasureLines = function(self)
 	end
 	
 	for _, startTime in ipairs(lines) do
-		local timePoint = self.foregroundLayerData:getTimePoint(startTime / 1000)
+		local timePoint = self.foregroundLayerData:getTimePoint(startTime / 1000, 1)
 		
 		local startNoteData = ncdk.NoteData:new(timePoint)
 		startNoteData.inputType = "measure"
