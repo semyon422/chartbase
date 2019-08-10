@@ -58,9 +58,13 @@ NoteChartExporter.loadNotes = function(self)
 				nde.noteData = noteData
 				hitObjects[#hitObjects + 1] = nde:getHitObject()
 			elseif noteData.noteType == "SoundNote" then
-				local nde = NoteDataExporter:new()
-				nde.noteData = noteData
-				events[#events + 1] = nde:getEventSample()
+				if noteData.stream then
+					self.audioPath = noteData.sounds[1][1]
+				else
+					local nde = NoteDataExporter:new()
+					nde.noteData = noteData
+					events[#events + 1] = nde:getEventSample()
+				end
 			end
 		end
 	end
@@ -68,11 +72,19 @@ end
 
 NoteChartExporter.addHeader = function(self)
 	local lines = self.lines
+	local cacheData = self.cacheData
 	
 	lines[#lines + 1] = "osu file format v14"
 	lines[#lines + 1] = ""
 	lines[#lines + 1] = "[General]"
-	lines[#lines + 1] = "AudioFilename: virtual"
+	
+	local audioPath = cacheData.audioPath
+	if audioPath ~= "" then
+		lines[#lines + 1] = "AudioFilename: " .. audioPath
+	else
+		lines[#lines + 1] = "AudioFilename: virtual"
+	end
+	
 	lines[#lines + 1] = "AudioLeadIn: 0"
 	lines[#lines + 1] = "PreviewTime: 0"
 	lines[#lines + 1] = "Countdown: 0"
@@ -82,14 +94,14 @@ NoteChartExporter.addHeader = function(self)
 	lines[#lines + 1] = "LetterboxInBreaks: 0"
 	lines[#lines + 1] = ""
 	lines[#lines + 1] = "[Metadata]"
-	lines[#lines + 1] = "Title:"
-	lines[#lines + 1] = "TitleUnicode:"
-	lines[#lines + 1] = "Artist:"
-	lines[#lines + 1] = "ArtistUnicode:"
-	lines[#lines + 1] = "Creator:"
-	lines[#lines + 1] = "Version:"
-	lines[#lines + 1] = "Source:"
-	lines[#lines + 1] = "Tags:"
+	lines[#lines + 1] = "Title:" .. cacheData.title
+	lines[#lines + 1] = "TitleUnicode:" .. cacheData.title
+	lines[#lines + 1] = "Artist:" .. cacheData.artist
+	lines[#lines + 1] = "ArtistUnicode:" .. cacheData.artist
+	lines[#lines + 1] = "Creator:" .. cacheData.creator
+	lines[#lines + 1] = "Version:" .. cacheData.name
+	lines[#lines + 1] = "Source:" .. cacheData.source
+	lines[#lines + 1] = "Tags:" .. cacheData.tags
 	lines[#lines + 1] = "BeatmapID:0"
 	lines[#lines + 1] = "BeatmapSetID:-1"
 	lines[#lines + 1] = ""
@@ -108,10 +120,16 @@ end
 NoteChartExporter.addEvents = function(self)
 	local lines = self.lines
 	local events = self.events
+	local cacheData = self.cacheData
 	
 	lines[#lines + 1] = "[Events]"
+	
 	lines[#lines + 1] = "//Background and Video events"
-	lines[#lines + 1] = "0,0,\"background.jpg\",0,0"
+	local stagePath = cacheData.stagePath
+	if stagePath ~= "" then
+		lines[#lines + 1] = ("0,0,\"%s\",0,0"):format(stagePath)
+	end
+	
 	lines[#lines + 1] = "//Break Periods"
 	lines[#lines + 1] = "//Storyboard Layer 0 (Background)"
 	lines[#lines + 1] = "//Storyboard Layer 1 (Fail)"
