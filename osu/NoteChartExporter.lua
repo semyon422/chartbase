@@ -86,7 +86,7 @@ NoteChartExporter.addHeader = function(self)
 	end
 	
 	lines[#lines + 1] = "AudioLeadIn: 0"
-	lines[#lines + 1] = "PreviewTime: 0"
+	lines[#lines + 1] = "PreviewTime: " .. cacheData.previewTime * 1000
 	lines[#lines + 1] = "Countdown: 0"
 	lines[#lines + 1] = "SampleSet: Soft"
 	lines[#lines + 1] = "StackLeniency: 0.7"
