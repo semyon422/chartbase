@@ -74,7 +74,7 @@ NoteChartImporter.process = function(self)
 	
 	self.audioFileName = self.osu.metadata["AudioFilename"]
 	self:processAudio()
-	self:processVelocityData()
+	self:processTimingPoints()
 	
 	for _, noteParser in ipairs(self.noteDataImporters) do
 		self.foregroundLayerData:addNoteData(noteParser:getNoteData())
@@ -179,33 +179,44 @@ NoteChartImporter.processAudio = function(self)
 	end
 end
 
-NoteChartImporter.processVelocityData = function(self)
+NoteChartImporter.processTimingPoints = function(self)
 	local currentBeatLength = self.primaryBeatLength
 	
-	local rawVelocity = {}
+	local timingState = {}
 	for i = 1, #self.timingDataImporters do
 		local tdi = self.timingDataImporters[i]
 		
-		rawVelocity[tdi.startTime] = rawVelocity[tdi.startTime] or 1
+		timingState[tdi.startTime] = timingState[tdi.startTime] or {}
 		
 		if tdi.timingChange then
 			currentBeatLength = tdi.beatLength
-			rawVelocity[tdi.startTime]
-				= self.primaryBeatLength
-				/ currentBeatLength
+			local data = timingState[tdi.startTime]
+			data.isTempo = true
+			data.clearSpeed = 1
+			data.modifiedSpeed = self.primaryBeatLength / currentBeatLength
+			data.beatLength = tdi.beatLength
 		else
-			rawVelocity[tdi.startTime]
-				= tdi.velocity
-				* self.primaryBeatLength
-				/ currentBeatLength
+			local data = timingState[tdi.startTime]
+			data.isVelocity = true
+			data.clearSpeed = tdi.velocity
+			data.modifiedSpeed = tdi.velocity * self.primaryBeatLength / currentBeatLength
 		end
 	end
 	
-	for offset, value in pairs(rawVelocity) do
-		local timePoint = self.foregroundLayerData:getTimePoint(offset / 1000, 1)
+	for offset, data in pairs(timingState) do
+		local time = offset / 1000
+		local timePoint = self.foregroundLayerData:getTimePoint(time, 1)
+		
 		local velocityData = ncdk.VelocityData:new(timePoint)
-		velocityData.currentSpeed = value
+		velocityData.currentSpeed = data.modifiedSpeed
+		velocityData.clearCurrentSpeed = data.clearSpeed
+		velocityData.sv = data.isVelocity
 		self.foregroundLayerData:addVelocityData(velocityData)
+		
+		if data.isTempo then
+			local tempoData = ncdk.TempoData:new(time, 60000 / data.beatLength)
+			self.foregroundLayerData:addTempoData(tempoData)
+		end
 	end
 	
 	self.foregroundLayerData.spaceData.velocityDataSequence:sort()

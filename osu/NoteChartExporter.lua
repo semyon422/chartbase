@@ -160,6 +160,13 @@ NoteChartExporter.addTimingPoints = function(self)
 		tde.stopData = layerData:getStopData(stopDataIndex)
 		lines[#lines + 1] = tde:getStop()
 	end
+	for velocityDataIndex = 1, layerData:getVelocityDataCount() do
+		local tde = TimingDataExporter:new()
+		tde.velocityData = layerData:getVelocityData(velocityDataIndex)
+		if tde.velocityData.sv then
+			lines[#lines + 1] = tde:getVelocity()
+		end
+	end
 	
 	lines[#lines + 1] = ""
 end

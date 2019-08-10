@@ -79,7 +79,7 @@ NoteChartImporter.process = function(self)
 	self.audioFileName = self.qua.AudioFile
 	self:processAudio()
 	
-	self:processVelocityData()
+	self:processTimingPoints()
 	
 	for _, noteParser in ipairs(self.noteDataImporters) do
 		self.foregroundLayerData:addNoteData(noteParser:getNoteData())
@@ -90,7 +90,7 @@ NoteChartImporter.updateLength = osuNoteChartImporter.updateLength
 NoteChartImporter.processTimingDataImporters = osuNoteChartImporter.processTimingDataImporters
 NoteChartImporter.updatePrimaryBPM = osuNoteChartImporter.updatePrimaryBPM
 NoteChartImporter.processAudio = osuNoteChartImporter.processAudio
-NoteChartImporter.processVelocityData = osuNoteChartImporter.processVelocityData
+NoteChartImporter.processTimingPoints = osuNoteChartImporter.processTimingPoints
 NoteChartImporter.processMeasureLines = osuNoteChartImporter.processMeasureLines
 
 NoteChartImporter.addTimingPointParser = function(self, timingPoint)

@@ -11,11 +11,12 @@ TimingDataExporter.new = function(self)
 	return timingDataExporter
 end
 
-local timingPointString = "%s,%s,4,2,0,100,1,0"
+local timingPointString = "%s,%s,4,2,0,100,%s,0"
 TimingDataExporter.getTempo = function(self)
 	return timingPointString:format(
 		self.tempoData.rightTimePoint.absoluteTime * 1000,
-		self.tempoData:getBeatDuration() * 1000
+		self.tempoData:getBeatDuration() * 1000,
+		1
 	)
 end
 
@@ -23,11 +24,21 @@ TimingDataExporter.getStop = function(self)
 	return
 	timingPointString:format(
 		self.stopData.leftTimePoint.absoluteTime * 1000,
-		60000000
+		60000000,
+		1
 	) .. "\n" ..
 	timingPointString:format(
 		self.stopData.tempoData.rightTimePoint.absoluteTime * 1000,
-		self.stopData.tempoData:getBeatDuration() * 1000
+		self.stopData.tempoData:getBeatDuration() * 1000,
+		1
+	)
+end
+
+TimingDataExporter.getVelocity = function(self)
+	return timingPointString:format(
+		self.velocityData.timePoint.absoluteTime * 1000,
+		-100 / (self.velocityData.rawCurrentSpeed or self.velocityData.currentSpeed),
+		0
 	)
 end
 
