@@ -148,6 +148,8 @@ NoteChartImporter.processData = function(self)
 			local channelInfo
 			if self.bms.mode == 10 and enums.ChannelEnum5Keys[channelIndex] then
 				channelInfo = enums.ChannelEnum5Keys[channelIndex]
+			elseif self.bms.mode == 9 and enums.ChannelEnum9Keys[channelIndex] then
+				channelInfo = enums.ChannelEnum9Keys[channelIndex]
 			else
 				channelInfo = enums.ChannelEnum[channelIndex]
 			end
