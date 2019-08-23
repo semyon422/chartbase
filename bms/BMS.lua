@@ -79,8 +79,9 @@ BMS.updateMode = function(self, channel)
 		return
 	end
 	
-	local inputIndex = enums.ChannelEnum[channel].inputIndex
-	if inputIndex then
+	local channelInfo = enums.ChannelEnum[channel]
+	if channelInfo and channelInfo.name == "Note" then
+		local inputIndex = channelInfo.inputIndex
 		self.mode = self.mode or 5
 		if inputIndex > self.mode then
 			if inputIndex > 12 then
