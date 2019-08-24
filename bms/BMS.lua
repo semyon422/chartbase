@@ -74,13 +74,11 @@ BMS.processHeaderLine = function(self, line)
 end
 
 BMS.updateMode = function(self, channel)
-	if self.pms then
-		self.mode = 9
-		return
-	end
-	
 	local channelInfo = enums.ChannelEnum[channel]
-	if channelInfo and channelInfo.name == "Note" then
+	local channelInfo9Keys = enums.ChannelEnum9Keys[channel]
+	local ChannelEnum18Keys = enums.ChannelEnum18Keys[channel]
+	
+	if channelInfo and channelInfo.name == "Note" and not self.pms and not self.pmsdp then
 		local inputIndex = channelInfo.inputIndex
 		self.mode = self.mode or 5
 		if inputIndex > self.mode then
@@ -92,6 +90,19 @@ BMS.updateMode = function(self, channel)
 				self.mode = 7
 			end
 		end
+		return
+	end
+	
+	if channelInfo9Keys and channelInfo9Keys.name == "Note" and not self.pmsdp then
+		self.mode = 9
+		self.pms = true
+		return
+	end
+	
+	if channelInfo18Keys and channelInfo9Keys.name == "Note" then
+		self.mode = 18
+		self.pmsdp = true
+		return
 	end
 end
 

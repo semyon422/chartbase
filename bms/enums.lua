@@ -125,6 +125,28 @@ enums.ChannelEnum9Keys = {
 	["55"] = {name = "Note", inputType = "key", inputIndex = 9, long = true},
 }
 
+enums.ChannelEnum18Keys = {
+	["21"] = {name = "Note", inputType = "key", inputIndex = 10},
+	["22"] = {name = "Note", inputType = "key", inputIndex = 11},
+	["23"] = {name = "Note", inputType = "key", inputIndex = 12},
+	["24"] = {name = "Note", inputType = "key", inputIndex = 13},
+	["25"] = {name = "Note", inputType = "key", inputIndex = 14},
+	["28"] = {name = "Note", inputType = "key", inputIndex = 15},
+	["29"] = {name = "Note", inputType = "key", inputIndex = 16},
+	["26"] = {name = "Note", inputType = "key", inputIndex = 17},
+	["27"] = {name = "Note", inputType = "key", inputIndex = 18},
+	
+	["61"] = {name = "Note", inputType = "key", inputIndex = 10, long = true},
+	["62"] = {name = "Note", inputType = "key", inputIndex = 11, long = true},
+	["63"] = {name = "Note", inputType = "key", inputIndex = 12, long = true},
+	["64"] = {name = "Note", inputType = "key", inputIndex = 13, long = true},
+	["65"] = {name = "Note", inputType = "key", inputIndex = 14, long = true},
+	["68"] = {name = "Note", inputType = "key", inputIndex = 15, long = true},
+	["69"] = {name = "Note", inputType = "key", inputIndex = 16, long = true},
+	["66"] = {name = "Note", inputType = "key", inputIndex = 17, long = true},
+	["67"] = {name = "Note", inputType = "key", inputIndex = 18, long = true},
+}
+
 enums.BackChannelEnum = {
 	["BGM"] = "01",
 	["Signature"] = "02",

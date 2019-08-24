@@ -28,15 +28,7 @@ NoteChartImporter.import = function(self, noteChartString)
 		self.bms:import(noteChartString)
 	end
 	
-	self.noteChart.inputMode:setInputCount("key", self.bms.mode)
-	if self.pms then
-		-- skip
-	elseif self.bms.mode > 7 then
-		self.noteChart.inputMode:setInputCount("scratch", 2)
-	else
-		self.noteChart.inputMode:setInputCount("scratch", 1)
-	end
-	
+	self:setInputMode()
 	self:addFirstTempo()
 	
 	self:processData()
@@ -45,12 +37,35 @@ NoteChartImporter.import = function(self, noteChartString)
 	self:processMeasureLines()
 	
 	self.noteChart.type = "bms"
-	
 	self.noteChart:compute()
 	
 	self:updateLength()
 	
 	return self.noteChart
+end
+
+NoteChartImporter.setInputMode = function(self)
+	local mode = self.bms.mode
+	self.noteChart.inputMode:setInputCount("key", mode)
+	
+	local scratch
+	if mode == 5 then
+		self.noteChart.inputMode:setInputCount("scratch", 1)
+		self.ChannelEnum = enums.ChannelEnum5Keys
+	elseif mode == 7 then
+		self.noteChart.inputMode:setInputCount("scratch", 1)
+		self.ChannelEnum = enums.ChannelEnum
+	elseif mode == 10 then
+		self.noteChart.inputMode:setInputCount("scratch", 2)
+		self.ChannelEnum = enums.ChannelEnum5Keys
+	elseif mode == 14 then
+		self.noteChart.inputMode:setInputCount("scratch", 2)
+		self.ChannelEnum = enums.ChannelEnum
+	elseif mode == 9 then
+		self.ChannelEnum = enums.ChannelEnum9Keys
+	elseif mode == 18 then
+		self.ChannelEnum = enums.ChannelEnum18Keys
+	end
 end
 
 NoteChartImporter.updateLength = function(self)
@@ -145,14 +160,7 @@ NoteChartImporter.processData = function(self)
 		self:setStop(timeData)
 		
 		for channelIndex, indexDataValues in pairs(timeData) do
-			local channelInfo
-			if self.bms.mode == 10 and enums.ChannelEnum5Keys[channelIndex] then
-				channelInfo = enums.ChannelEnum5Keys[channelIndex]
-			elseif self.bms.mode == 9 and enums.ChannelEnum9Keys[channelIndex] then
-				channelInfo = enums.ChannelEnum9Keys[channelIndex]
-			else
-				channelInfo = enums.ChannelEnum[channelIndex]
-			end
+			local channelInfo = self.ChannelEnum[channelIndex] or enums.ChannelEnum[channelIndex]
 			
 			if channelInfo and (
 				channelInfo.name == "Note" or
