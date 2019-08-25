@@ -110,6 +110,7 @@ NoteChartImporter.setExtendedTempo = function(self, timeData)
 		self.currentVelocityData = ncdk.VelocityData:new(timePoint)
 		self.currentVelocityData.currentSpeed = self.currentTempoData.tempo / self.bms.primaryTempo
 		self.foregroundLayerData:addVelocityData(self.currentVelocityData)
+		return true
 	end
 end
 
@@ -155,8 +156,9 @@ NoteChartImporter.processData = function(self)
 	end
 	
 	for _, timeData in ipairs(self.bms.timeList) do
-		self:setTempo(timeData)
-		self:setExtendedTempo(timeData)
+		if not self:setExtendedTempo(timeData) then
+			self:setTempo(timeData)
+		end
 		self:setStop(timeData)
 		
 		for channelIndex, indexDataValues in pairs(timeData) do
