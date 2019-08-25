@@ -48,7 +48,7 @@ NoteChartImporter.setInputMode = function(self)
 	local mode = self.bms.mode
 	self.noteChart.inputMode:setInputCount("key", mode)
 	
-	local scratch
+	self.ChannelEnum = enums.ChannelEnum
 	if mode == 5 then
 		self.noteChart.inputMode:setInputCount("scratch", 1)
 		self.ChannelEnum = enums.ChannelEnum5Keys
