@@ -29,7 +29,11 @@ NoteDataExporter.getHitObject = function(self)
 		hitSound = soundData[1]
 	end
 	
-	local key = self.mappings[noteData.inputType] and self.mappings[noteData.inputType][noteData.inputIndex]
+	if not self.mappings[noteData.inputType] then
+		return
+	end
+	
+	local key = self.mappings[noteData.inputType][noteData.inputIndex]
 	local keymode = self.mappings.keymode
 	if not key then
 		key = noteData.inputIndex

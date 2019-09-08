@@ -24,4 +24,12 @@ mappings["14key2scratch"] = {
 	keymode = 16
 }
 
+mappings["4bt2fx2laserleft2laserright"] = {
+	bt = {3, 4, 7, 8},
+	fx = {5, 6},
+	laserleft = {1, 9},
+	laserright = {2, 10},
+	keymode = 10
+}
+
 return mappings
