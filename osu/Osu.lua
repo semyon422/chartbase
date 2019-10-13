@@ -217,6 +217,7 @@ Osu.setSounds = function(self, note)
 	if note.customHitSound and note.customHitSound ~= "" then
 		note.sounds[1] = {note.customHitSound, note.volume}
 		note.fallbackSounds[#note.fallbackSounds + 1] = {note.customHitSound, note.volume}
+		note.keysound = true
 		return
 	end
 	

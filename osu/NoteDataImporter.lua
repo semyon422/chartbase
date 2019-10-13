@@ -40,6 +40,7 @@ NoteDataImporter.initEvent = function(self)
 		self.sounds[1] = {self.sound, self.volume / 100}
 		self.noteChart:addResource("sound", self.sound, {self.sound})
 	end
+	self.keysound = true
 	
 	self.inputType = "auto"
 	self.inputIndex = 0
@@ -54,6 +55,7 @@ NoteDataImporter.getNoteData = function(self)
 	startNoteData.inputType = self.inputType
 	startNoteData.inputIndex = self.inputIndex
 	startNoteData.sounds = self.sounds
+	startNoteData.keysound = self.keysound
 	
 	if self.inputType == "auto" then
 		startNoteData.noteType ="SoundNote"
@@ -67,6 +69,7 @@ NoteDataImporter.getNoteData = function(self)
 		endNoteData = ncdk.NoteData:new(endTimePoint)
 		endNoteData.inputType = self.inputType
 		endNoteData.inputIndex = self.inputIndex
+		endNoteData.keysound = self.keysound
 	
 		endNoteData.noteType = "LongNoteEnd"
 		
