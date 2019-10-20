@@ -26,7 +26,8 @@ NoteChartExporter.export = function(self)
 	if not self.mappings then
 		local keymode = inputMode:getInputCount("key")
 		self.mappings = {
-			keymode = keymode > 0 and keymode or 1
+			keymode = keymode > 0 and keymode or 1,
+			key = {}
 		}
 	end
 	
@@ -171,7 +172,7 @@ NoteChartExporter.addTimingPoints = function(self)
 		local tde = TimingDataExporter:new()
 		tde.velocityData = layerData:getVelocityData(velocityDataIndex)
 		if tde.velocityData.sv then
-			local time = tde.velocityData.leftTimePoint.absoluteTime
+			local time = tde.velocityData.timePoint.absoluteTime
 			timingStates[time] = timingStates[time] or {}
 			timingStates[time].velocity = tde
 		end

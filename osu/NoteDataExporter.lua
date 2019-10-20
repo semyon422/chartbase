@@ -19,10 +19,6 @@ local longAddition = "%s:0:0:0:0:%s"
 NoteDataExporter.getHitObject = function(self)
 	local noteData = self.noteData
 	
-	if noteData.noteType ~= "ShortNote" and noteData.noteType ~= "LongNoteStart" then
-		return
-	end
-	
 	local soundData = noteData.sounds and noteData.sounds[1]
 	local hitSound = ""
 	if soundData then
