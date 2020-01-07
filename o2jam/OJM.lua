@@ -72,13 +72,10 @@ OJM.process = function(self)
 	self.signature = byte.read_uint32_le(self.buffer)
 	
 	if self.signature == self.M30_SIGNATURE then
-		print("M30")
 		self:parseM30()
 	elseif self.signature == self.OMC_SIGNATURE then 
-		print("OMC")
 		self:parseOMC(true)
 	elseif self.signature == self.OJM_SIGNATURE then
-		print("OJM")
 		self:parseOMC(false)
 	end
 end
@@ -92,17 +89,8 @@ OJM.parseM30 = function(self)
 	local sample_offset = byte.read_int32_le(buffer)
 	local payload_size = byte.read_int32_le(buffer)
 	local padding = byte.read_int32_le(buffer)
-	print(
-		file_format_version,
-		encryption_flag,
-		sample_count,
-		sample_offset,
-		payload_size,
-		padding
-	)
 	
 	for i = 0, sample_count - 1 do
-		print(i, sample_count, buffer.length)
 		if buffer.length < 52 then
 			break
 		end
@@ -120,7 +108,6 @@ OJM.parseM30 = function(self)
 		local ref = byte.read_int16_le(buffer)
 		local unk_zero = byte.read_int16_le(buffer)
 		local pcm_samples = byte.read_int32_le(buffer)
-		print(sample_size, codec_code, codec_code2, music_flag, ref, unk_zero, pcm_samples)
 
 		local ptr = buffer.pointer
 		local sample_data_buffer = byte.slice(buffer, 0, sample_size)
