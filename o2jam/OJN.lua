@@ -140,7 +140,7 @@ OJN.readChart = function(self, chart)
 			else
 				local value = byte.read_int16_le(buffer)
 				local volume_pan = byte.read_int8(buffer)
-				local type = byte.read_int8(buffer)
+				local type = byte.read_uint8(buffer)
 				if value ~= 0 then
 					local volume = bit.band(bit.rshift(volume_pan, 4), 0x0F) / 16
 					if volume == 0 then volume = 1 end
