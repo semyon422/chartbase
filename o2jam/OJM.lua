@@ -1,4 +1,5 @@
 local byte = require("aqua.byte")
+local bit = require("bit")
 
 local OJM = {}
 
@@ -8,7 +9,7 @@ OJM_metatable.__index = OJM
 OJM.new = function(self, ojmString)
 	local ojm = {}
 	
-	ojm.buffer = byte.buffer(ojmString, true)
+	ojm.buffer = byte.buffer(ojmString, 0, #ojmString, true)
 	ojm.samples = {}
 	ojm.acc_keybyte = 0xFF
 	ojm.acc_counter = 0
@@ -68,61 +69,72 @@ OJM.REARRANGE_TABLE = {
 }
 
 OJM.process = function(self)
-	local buffer = byte.buffer(byte.read(self.buffer, 0, 4), true)
-	self.signature = byte.getInteger(buffer, 4)
+	self.signature = byte.read_uint32_le(self.buffer)
 	
 	if self.signature == self.M30_SIGNATURE then
+		print("M30")
 		self:parseM30()
 	elseif self.signature == self.OMC_SIGNATURE then 
+		print("OMC")
 		self:parseOMC(true)
 	elseif self.signature == self.OJM_SIGNATURE then
+		print("OJM")
 		self:parseOMC(false)
 	end
 end
 
 OJM.parseM30 = function(self)
-	local buffer = byte.buffer(byte.read(self.buffer, 4, 28), true)
+	local buffer = self.buffer
 	
-	local file_format_version = byte.getInteger(buffer, 4)
-	local encryption_flag = byte.getInteger(buffer, 4)
-	local sample_count = byte.getInteger(buffer, 4)
-	local sample_offset = byte.getInteger(buffer, 4)
-	local payload_size = byte.getInteger(buffer, 4)
-	local padding = byte.getInteger(buffer, 4)
-	
-	buffer = byte.buffer(byte.read(self.buffer, 28, self.buffer.size - 28), true)
+	local file_format_version = byte.read_int32_le(buffer)
+	local encryption_flag = byte.read_int32_le(buffer)
+	local sample_count = byte.read_int32_le(buffer)
+	local sample_offset = byte.read_int32_le(buffer)
+	local payload_size = byte.read_int32_le(buffer)
+	local padding = byte.read_int32_le(buffer)
+	print(
+		file_format_version,
+		encryption_flag,
+		sample_count,
+		sample_offset,
+		payload_size,
+		padding
+	)
 	
 	for i = 0, sample_count - 1 do
-		if buffer.remaining < 52 then
+		print(i, sample_count, buffer.length)
+		if buffer.length < 52 then
 			break
 		end
 		
-		local sample_name = byte.get(buffer, 32)
-		local byte_name = {byte.bytes(sample_name)}
+		local sample_name = byte.read_string(buffer, 32)
 		
 		if not sample_name:find(".") then sample_name = sample_name .. ".ogg" end
-			
-		local sample_size = byte.getInteger(buffer, 4)
+		
+		local sample_size = byte.read_int32_le(buffer)
 
-		local codec_code = byte.getInteger(buffer, 2)
-		local codec_code2 = byte.getInteger(buffer, 2)
+		local codec_code = byte.read_int16_le(buffer)
+		local codec_code2 = byte.read_int16_le(buffer)
 
-		local music_flag = byte.getInteger(buffer, 4)
-		local ref = byte.getInteger(buffer, 2)
-		local unk_zero = byte.getInteger(buffer, 2)
-		local pcm_samples = byte.getInteger(buffer, 4)
+		local music_flag = byte.read_int32_le(buffer)
+		local ref = byte.read_int16_le(buffer)
+		local unk_zero = byte.read_int16_le(buffer)
+		local pcm_samples = byte.read_int32_le(buffer)
+		print(sample_size, codec_code, codec_code2, music_flag, ref, unk_zero, pcm_samples)
 
-		local sample_data = {byte.bytes(byte.get(buffer, sample_size))}
+		local ptr = buffer.pointer
+		local sample_data_buffer = byte.slice(buffer, 0, sample_size)
+		byte.step(buffer, sample_size)
 
 		if encryption_flag == 0 then
 		elseif encryption_flag == 16 then
-			self:M30_xor(sample_data, self.mask_nami)
+			self:M30_xor(sample_data_buffer, self.mask_nami)
 		elseif encryption_flag == 32 then
-			self:M30_xor(sample_data, self.mask_0412)
+			self:M30_xor(sample_data_buffer, self.mask_0412)
 		end
 
 		local audioData = {
-			sampleData = table.concat(sample_data)
+			sampleData = byte.tostring(sample_data_buffer)
 		}
 		local value = ref
 		if codec_code == 0 then
@@ -134,23 +146,24 @@ OJM.parseM30 = function(self)
 	end
 end
 
-OJM.M30_xor = function(self, array, mask)
-	for i = 0, #array - 4, 4 do
-		array[i + 1] = array[i + 1] ^ mask[1]
-		array[i + 2] = array[i + 2] ^ mask[2]
-		array[i + 3] = array[i + 3] ^ mask[3]
-		array[i + 4] = array[i + 4] ^ mask[4]
+OJM.M30_xor = function(self, buffer, mask)
+	local pointer = buffer.pointer
+	for i = 0, buffer.length - 4, 4 do
+		pointer[i + 0] = bit.bxor(pointer[i + 0], mask[1])
+		pointer[i + 1] = bit.bxor(pointer[i + 1], mask[2])
+		pointer[i + 2] = bit.bxor(pointer[i + 2], mask[3])
+		pointer[i + 3] = bit.bxor(pointer[i + 3], mask[4])
 	end
 end
 
 OJM.parseOMC = function(self, decrypt)
-	local buffer = byte.buffer(byte.read(self.buffer, 4, 16), true)
+	local buffer = self.buffer
 	
-	local unk1 = byte.getInteger(buffer, 2)
-	local unk2 = byte.getInteger(buffer, 2)
-	local wav_start = byte.getInteger(buffer, 4)
-	local ogg_start = byte.getInteger(buffer, 4)
-	local filesize = byte.getInteger(buffer, 4)
+	local unk1 = byte.read_int16_le(buffer)
+	local unk2 = byte.read_int16_le(buffer)
+	local wav_start = byte.read_int32_le(buffer)
+	local ogg_start = byte.read_int32_le(buffer)
+	local filesize = byte.read_int32_le(buffer)
 
 	local file_offset = 20
 	local sample_id = 0
@@ -159,36 +172,37 @@ OJM.parseOMC = function(self, decrypt)
 	local acc_counter = 0
 	
 	while file_offset < ogg_start do
-		buffer = byte.buffer(byte.read(self.buffer, file_offset, 16), true)
+		-- buffer = byte.buffer(byte.read(self.buffer, file_offset, 16), true)
 		file_offset = file_offset + 56
 
-		local sample_name = byte.get(buffer, 32)
-		local byte_name = {byte.bytes(sample_name)}
+		local sample_name = byte.read_string(buffer, 32)
 		
 		if not sample_name:find(".") then sample_name = sample_name .. ".wav" end
 
-		local audio_format = byte.getInteger(buffer, 21)
-		local num_channels = byte.getInteger(buffer, 2)
-		local sample_rate = byte.getInteger(buffer, 4)
-		local bit_rate = byte.getInteger(buffer, 4)
-		local block_align = byte.getInteger(buffer, 2)
-		local bits_per_sample = byte.getInteger(buffer, 2)
-		local data = byte.getInteger(buffer, 4)
-		local chunk_size = byte.getInteger(buffer, 4)
+		local audio_format = byte.read_int16_le(buffer)
+		local num_channels = byte.read_int16_le(buffer)
+		local sample_rate = byte.read_int32_le(buffer)
+		local bit_rate = byte.read_int32_le(buffer)
+		local block_align = byte.read_int16_le(buffer)
+		local bits_per_sample = byte.read_int16_le(buffer)
+		local data = byte.read_int32_le(buffer)
+		local chunk_size = byte.read_int32_le(buffer)
 
 		if chunk_size == 0 then
 			sample_id = sample_id + 1
 		else
 			local header = {} --WAVHeader(audio_format, num_channels, sample_rate, bit_rate, block_align, bits_per_sample, data, chunk_size);
 
-			buffer = byte.buffer(byte.read(self.buffer, file_offset, chunk_size), true)
+			-- buffer = byte.buffer(byte.read(self.buffer, file_offset, chunk_size), true)
 			file_offset = file_offset + chunk_size
 
-			local buf = {byte.bytes(byte.get(buffer, buffer.remaining))}
+			local buf = byte.slice(buffer, 0, chunk_size)
+			byte.step(chunk_size)
+			local buf_bytes = byte.bytes(buf)
 
 			if decrypt then
-				buf = self:rearrange(buf)
-				buf = self:OMC_xor(buf)
+				buf_bytes = self:rearrange(buf_bytes)
+				buf_bytes = self:OMC_xor(buf_bytes)
 			end
 
 			-- buffer = ByteBuffer.allocateDirect(buf.length);
@@ -196,7 +210,7 @@ OJM.parseOMC = function(self, decrypt)
 			-- buffer.flip();
 
 			local audioData = {
-				sampleData = table.concat(buf)
+				sampleData = table.concat(buf_bytes)
 			}
 			self.samples[sample_id] = audioData
 			sample_id = sample_id + 1
@@ -205,24 +219,22 @@ OJM.parseOMC = function(self, decrypt)
 	
 	sample_id = 1000
 	while file_offset < filesize do
-		buffer = byte.buffer(byte.read(self.buffer, file_offset, 36), true)
+		-- buffer = byte.buffer(byte.read(self.buffer, file_offset, 36), true)
 		file_offset = file_offset + 36
 
-		local sample_name = byte.get(buffer, 32)
-		local byte_name = {byte.bytes(sample_name)}
+		local sample_name = byte.read_string(buffer, 32)
 		
 		if not sample_name:find(".") then sample_name = sample_name .. ".ogg" end
 			
-		local sample_size = byte.getInteger(buffer, 4)
+		local sample_size = byte.read_int32_le(buffer)
 		
 		if sample_size == 0 then
 			sample_id = sample_id + 1
 		else
-			buffer = byte.buffer(byte.read(self.buffer, file_offset, sample_size), true)
 			file_offset = file_offset + sample_size
 
 			local audioData = {
-				sampleData = buffer.s
+				sampleData = byte.read_string(buffer, sample_size)
 			}
 			self.samples[sample_id] = audioData
 			sample_id = sample_id + 1
