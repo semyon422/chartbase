@@ -20,6 +20,7 @@ OJN.genre_map = {"Ballad", "Rock", "Dance", "Techno", "Hip-hop", "Soul/R&B", "Ja
 
 OJN.process = function(self)
 	self:readHeader()
+	self:readCover()
 	for _, chart in ipairs(self.charts) do
 		self:readChart(chart)
 	end
@@ -89,6 +90,11 @@ OJN.readHeader = function(self)
 	self.charts[1].note_offset_end = self.charts[2].note_offset
 	self.charts[2].note_offset_end = self.charts[3].note_offset
 	self.charts[3].note_offset_end = self.cover_offset
+end
+
+OJN.readCover = function(self)
+	local buffer = byte.buffer(self.buffer.string, self.cover_offset, self.cover_size, true)
+	self.cover = byte.tostring(buffer)
 end
 
 OJN.readChart = function(self, chart)
