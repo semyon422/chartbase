@@ -106,10 +106,9 @@ NoteChartImporter.processData = function(self)
 			noteData.inputType = event.channel:find("NOTE") and "key" or "auto"
 			noteData.inputIndex = event.channel:find("NOTE") and tonumber(event.channel:sub(-1, -1)) or 0
 			
-			noteData.sounds = {{event.value, event.volume}}
-			
 			if noteData.inputType == "auto" then
 				noteData.noteType = "SoundNote"
+				noteData.sounds = {{event.value, event.volume}}
 				self.foregroundLayerData:addNoteData(noteData)
 			else
 				if longNoteData[noteData.inputIndex] and event.type == "RELEASE" then
@@ -118,6 +117,7 @@ NoteChartImporter.processData = function(self)
 					noteData.startNoteData = longNoteData[noteData.inputIndex]
 					noteData.noteType = "LongNoteEnd"
 					longNoteData[noteData.inputIndex] = nil
+					noteData.sounds = {}
 				else
 					noteData.noteType = "ShortNote"
 					if event.type == "HOLD" then
@@ -133,6 +133,7 @@ NoteChartImporter.processData = function(self)
 					if not self.maxTimePoint or timePoint > self.maxTimePoint then
 						self.maxTimePoint = timePoint
 					end
+					noteData.sounds = {{event.value, event.volume}}
 				end
 				self.foregroundLayerData:addNoteData(noteData)
 			end
