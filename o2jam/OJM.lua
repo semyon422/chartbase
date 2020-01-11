@@ -185,6 +185,7 @@ OJM.parseOMC = function(self, decrypt)
 
 			local buf = byte.slice(buffer, 0, chunk_size)
 			byte.step(chunk_size)
+			byte.step(buffer, chunk_size)
 			local buf_bytes = byte.bytes(buf)
 
 			if decrypt then
