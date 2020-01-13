@@ -155,11 +155,10 @@ OJM.parseOMC = function(self, decrypt)
 	local file_offset = 20
 	local sample_id = 0
 
-	local acc_keybyte = 0xFF
-	local acc_counter = 0
+	self.acc_keybyte = 0xFF
+	self.acc_counter = 0
 	
 	while file_offset < ogg_start do
-		-- buffer = byte.buffer(byte.read(self.buffer, file_offset, 16), true)
 		file_offset = file_offset + 56
 
 		local sample_name = byte.read_string(buffer, 32)
@@ -178,13 +177,27 @@ OJM.parseOMC = function(self, decrypt)
 		if chunk_size == 0 then
 			sample_id = sample_id + 1
 		else
-			local header = {} --WAVHeader(audio_format, num_channels, sample_rate, bit_rate, block_align, bits_per_sample, data, chunk_size);
+			local headerTable = {
+				"RIFF", -- ChunkID
+				byte.int32_to_string_le(44 + chunk_size - 8), -- ChunkSize
+				"WAVE", -- Format
+				"fmt ", -- Subchunk1ID
+				byte.int32_to_string_le(16), -- Subchunk1Size
+				byte.int16_to_string_le(audio_format), -- AudioFormat
+				byte.int16_to_string_le(num_channels), -- NumChannels
+				byte.int32_to_string_le(sample_rate), -- SampleRate
+				byte.int32_to_string_le(sample_rate * num_channels * bits_per_sample / 8), -- ByteRate
+				byte.int16_to_string_le(block_align), -- BlockAlign
+				byte.int16_to_string_le(bits_per_sample), -- BitsPerSample
+				"data", -- Subchunk2ID
+				byte.int32_to_string_le(chunk_size) -- Subchunk2Size
+			}
+			local headerString = table.concat(headerTable)
+			assert(#headerString == 44)
 
-			-- buffer = byte.buffer(byte.read(self.buffer, file_offset, chunk_size), true)
 			file_offset = file_offset + chunk_size
 
 			local buf = byte.slice(buffer, 0, chunk_size)
-			byte.step(chunk_size)
 			byte.step(buffer, chunk_size)
 			local buf_bytes = byte.bytes(buf)
 
@@ -193,21 +206,23 @@ OJM.parseOMC = function(self, decrypt)
 				buf_bytes = self:OMC_xor(buf_bytes)
 			end
 
-			-- buffer = ByteBuffer.allocateDirect(buf.length);
-			-- buffer.put(buf);
-			-- buffer.flip();
+			local wav = {}
+			wav[1] = headerString
+			for i = 1, #buf_bytes do
+				wav[i + 1] = string.char(buf_bytes[i])
+			end
 
 			local audioData = {
-				sampleData = table.concat(buf_bytes)
+				sampleData = table.concat(wav)
 			}
 			self.samples[sample_id] = audioData
+
 			sample_id = sample_id + 1
 		end
 	end
 	
 	sample_id = 1000
 	while file_offset < filesize do
-		-- buffer = byte.buffer(byte.read(self.buffer, file_offset, 36), true)
 		file_offset = file_offset + 36
 
 		local sample_name = byte.read_string(buffer, 32)
@@ -234,15 +249,21 @@ OJM.rearrange = function(self, buf_encoded)
 	local length = #buf_encoded
 	local key = bit.lshift((length % 17), 4) + (length % 17)
 
-	local block_size = length / 17
+	local block_size = math.floor(length / 17)
 
 	local buf_plain = {}
-	table.copy(buf_encoded, 0, buf_plain, 0, length)
+	for i = 1, #buf_encoded do
+		buf_plain[i] = buf_encoded[i]
+	end
 
 	for block = 0, 16 do
 		local block_start_encoded = block_size * block
-		local block_start_plain = block_size * self.REARRANGE_TABLE[key]
-		table.copy(buf_encoded, block_start_encoded, buf_plain, block_start_plain, block_size)
+		local block_start_plain = block_size * self.REARRANGE_TABLE[key + 1]
+
+		local offset = 0
+		for i = 1, block_size do
+			buf_plain[block_start_plain + i] = buf_encoded[block_start_encoded + i]
+		end
 
 		key = key + 1
 	end
@@ -257,7 +278,7 @@ OJM.OMC_xor = function(self, buf)
 		this_byte = buf[i]
 
 		if bit.band(bit.lshift(self.acc_keybyte, self.acc_counter), 0x80) ~= 0 then
-			this_byte = bit.bnot(this_byte)
+			this_byte = bit.band(bit.bnot(this_byte), 0xff)
 		end
 
 		buf[i] = this_byte
