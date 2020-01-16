@@ -60,20 +60,20 @@ OJN.readHeader = function(self)
 	
 	self.old_encode_version = byte.read_int16_le(buffer)
 	self.old_songid = byte.read_int16_le(buffer)
-	self.old_genre = byte.read_string(buffer, 20)
+	self.old_genre = byte.read_string(buffer, 20, true)
 	self.bmp_size = byte.read_int32_le(buffer)
 	self.file_version = byte.read_int32_le(buffer)
 
-	self.str_title = byte.read_string(buffer, 64)
+	self.str_title = byte.read_string(buffer, 64, true)
 	-- self.title = byte.bytes(self.str_title)
 
-	self.str_artist = byte.read_string(buffer, 32)
+	self.str_artist = byte.read_string(buffer, 32, true)
 	-- self.artist = byte.bytes(self.str_artist)
 
-	self.str_noter = byte.read_string(buffer, 32)
+	self.str_noter = byte.read_string(buffer, 32, true)
 	-- self.noter = byte.bytes(self.str_noter)
 
-	self.sample_file = byte.read_string(buffer, 32)
+	self.sample_file = byte.read_string(buffer, 32, true)
 	self.ojm_file = self.sample_file
 
 	self.cover_size = byte.read_int32_le(buffer)

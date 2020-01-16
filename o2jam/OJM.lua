@@ -95,7 +95,7 @@ OJM.parseM30 = function(self)
 			break
 		end
 		
-		local sample_name = byte.read_string(buffer, 32)
+		local sample_name = byte.read_string(buffer, 32, true)
 		
 		if not sample_name:find(".") then sample_name = sample_name .. ".ogg" end
 		
@@ -161,7 +161,7 @@ OJM.parseOMC = function(self, decrypt)
 	while file_offset < ogg_start do
 		file_offset = file_offset + 56
 
-		local sample_name = byte.read_string(buffer, 32)
+		local sample_name = byte.read_string(buffer, 32, true)
 		
 		if not sample_name:find(".") then sample_name = sample_name .. ".wav" end
 
@@ -225,7 +225,7 @@ OJM.parseOMC = function(self, decrypt)
 	while file_offset < filesize do
 		file_offset = file_offset + 36
 
-		local sample_name = byte.read_string(buffer, 32)
+		local sample_name = byte.read_string(buffer, 32, true)
 		
 		if not sample_name:find(".") then sample_name = sample_name .. ".ogg" end
 			
