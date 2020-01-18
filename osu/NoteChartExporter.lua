@@ -73,13 +73,13 @@ end
 
 NoteChartExporter.addHeader = function(self)
 	local lines = self.lines
-	local cacheData = self.cacheData
+	local noteChartDataEntry = self.noteChartDataEntry
 	
 	lines[#lines + 1] = "osu file format v14"
 	lines[#lines + 1] = ""
 	lines[#lines + 1] = "[General]"
 	
-	local audioPath = cacheData.audioPath
+	local audioPath = noteChartDataEntry.audioPath
 	if audioPath ~= "" then
 		lines[#lines + 1] = "AudioFilename: " .. audioPath
 	else
@@ -87,7 +87,7 @@ NoteChartExporter.addHeader = function(self)
 	end
 	
 	lines[#lines + 1] = "AudioLeadIn: 0"
-	lines[#lines + 1] = "PreviewTime: " .. cacheData.previewTime * 1000
+	lines[#lines + 1] = "PreviewTime: " .. noteChartDataEntry.previewTime * 1000
 	lines[#lines + 1] = "Countdown: 0"
 	lines[#lines + 1] = "SampleSet: Soft"
 	lines[#lines + 1] = "StackLeniency: 0.7"
@@ -95,14 +95,14 @@ NoteChartExporter.addHeader = function(self)
 	lines[#lines + 1] = "LetterboxInBreaks: 0"
 	lines[#lines + 1] = ""
 	lines[#lines + 1] = "[Metadata]"
-	lines[#lines + 1] = "Title:" .. cacheData.title
-	lines[#lines + 1] = "TitleUnicode:" .. cacheData.title
-	lines[#lines + 1] = "Artist:" .. cacheData.artist
-	lines[#lines + 1] = "ArtistUnicode:" .. cacheData.artist
-	lines[#lines + 1] = "Creator:" .. cacheData.creator
-	lines[#lines + 1] = "Version:" .. cacheData.name
-	lines[#lines + 1] = "Source:" .. cacheData.source
-	lines[#lines + 1] = "Tags:" .. cacheData.tags
+	lines[#lines + 1] = "Title:" .. noteChartDataEntry.title
+	lines[#lines + 1] = "TitleUnicode:" .. noteChartDataEntry.title
+	lines[#lines + 1] = "Artist:" .. noteChartDataEntry.artist
+	lines[#lines + 1] = "ArtistUnicode:" .. noteChartDataEntry.artist
+	lines[#lines + 1] = "Creator:" .. noteChartDataEntry.creator
+	lines[#lines + 1] = "Version:" .. noteChartDataEntry.name
+	lines[#lines + 1] = "Source:" .. noteChartDataEntry.source
+	lines[#lines + 1] = "Tags:" .. noteChartDataEntry.tags
 	lines[#lines + 1] = "BeatmapID:0"
 	lines[#lines + 1] = "BeatmapSetID:-1"
 	lines[#lines + 1] = ""
@@ -121,12 +121,12 @@ end
 NoteChartExporter.addEvents = function(self)
 	local lines = self.lines
 	local events = self.events
-	local cacheData = self.cacheData
+	local noteChartDataEntry = self.noteChartDataEntry
 	
 	lines[#lines + 1] = "[Events]"
 	
 	lines[#lines + 1] = "//Background and Video events"
-	local stagePath = cacheData.stagePath
+	local stagePath = noteChartDataEntry.stagePath
 	if stagePath ~= "" then
 		lines[#lines + 1] = ("0,0,\"%s\",0,0"):format(stagePath)
 	end
