@@ -229,7 +229,7 @@ Osu.setSounds = function(self, note)
 	else
 		sampleSetId = note.timingPoint.sampleSetId
 	end
-	note.sampleSetName = Osu:getSampleSetName(sampleSetId)
+	note.sampleSetName = self:getSampleSetName(sampleSetId)
 	
 	if note.timingPoint.customSampleIndex ~= 0 then
 		note.customSampleIndex = note.timingPoint.customSampleIndex
@@ -262,6 +262,8 @@ Osu.getSampleSetName = function(self, id)
 	elseif id == 3 then
 		return "drum"
 	end
+
+	return "normal"
 end
 
 return Osu
