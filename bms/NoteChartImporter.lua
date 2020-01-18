@@ -117,7 +117,7 @@ end
 NoteChartImporter.setStop = function(self, timeData)
 	if timeData[enums.BackChannelEnum["Stop"]] then
 		local value = timeData[enums.BackChannelEnum["Stop"]][1]
-		local measureDuration = ncdk.Fraction:new(self.bms.stop[value], 192)
+		local measureDuration = ncdk.Fraction:fromNumber(self.bms.stop[value] / 192, 32768)
 		local stopData = ncdk.StopData:new()
 		stopData.measureTime = timeData.measureTime
 		stopData.measureDuration = measureDuration
@@ -272,7 +272,7 @@ NoteChartImporter.addFirstTempo = function(self)
 		self.currentTempoData = ncdk.TempoData:new(measureTime, self.bms.baseTempo)
 		self.foregroundLayerData:addTempoData(self.currentTempoData)
 		
-		local timePoint = self.foregroundLayerData:getTimePoint(measureTime, 1)
+		local timePoint = self.foregroundLayerData:getTimePoint(measureTime, -1)
 		self.currentVelocityData = ncdk.VelocityData:new(timePoint)
 		self.currentVelocityData.currentSpeed = self.bms.baseTempo / self.bms.primaryTempo
 		self.foregroundLayerData:addVelocityData(self.currentVelocityData)

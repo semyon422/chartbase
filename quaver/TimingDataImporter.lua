@@ -15,7 +15,7 @@ TimingDataImporter.init = function(self)
 	self.startTime = self.timingPoint.StartTime or 0
 	self.singature = self.timingPoint.Singature or 4
 	self.bpm = self.timingPoint.Bpm
-	self.multiplier = self.timingPoint.Multiplier
+	self.multiplier = self.timingPoint.Multiplier or 0
 	
 	
 	if self.bpm then

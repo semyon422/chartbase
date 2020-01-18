@@ -29,7 +29,7 @@ NoteDataImporter.init = function(self)
 	self.endTime = self.hitObject.EndTime
 	
 	self.sounds = {}
-	self.hitSound = self.hitObject.HitSound
+	self.hitSound = tostring(self.hitObject.HitSound)
 	if not self.hitSound then
 		self.sounds[1] = {self.HitSounds.Normal, 1}
 	else
