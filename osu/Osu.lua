@@ -231,7 +231,9 @@ Osu.setSounds = function(self, note)
 	end
 	note.sampleSetName = self:getSampleSetName(sampleSetId)
 	
-	if note.timingPoint.customSampleIndex ~= 0 then
+	if note.customSampleSetIndex ~= 0 then
+		note.customSampleIndex = note.customSampleSetIndex
+	elseif note.timingPoint.customSampleIndex ~= 0 then
 		note.customSampleIndex = note.timingPoint.customSampleIndex
 	else
 		note.customSampleIndex = ""
