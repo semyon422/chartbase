@@ -165,7 +165,8 @@ Osu.addHitObject = function(self, line)
 	note.hitSoundVolume = tonumber(addition[4]) or 0
 	note.customHitSound = addition[5] or ""
 	
-	note.key = math.floor(note.x / 512 * self.keymode + 1)
+	local keymode = self.keymode
+	note.key = math.max(1, math.min(keymode, math.floor(note.x / 512 * keymode + 1)))
 	
 	self.hitObjects[#self.hitObjects + 1] = note
 end
