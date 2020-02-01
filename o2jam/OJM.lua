@@ -1,4 +1,4 @@
-local byte = require("aqua.byte")
+local byte = require("byte")
 local bit = require("bit")
 
 local OJM = {}
