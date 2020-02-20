@@ -1,5 +1,6 @@
 local ncdk = require("ncdk")
 local NoteChart = require("ncdk.NoteChart")
+local MetaData = require("notechart.MetaData")
 local enums = require("bms.enums")
 local BMS = require("bms.BMS")
 local NoteChartImporter = {}
@@ -15,33 +16,37 @@ NoteChartImporter.new = function(self)
 	return noteChartImporter
 end
 
-NoteChartImporter.import = function(self, noteChartString)
+NoteChartImporter.import = function(self)
 	self.noteChart = NoteChart:new()
-	self.noteChart.importer = self
+	local noteChart = self.noteChart
+
+	noteChart.importer = self
+	noteChart.metaData = MetaData:new()
+	noteChart.metaData.noteChart = noteChart
 	
-	self.foregroundLayerData = self.noteChart.layerDataSequence:requireLayerData(1)
+	self.foregroundLayerData = noteChart.layerDataSequence:requireLayerData(1)
 	self.foregroundLayerData:setTimeMode("measure")
 	
 	if not self.bms then
 		self.bms = BMS:new()
 		self.bms.pms = self.pms
-		self.bms:import(noteChartString)
+		self.bms:import(self.content:gsub("\r\n", "\n"))
 	end
 	
 	self:setInputMode()
 	self:addFirstTempo()
-	
 	self:processData()
-	self.noteChart:hashSet("noteCount", self.noteCount)
-	
 	self:processMeasureLines()
 	
-	self.noteChart.type = "bms"
-	self.noteChart:compute()
+	noteChart.type = "bms"
+	noteChart:compute()
 	
 	self:updateLength()
 	
-	return self.noteChart
+	noteChart.index = 1
+	noteChart.metaData:fillData()
+	
+	self.noteCharts = {noteChart}
 end
 
 NoteChartImporter.setInputMode = function(self)
@@ -71,14 +76,13 @@ end
 NoteChartImporter.updateLength = function(self)
 	if self.maxTimePoint and self.minTimePoint then
 		self.totalLength = self.maxTimePoint.absoluteTime - self.minTimePoint.absoluteTime
-		self.noteChart:hashSet("minTime", self.minTimePoint.absoluteTime)
-		self.noteChart:hashSet("maxTime", self.maxTimePoint.absoluteTime)
+		self.minTime = self.minTimePoint.absoluteTime
+		self.maxTime = self.maxTimePoint.absoluteTime
 	else
 		self.totalLength = 0
-		self.noteChart:hashSet("minTime", 0)
-		self.noteChart:hashSet("maxTime", 0)
+		self.minTime = 0
+		self.maxTime = 0
 	end
-	self.noteChart:hashSet("totalLength", self.totalLength)
 end
 
 NoteChartImporter.setTempo = function(self, timeData)

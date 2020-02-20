@@ -1,5 +1,6 @@
 local tinyyaml = require("tinyyaml")
 local NoteChart = require("ncdk.NoteChart")
+local MetaData = require("notechart.MetaData")
 local osuNoteChartImporter = require("osu.NoteChartImporter")
 
 local ncdk = require("ncdk")
@@ -21,25 +22,31 @@ NoteChartImporter.new = function(self)
 	return noteChartImporter
 end
 
-NoteChartImporter.import = function(self, noteChartString)
+NoteChartImporter.import = function(self)
 	self.noteChart = NoteChart:new()
-	self.noteChart.importer = self
+	local noteChart = self.noteChart
+
+	noteChart.importer = self
+	noteChart.metaData = MetaData:new()
+	noteChart.metaData.noteChart = noteChart
 	
 	if not self.qua then
-		self.qua = tinyyaml.parse(noteChartString)
+		self.qua = tinyyaml.parse(self.content:gsub("\r\n", "\n"))
 	end
 	
-	self.foregroundLayerData = self.noteChart.layerDataSequence:requireLayerData(1)
+	self.foregroundLayerData = noteChart.layerDataSequence:requireLayerData(1)
 	self.foregroundLayerData:setTimeMode("absolute")
 	
 	self:process()
 	
-	self.noteChart.inputMode:setInputCount("key", tonumber(self.qua.Mode:sub(-1, -1)))
-	self.noteChart.type = "quaver"
+	noteChart.inputMode:setInputCount("key", tonumber(self.qua.Mode:sub(-1, -1)))
+	noteChart.type = "quaver"
 	
-	self.noteChart:compute()
+	noteChart:compute()
+	noteChart.index = 1
+	noteChart.metaData:fillData()
 	
-	return self.noteChart
+	self.noteCharts = {noteChart}
 end
 
 NoteChartImporter.process = function(self)
@@ -67,7 +74,7 @@ NoteChartImporter.process = function(self)
 	end
 	
 	self:updateLength()
-	self.noteChart:hashSet("noteCount", #HitObjects)
+	self.noteCount = #HitObjects
 	
 	self:processTimingDataImporters()
 	table.sort(self.noteDataImporters, function(a, b) return a.startTime < b.startTime end)

@@ -1,5 +1,6 @@
 local ncdk = require("ncdk")
 local NoteChart = require("ncdk.NoteChart")
+local MetaData = require("notechart.MetaData")
 local Ksh = require("ksm.Ksh")
 local bmsNoteChartImporter = require("bms.NoteChartImporter")
 
@@ -19,37 +20,47 @@ NoteChartImporter.new = function(self)
 	return noteChartImporter
 end
 
+NoteChartImporter.deleteBOM = function(self, content)
+	if content:sub(1, 3) == string.char(0xEF, 0xBB, 0xBF) then
+		return content:sub(4, -1)
+	end
+	return content
+end
+
 NoteChartImporter.import = function(self, noteChartString)
 	self.noteChart = NoteChart:new()
-	self.noteChart.importer = self
+	local noteChart = self.noteChart
+
+	noteChart.importer = self
+	noteChart.metaData = MetaData:new()
+	noteChart.metaData.noteChart = noteChart
 	
 	if not self.ksh then
 		self.ksh = Ksh:new()
-		self.ksh:import(noteChartString)
+		self.ksh:import(self:deleteBOM(self.content):gsub("\r\n", "\n"))
 	end
 	
-	self.foregroundLayerData = self.noteChart.layerDataSequence:requireLayerData(1)
+	self.foregroundLayerData = noteChart.layerDataSequence:requireLayerData(1)
 	self.foregroundLayerData:setTimeMode("measure")
 	self.foregroundLayerData:setSignatureMode("long")
 	
-	self.backgroundLayerData = self.noteChart.layerDataSequence:requireLayerData(2)
+	self.backgroundLayerData = noteChart.layerDataSequence:requireLayerData(2)
 	self.backgroundLayerData.invisible = true
 	self.backgroundLayerData:setTimeMode("absolute")
 	self.backgroundLayerData:setSignatureMode("long")
 	
 	self:processData()
-	self.noteChart:hashSet("noteCount", self.noteCount)
 	
 	self.measureCount = #self.ksh.measureStrings
 	self:processMeasureLines()
 	
-	self.noteChart.inputMode:setInputCount("bt", 4)
-	self.noteChart.inputMode:setInputCount("fx", 2)
-	self.noteChart.inputMode:setInputCount("laserleft", 2)
-	self.noteChart.inputMode:setInputCount("laserright", 2)
-	self.noteChart.type = "ksm"
+	noteChart.inputMode:setInputCount("bt", 4)
+	noteChart.inputMode:setInputCount("fx", 2)
+	noteChart.inputMode:setInputCount("laserleft", 2)
+	noteChart.inputMode:setInputCount("laserright", 2)
+	noteChart.type = "ksm"
 	
-	self.noteChart:compute()
+	noteChart:compute()
 	
 	self:updateLength()
 	
@@ -62,7 +73,10 @@ NoteChartImporter.import = function(self, noteChartString)
 	end
 	self:processAudio()
 	
-	return self.noteChart
+	noteChart.index = 1
+	noteChart.metaData:fillData()
+	
+	self.noteCharts = {noteChart}
 end
 
 NoteChartImporter.updateLength = bmsNoteChartImporter.updateLength

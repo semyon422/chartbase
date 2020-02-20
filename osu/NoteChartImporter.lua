@@ -1,5 +1,6 @@
 local ncdk = require("ncdk")
 local NoteChart = require("ncdk.NoteChart")
+local MetaData = require("notechart.MetaData")
 local Osu = require("osu.Osu")
 local NoteDataImporter = require("osu.NoteDataImporter")
 local TimingDataImporter = require("osu.TimingDataImporter")
@@ -12,34 +13,36 @@ NoteChartImporter_metatable.__index = NoteChartImporter
 NoteChartImporter.new = function(self)
 	local noteChartImporter = {}
 	
-	noteChartImporter.metaData = {}
-	
 	setmetatable(noteChartImporter, NoteChartImporter_metatable)
 	
 	return noteChartImporter
 end
 
-NoteChartImporter.import = function(self, noteChartString)
+NoteChartImporter.import = function(self)
 	self.noteChart = NoteChart:new()
-	self.noteChart.importer = self
+	local noteChart = self.noteChart
+
+	noteChart.importer = self
+	noteChart.metaData = MetaData:new()
+	noteChart.metaData.noteChart = noteChart
 	
 	if not self.osu then
 		self.osu = Osu:new()
-		self.osu:import(noteChartString)
+		self.osu:import(self.content:gsub("\r\n", "\n"))
 	end
 	
-	self.foregroundLayerData = self.noteChart.layerDataSequence:requireLayerData(1)
+	self.foregroundLayerData = noteChart.layerDataSequence:requireLayerData(1)
 	self.foregroundLayerData:setTimeMode("absolute")
 	
 	self:process()
 	
-	self.noteChart.inputMode:setInputCount("key", self.osu.keymode)
+	noteChart.inputMode:setInputCount("key", self.osu.keymode)
+	noteChart.type = "osu"
+	noteChart:compute()
+	noteChart.index = 1
+	noteChart.metaData:fillData()
 	
-	self.noteChart.type = "osu"
-	
-	self.noteChart:compute()
-	
-	return self.noteChart
+	self.noteCharts = {noteChart}
 end
 
 NoteChartImporter.process = function(self)
@@ -63,7 +66,6 @@ NoteChartImporter.process = function(self)
 	end
 	
 	self:updateLength()
-	self.noteChart:hashSet("noteCount", self.noteCount)
 	
 	self:processTimingDataImporters()
 	table.sort(self.noteDataImporters, function(a, b) return a.startTime < b.startTime end)
@@ -85,9 +87,6 @@ NoteChartImporter.updateLength = function(self)
 	self.minTime = self.minTime or 0
 	self.maxTime = self.maxTime or 0
 	self.totalLength = self.maxTime - self.minTime
-	self.noteChart:hashSet("minTime", self.minTime / 1000)
-	self.noteChart:hashSet("maxTime", self.maxTime / 1000)
-	self.noteChart:hashSet("totalLength", self.totalLength / 1000)
 end
 
 local compareTdi = function(a, b)

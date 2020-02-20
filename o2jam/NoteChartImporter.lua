@@ -1,5 +1,6 @@
 local ncdk = require("ncdk")
 local NoteChart = require("ncdk.NoteChart")
+local MetaData = require("notechart.MetaData")
 local OJM = require("o2jam.OJM")
 local OJN = require("o2jam.OJN")
 local bmsNoteChartImporter = require("bms.NoteChartImporter")
@@ -20,30 +21,51 @@ NoteChartImporter.new = function(self)
 	return noteChartImporter
 end
 
-NoteChartImporter.import = function(self, noteChartString)
+NoteChartImporter.import = function(self)
+	local noteCharts = {}
+
+	local ojn = OJN:new(self.content)
+	for i = 1, 3 do
+		local importer = NoteChartImporter:new()
+		importer.ojn = ojn
+		noteCharts[i] = importer:importSingle(i)
+	end
+
+	self.noteCharts = noteCharts
+end
+
+NoteChartImporter.importSingle = function(self, index)
+	self.chartIndex = index
+
 	self.noteChart = NoteChart:new()
-	self.noteChart.importer = self
+	local noteChart = self.noteChart
+
+	noteChart.importer = self
+	noteChart.metaData = MetaData:new()
+	noteChart.metaData.noteChart = noteChart
 	
-	if not ojn then
-		self.ojn = OJN:new(noteChartString)
+	if not self.ojn then
+		self.ojn = OJN:new(self.content)
 	end
 	
-	self.foregroundLayerData = self.noteChart.layerDataSequence:requireLayerData(1)
+	self.foregroundLayerData = noteChart.layerDataSequence:requireLayerData(1)
 	self.foregroundLayerData:setTimeMode("measure")
 	
 	self:processData()
-	self.noteChart:hashSet("noteCount", self.noteCount)
 	
 	self:processMeasureLines()
 	
-	self.noteChart.inputMode:setInputCount("key", 7)
-	self.noteChart.type = "o2jam"
+	noteChart.inputMode:setInputCount("key", 7)
+	noteChart.type = "o2jam"
 	
-	self.noteChart:compute()
+	noteChart:compute()
 	
 	self:updateLength()
 	
-	return self.noteChart
+	noteChart.index = index
+	noteChart.metaData:fillData()
+	
+	return noteChart
 end
 
 NoteChartImporter.updateLength = bmsNoteChartImporter.updateLength
