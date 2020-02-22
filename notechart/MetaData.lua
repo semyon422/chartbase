@@ -1,3 +1,5 @@
+local EncodingConverter = require("notechart.EncodingConverter")
+
 local MetaData = require("ncdk.MetaData"):new()
 
 MetaData.defaults = {
@@ -24,6 +26,33 @@ MetaData.defaults = {
 	
 	inputMode = ""
 }
+
+local bracketFindPattern = "%s.+%s$"
+local bracketMatchPattern = "%s(.+)%s$"
+local brackets = {
+	{"%[", "%]"},
+	{"%(", "%)"},
+	{"%-", "%-"},
+	{"\"", "\""},
+	{"〔", "〕"},
+	{"‾", "‾"},
+	{"~", "~"}
+}
+
+local trimName = function(name)
+	for i = 1, #brackets do
+		local lb, rb = brackets[i][1], brackets[i][2]
+		if name:find(bracketFindPattern:format(lb, rb)) then
+			return name:match(bracketMatchPattern:format(lb, rb)), name:find(bracketFindPattern:format(lb, rb))
+		end
+	end
+	return name, #name + 1
+end
+
+local splitTitle = function(title)
+	local name, bracketStart = trimName(title)
+	return title:sub(1, bracketStart - 1), name
+end
 
 local O2jamDifficultyNames = {"Easy", "Normal", "Hard"}
 MetaData.fillData = function(self)
@@ -56,18 +85,19 @@ MetaData.fillData = function(self)
 		local importer = noteChart.importer
 		local bms = importer.bms
 		local header = bms.header
+		local title, name = splitTitle(EncodingConverter:fix(header["TITLE"]))
 		self:setTable({
 			hash			= "",
 			index			= noteChart.index,
 			format			= "bms",
-			title			= header["TITLE"],
-			artist			= header["ARTIST"],
+			title			= title,
+			artist			= EncodingConverter:fix(header["ARTIST"]),
 			source			= "BMS",
 			tags			= "",
-			name			= nil,
+			name			= name,
 			creator			= "",
 			audioPath		= "",
-			stagePath		= header["STAGEFILE"],
+			stagePath		= EncodingConverter:fix(header["STAGEFILE"]),
 			previewTime		= 0,
 			noteCount		= importer.noteCount,
 			length			= importer.totalLength,
@@ -84,12 +114,12 @@ MetaData.fillData = function(self)
 			hash			= "",
 			index			= index,
 			format			= "ojn",
-			title			= ojn.str_title,
-			artist			= ojn.str_artist,
+			title			= EncodingConverter:fix(ojn.str_title),
+			artist			= EncodingConverter:fix(ojn.str_artist),
 			source			= "o2jam",
 			tags			= "",
 			name			= O2jamDifficultyNames[index],
-			creator			= ojn.str_noter,
+			creator			= EncodingConverter:fix(ojn.str_noter),
 			audioPath		= "",
 			stagePath		= "",
 			previewTime		= 0,
