@@ -25,10 +25,16 @@ NoteChartImporter.import = function(self)
 	local noteCharts = {}
 
 	local ojn = OJN:new(self.content)
-	for i = 1, 3 do
+
+	local i0, i1 = 1, 3
+	if self.index then
+		i0, i1 = self.index, self.index
+	end
+
+	for i = i0, i1 do
 		local importer = NoteChartImporter:new()
 		importer.ojn = ojn
-		noteCharts[i] = importer:importSingle(i)
+		noteCharts[#noteCharts + 1] = importer:importSingle(i)
 	end
 
 	self.noteCharts = noteCharts
