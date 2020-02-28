@@ -173,7 +173,9 @@ MetaData.fillData = function(self)
 			noteCount		= importer.noteCount,
 			length			= importer.totalLength / 1000,
 			bpm				= noteChart.importer.primaryBPM,
-			inputMode		= noteChart.inputMode:getString()
+			inputMode		= noteChart.inputMode:getString(),
+			minTime         = importer.minTime / 1000,
+			maxTime         = importer.maxTime / 1000,
 		})
 	end
 end
