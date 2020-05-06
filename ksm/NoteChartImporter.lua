@@ -177,7 +177,11 @@ NoteChartImporter.processData = function(self)
 		if startMeasureTime == endMeasureTime then
 			startNoteData.noteType = "ShortNote"
 		else
-			startNoteData.noteType = "LongNoteStart"
+			if _noteData.input ~= "laser" then
+				startNoteData.noteType = "LongNoteStart"
+			else
+				startNoteData.noteType = "LaserNoteStart"
+			end
 			
 			local endTimePoint = self.foregroundLayerData:getTimePoint(endMeasureTime, -1)
 			
@@ -186,7 +190,11 @@ NoteChartImporter.processData = function(self)
 			endNoteData.inputIndex = startNoteData.inputIndex
 			endNoteData.sounds = {}
 			
-			endNoteData.noteType = "LongNoteEnd"
+			if _noteData.input ~= "laser" then
+				endNoteData.noteType = "LongNoteEnd"
+			else
+				endNoteData.noteType = "LaserNoteEnd"
+			end
 			
 			endNoteData.startNoteData = startNoteData
 			startNoteData.endNoteData = endNoteData
