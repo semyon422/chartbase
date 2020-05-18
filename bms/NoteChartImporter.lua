@@ -104,6 +104,10 @@ end
 NoteChartImporter.setExtendedTempo = function(self, timeData)
 	if timeData[enums.BackChannelEnum["ExtendedTempo"]] then
 		local value = timeData[enums.BackChannelEnum["ExtendedTempo"]][1]
+		if not self.bms.bpm[value] then
+			return
+		end
+
 		self.currentTempoData = ncdk.TempoData:new(
 			timeData.measureTime,
 			self.bms.bpm[value]
@@ -121,6 +125,10 @@ end
 NoteChartImporter.setStop = function(self, timeData)
 	if timeData[enums.BackChannelEnum["Stop"]] then
 		local value = timeData[enums.BackChannelEnum["Stop"]][1]
+		if not self.bms.stop[value] then
+			return
+		end
+		
 		local measureDuration = ncdk.Fraction:fromNumber(self.bms.stop[value] / 192, 32768)
 		local stopData = ncdk.StopData:new()
 		stopData.measureTime = timeData.measureTime
