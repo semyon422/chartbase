@@ -185,7 +185,7 @@ BMS.processLineData = function(self, line)
 					enums.ChannelEnum[channel].inputType == enums.ChannelEnum[currentChannel].inputType and
 					enums.ChannelEnum[channel].inputIndex == enums.ChannelEnum[currentChannel].inputIndex
 				then
-					settedNoteChannel = currentChannel
+					settedNoteChannel = currentChannel -- may differs from channel due to different channels for long notes
 					break
 				end
 			end
@@ -198,6 +198,7 @@ BMS.processLineData = function(self, line)
 							timeData[settedNoteChannel][1] = nil
 							timeData[settedNoteChannel] = nil
 						end
+						timeData[channel] = timeData[channel] or {}
 						timeData[channel][1] = value
 					end
 					if not enums.ChannelEnum[channel].long and not settedNoteChannel then
