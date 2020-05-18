@@ -18,8 +18,9 @@ BMS.new = function(self)
 
 	bms.inputExisting = {}
 	
-	bms.primaryTempo = 120
+	bms.primaryTempo = 130
 	bms.measureCount = 0
+	bms.hasTempo = false
 	
 	bms.timePoints = {}
 	bms.timeList = {}
@@ -32,6 +33,10 @@ end
 BMS.import = function(self, noteChartString)
 	for _, line in ipairs(noteChartString:split("\n")) do
 		self:processLine(line:trim())
+	end
+
+	if not self.hasTempo then
+		self.baseTempo = self.primaryTempo
 	end
 	
 	for _, timeData in pairs(self.timePoints) do
@@ -46,32 +51,33 @@ BMS.import = function(self, noteChartString)
 end
 
 BMS.processLine = function(self, line)
-	if line:upper():find("^#WAV.. .+$") then
-		local index, fileName = line:match("^#...(..) (.+)$")
+	if line:upper():find("^#WAV%S%S%s+.+$") then
+		local index, fileName = line:match("^#...(..)%s+(.+)$")
 		self.wav[index:upper()] = fileName
-	elseif line:upper():find("^#BPM.. .+$") then
-		local index, tempo = line:match("^#...(..) (.+)$")
+	elseif line:upper():find("^#BPM%S%S%s+.+$") then
+		local index, tempo = line:match("^#...(..)%s+(.+)$")
 		self.bpm[index:upper()] = tonumber(tempo)
-	elseif line:upper():find("^#BMP.. .+$") then
-		local index, path = line:match("^#...(..) (.+)$")
+	elseif line:upper():find("^#BMP%S%S%s+.+$") then
+		local index, path = line:match("^#...(..)%s+(.+)$")
 		self.bmp[index:upper()] = path
-	elseif line:upper():find("^#STOP.. .+$") then
-		local index, duration = line:match("^#....(..) (.+)$")
+	elseif line:upper():find("^#STOP%S%S%s+.+$") then
+		local index, duration = line:match("^#....(..)%s+(.+)$")
 		self.stop[index:upper()] = tonumber(duration)
-	elseif line:find("^#%d%d%d..:.+$") then
+	elseif line:find("^#%d%d%d%S%S:.+$") then
 		self:processLineData(line)
-	elseif line:find("^#[%S]+ .+$") then
+	elseif line:find("^#%S+%s+.+$") then
 		self:processHeaderLine(line)
 	end
 end
 
 BMS.processHeaderLine = function(self, line)
-	local key, value = line:match("^#(%S+) (.+)$")
+	local key, value = line:match("^#(%S+)%s+(.+)$")
 	key = key:upper()
 	self.header[key] = value
 	
 	if key == "BPM" then
 		self.baseTempo = tonumber(value)
+		self.hasTempo = true
 	elseif key == "LNOBJ" then
 		self.lnobj = value
 	end
@@ -124,8 +130,8 @@ BMS.updateMode = function(self, channel)
 		return
 	end
 	
-	local ChannelEnum18Keys = enums.ChannelEnum18Keys[channel]
-	if channelInfo18Keys and channelInfo9Keys.name == "Note" then
+	local channelInfo18Keys = enums.ChannelEnum18Keys[channel]
+	if channelInfo18Keys and channelInfo18Keys.name == "Note" then
 		self.mode = 18
 		self.pmsdp = true
 		return
@@ -158,6 +164,7 @@ BMS.processLineData = function(self, line)
 		message:sub(1, 2) ~= "00"
 	then
 		self.tempoAtStart = true
+		self.hasTempo = true
 	end
 	
 	local compound = enums.ChannelEnum[channel].name ~= "BGM"
@@ -206,6 +213,11 @@ BMS.processLineData = function(self, line)
 					end
 				else
 					timeData[channel][1] = value
+					if enums.ChannelEnum[channel].name == "Tempo" or
+						enums.ChannelEnum[channel].name == "ExtendedTempo"
+					then
+						self.hasTempo = true
+					end
 				end
 			else
 				table.insert(timeData[channel], value)
