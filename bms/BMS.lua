@@ -15,6 +15,8 @@ BMS.new = function(self)
 	bms.bmp = {}
 	bms.stop = {}
 	bms.signature = {}
+
+	bms.inputExisting = {}
 	
 	bms.primaryTempo = 120
 	bms.measureCount = 0
@@ -39,6 +41,8 @@ BMS.import = function(self, noteChartString)
 	table.sort(self.timeList, function(a, b)
 		return a.measureTime < b.measureTime
 	end)
+
+	self:detectKeymode()
 end
 
 BMS.processLine = function(self, line)
@@ -73,32 +77,54 @@ BMS.processHeaderLine = function(self, line)
 	end
 end
 
+BMS.detectKeymode = function(self)
+	if self.mode then
+		return
+	end
+
+	local ie = self.inputExisting
+	if ie[6] or ie[7] then
+		for i = 8, 14 do
+			if ie[i] then
+				self.mode = 14
+				return
+			end
+		end
+		self.mode = 7
+	else
+		if ie[13] or ie[14] then
+			self.mode = 14
+			return
+		end
+		for i = 8, 12 do
+			if ie[i] then
+				self.mode = 10
+				return
+			end
+		end
+		self.mode = 5
+	end
+end
+
 BMS.updateMode = function(self, channel)
 	local channelInfo = enums.ChannelEnum[channel]
-	local channelInfo9Keys = enums.ChannelEnum9Keys[channel]
-	local ChannelEnum18Keys = enums.ChannelEnum18Keys[channel]
 	
+	local inputExisting = self.inputExisting
 	if channelInfo and channelInfo.name == "Note" and not self.pms and not self.pmsdp then
-		local inputIndex = channelInfo.inputIndex
-		self.mode = self.mode or 5
-		if inputIndex > self.mode then
-			if inputIndex > 12 then
-				self.mode = 14
-			elseif inputIndex > 7 then
-				self.mode = 10
-			elseif inputIndex > 5 then
-				self.mode = 7
-			end
+		if channelInfo.inputType == "key" then
+			inputExisting[channelInfo.inputIndex] = true
 		end
 		return
 	end
 	
+	local channelInfo9Keys = enums.ChannelEnum9Keys[channel]
 	if channelInfo9Keys and channelInfo9Keys.name == "Note" and not self.pmsdp then
 		self.mode = 9
 		self.pms = true
 		return
 	end
 	
+	local ChannelEnum18Keys = enums.ChannelEnum18Keys[channel]
 	if channelInfo18Keys and channelInfo9Keys.name == "Note" then
 		self.mode = 18
 		self.pmsdp = true

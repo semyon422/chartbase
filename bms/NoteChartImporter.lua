@@ -29,7 +29,7 @@ NoteChartImporter.import = function(self)
 	
 	if not self.bms then
 		self.bms = BMS:new()
-		self.bms.pms = self.pms
+		self.bms.pms = self.path:sub(-4, -1) == ".pms"
 		self.bms:import(self.content:gsub("\r\n", "\n"))
 	end
 	
