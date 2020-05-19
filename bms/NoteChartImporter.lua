@@ -3,6 +3,8 @@ local NoteChart = require("ncdk.NoteChart")
 local MetaData = require("notechart.MetaData")
 local enums = require("bms.enums")
 local BMS = require("bms.BMS")
+local EncodingConverter = require("notechart.EncodingConverter")
+
 local NoteChartImporter = {}
 
 local NoteChartImporter_metatable = {}
@@ -192,13 +194,13 @@ NoteChartImporter.processData = function(self)
 					noteData.sounds = {}
 					noteData.images = {}
 					if channelInfo.name == "Note" or channelInfo.name == "BGM" then
-						local sound = self.bms.wav[value]
+						local sound = EncodingConverter:fix(self.bms.wav[value])
 						if sound and not channelInfo.mine then
 							noteData.sounds[1] = {sound, 1}
 							self.noteChart:addResource("sound", sound, {sound})
 						end
 					elseif channelInfo.name == "BGA" then
-						local image = self.bms.bmp[value]
+						local image = EncodingConverter:fix(self.bms.bmp[value])
 						if image then
 							noteData.images[1] = {image, 1}
 							self.noteChart:addResource("image", image, {image})
