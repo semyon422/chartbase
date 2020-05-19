@@ -98,14 +98,14 @@ NoteChartImporter.processData = function(self)
 	self.minTimePoint = nil
 	self.maxTimePoint = nil
 	self.tempoAtStart = false
-	
+
+	local measureCount = self.ojn.charts[self.chartIndex].measure_count
+
 	for _, event in ipairs(self.ojn.charts[self.chartIndex].event_list) do
-		if event.measure > self.measureCount then
-			self.measureCount = event.measure
-		end
-		
 		local measureTime = ncdk.Fraction:new():fromNumber(event.measure + event.position, 1000)
-		if event.channel == "BPM_CHANGE" then
+		if event.measure < 0 or event.measure > measureCount * 2 then
+			-- ignore
+		elseif event.channel == "BPM_CHANGE" then
 			if measureTime:tonumber() == 0 then
 				self.tempoAtStart = true
 			end
@@ -120,14 +120,12 @@ NoteChartImporter.processData = function(self)
 			self.currentVelocityData = ncdk.VelocityData:new(timePoint)
 			self.currentVelocityData.currentSpeed = self.currentTempoData.tempo / self.primaryTempo
 			self.foregroundLayerData:addVelocityData(self.currentVelocityData)
-		end
-		if event.channel == "TIME_SIGNATURE" then
+		elseif event.channel == "TIME_SIGNATURE" then
 			self.foregroundLayerData:setSignature(
 				event.measure,
 				ncdk.Fraction:new():fromNumber(event.value * 4, 32768)
 			)
-		end
-		if event.channel:find("NOTE") or event.channel:find("AUTO") then
+		elseif event.channel:find("NOTE") or event.channel:find("AUTO") then
 			local timePoint = self.foregroundLayerData:getTimePoint(measureTime, -1)
 			
 			local noteData = ncdk.NoteData:new(timePoint)
@@ -139,6 +137,9 @@ NoteChartImporter.processData = function(self)
 				noteData.sounds = {{event.value, event.volume}}
 				self.foregroundLayerData:addNoteData(noteData)
 			else
+				if event.measure > self.measureCount then
+					self.measureCount = event.measure
+				end
 				if longNoteData[noteData.inputIndex] and event.type == "RELEASE" then
 					longNoteData[noteData.inputIndex].noteType = "LongNoteStart"
 					longNoteData[noteData.inputIndex].endNoteData = noteData
