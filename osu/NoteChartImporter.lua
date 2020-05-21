@@ -284,11 +284,10 @@ NoteChartImporter.processMeasureLines = function(self)
 			end
 			
 			local nextLastTime = math.min(nextTdi and nextTdi.startTime - 1 or self.maxTime, self.maxTime)
-			
 			while true do
 				if offset < nextLastTime then
 					table.insert(lines, offset)
-					offset = offset + currentTdi.measureLength
+					offset = offset + math.max(1, currentTdi.measureLength)
 				else
 					offset = nextLastTime + 1
 					break
