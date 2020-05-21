@@ -24,13 +24,17 @@ NoteDataImporter.init = function(self)
 	self.inputIndex = self.key
 	
 	local firstTime = math.min(self.endTime or self.startTime, self.startTime)
-	if not self.noteChartImporter.minTime or firstTime < self.noteChartImporter.minTime then
-		self.noteChartImporter.minTime = firstTime
+	if firstTime == firstTime then
+		if not self.noteChartImporter.minTime or firstTime < self.noteChartImporter.minTime then
+			self.noteChartImporter.minTime = firstTime
+		end
 	end
 	
 	local lastTime = math.max(self.endTime or self.startTime, self.startTime)
-	if not self.noteChartImporter.maxTime or lastTime > self.noteChartImporter.maxTime then
-		self.noteChartImporter.maxTime = lastTime
+	if lastTime == lastTime then
+		if not self.noteChartImporter.maxTime or lastTime > self.noteChartImporter.maxTime then
+			self.noteChartImporter.maxTime = lastTime
+		end
 	end
 end
 
@@ -75,8 +79,18 @@ NoteDataImporter.getNoteData = function(self)
 		
 		endNoteData.startNoteData = startNoteData
 		startNoteData.endNoteData = endNoteData
-		
-		if self.endTime < self.startTime then
+
+		local startTime, endTime = self.startTime, self.endTime
+		if startTime ~= startTime and endTime ~= endTime then
+			startNoteData.noteType = "Ignore"
+			endNoteData.noteType = "Ignore"
+		elseif startTime ~= startTime and endTime == endTime then
+			startNoteData.noteType = "Ignore"
+			endNoteData.noteType = "SoundNote"
+		elseif startTime == startTime and endTime ~= endTime then
+			startNoteData.noteType = "SoundNote"
+			endNoteData.noteType = "Ignore"
+		elseif endTime < startTime then
 			startNoteData.noteType = "ShortNote"
 			endNoteData.noteType = "SoundNote"
 		end
