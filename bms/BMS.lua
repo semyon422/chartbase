@@ -18,6 +18,9 @@ BMS.new = function(self)
 
 	bms.inputExisting = {}
 	
+	bms.timePointLimit = 25000
+	bms.timePointCount = 0
+
 	bms.primaryTempo = 130
 	bms.measureCount = 0
 	bms.hasTempo = false
@@ -139,6 +142,10 @@ BMS.updateMode = function(self, channel)
 end
 
 BMS.processLineData = function(self, line)
+	if self.timePointCount >= self.timePointLimit then
+		return
+	end
+
 	local measure, channel, message = line:match("^#(...)(..):(.+)$")
 	measure = tonumber(measure)
 	
@@ -182,6 +189,8 @@ BMS.processLineData = function(self, line)
 				timeData = {}
 				timeData.measureTime = measureTime
 				self.timePoints[measureTimeString] = timeData
+
+				self.timePointCount = self.timePointCount + 1
 			end
 			
 			local settedNoteChannel
