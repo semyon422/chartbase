@@ -17,6 +17,7 @@ BMS.new = function(self)
 	bms.signature = {}
 
 	bms.inputExisting = {}
+	bms.channelExisting = {}
 	
 	bms.timePointLimit = 25000
 	bms.timePointCount = 0
@@ -91,6 +92,14 @@ BMS.detectKeymode = function(self)
 		return
 	end
 
+	if not self.pms then
+		return self:detectKeymodeBMS()
+	else
+		return self:detectKeymodePMS()
+	end
+end
+
+BMS.detectKeymodeBMS = function(self)
 	local ie = self.inputExisting
 	if ie[6] or ie[7] then
 		for i = 8, 14 do
@@ -115,7 +124,29 @@ BMS.detectKeymode = function(self)
 	end
 end
 
+BMS.detectKeymodePMS = function(self)
+	local ce = self.channelExisting
+	if
+		ce["18"] and ce["22"] or ce["58"] and ce["62"] or
+		ce["19"] and ce["23"] or ce["59"] and ce["63"] or
+		ce["16"] and ce["24"] or ce["56"] and ce["64"] or
+		ce["17"] and ce["25"] or ce["57"] and ce["65"]
+	then
+		self.mode = 18
+		return
+	end
+	self.mode = 9
+end
+
 BMS.updateMode = function(self, channel)
+	if not self.pms then
+		return self:updateModeBMS(channel)
+	else
+		return self:updateModePMS(channel)
+	end
+end
+
+BMS.updateModeBMS = function(self, channel)
 	local channelInfo = enums.ChannelEnum[channel]
 	
 	local inputExisting = self.inputExisting
@@ -123,21 +154,20 @@ BMS.updateMode = function(self, channel)
 		if channelInfo.inputType == "key" then
 			inputExisting[channelInfo.inputIndex] = true
 		end
-		return
 	end
-	
+end
+
+BMS.updateModePMS = function(self, channel)
+	local channelExisting = self.channelExisting
+
 	local channelInfo9Keys = enums.ChannelEnum9Keys[channel]
-	if channelInfo9Keys and channelInfo9Keys.name == "Note" and not self.pmsdp then
-		self.mode = 9
-		self.pms = true
-		return
+	if channelInfo9Keys and channelInfo9Keys.name == "Note" then
+		channelExisting[channel] = true
 	end
-	
+
 	local channelInfo18Keys = enums.ChannelEnum18Keys[channel]
 	if channelInfo18Keys and channelInfo18Keys.name == "Note" then
-		self.mode = 18
-		self.pmsdp = true
-		return
+		channelExisting[channel] = true
 	end
 end
 
