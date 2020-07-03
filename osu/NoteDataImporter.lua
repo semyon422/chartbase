@@ -33,7 +33,7 @@ NoteDataImporter.init = function(self)
 	local lastTime = math.max(self.endTime or self.startTime, self.startTime)
 	if lastTime == lastTime then
 		if not self.noteChartImporter.maxTime or lastTime > self.noteChartImporter.maxTime then
-			self.noteChartImporter.maxTime = lastTime
+			self.noteChartImporter.maxTime = math.min(lastTime, 3600 * 2 * 1000)
 		end
 	end
 end
