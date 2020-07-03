@@ -6,6 +6,7 @@ NoteChartDataEntryFactory.getEntries = function(self, fileDatas)
 	local entries = {}
 	
 	for _, fileData in ipairs(fileDatas) do
+		print(fileData.path)
 		local status, noteCharts = NoteChartFactory:getNoteCharts(fileData.path, fileData.content)
 		
 		if status then
