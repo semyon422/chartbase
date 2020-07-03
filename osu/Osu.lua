@@ -128,6 +128,15 @@ Osu.addTimingPoint = function(self, line)
 		tp.velocity = math.min(math.max(0.1, math.abs(-100 / tp.beatLength)), 10)
 		tp.timingChange = false
 	end
+
+	if
+		tp.beatLength ~= tp.beatLength or
+		tp.measureLength ~= tp.measureLength or
+		tp.offset ~= tp.offset or
+		tp.timingSignature ~= tp.timingSignature
+	then
+		return
+	end
 	
 	self.timingPoints[#self.timingPoints + 1] = tp
 end
