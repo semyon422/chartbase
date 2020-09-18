@@ -4,6 +4,7 @@ local NoteChartDataEntryFactory = {}
 
 NoteChartDataEntryFactory.getEntries = function(self, fileDatas)
 	local entries = {}
+	local allNoteCharts = {}
 	
 	for _, fileData in ipairs(fileDatas) do
 		print(fileData.path)
@@ -16,6 +17,7 @@ NoteChartDataEntryFactory.getEntries = function(self, fileDatas)
 				local entry = self:getEntry(noteChart.metaData)
 				
 				entries[#entries + 1] = entry
+				allNoteCharts[#allNoteCharts + 1] = noteChart
 				entry.noteChartEntry = fileData.noteChartEntry
 			end
 		else
@@ -23,7 +25,7 @@ NoteChartDataEntryFactory.getEntries = function(self, fileDatas)
 		end
 	end
 
-	return entries
+	return entries, allNoteCharts
 end
 
 NoteChartDataEntryFactory.getEntry = function(self, metaData)
