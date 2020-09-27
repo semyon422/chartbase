@@ -47,13 +47,14 @@ NoteChartFactory.getNoteChartImporter = function(self, path)
 	return NoteChartImporters[sub(path, -4, -1)]
 end
 
-NoteChartFactory.getNoteCharts = function(self, path, content, index)
+NoteChartFactory.getNoteCharts = function(self, path, content, index, settings)
 	local NoteChartImporter = self:getNoteChartImporter(path)
 	local importer = NoteChartImporter:new()
 
 	importer.path = path
 	importer.content = content
 	importer.index = index
+	importer.settings = settings
 
 	local status, err = xpcall(function() return importer:import() end, debug.traceback)
 
