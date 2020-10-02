@@ -183,6 +183,30 @@ MetaData.fillData = function(self)
 			minTime         = importer.minTime / 1000,
 			maxTime         = importer.maxTime / 1000,
 		})
+	elseif noteChart.type == "midi" then
+		local importer = noteChart.importer
+		local mid = importer.mid
+		self:setTable({
+			hash			= "",
+			index			= noteChart.index,
+			format			= "mid",
+			title			= EncodingConverter:fix(mid.title),
+			artist			= "",
+			source			= "",
+			tags			= "",
+			name			= "",
+			creator			= "",
+			level			= 0,
+			audioPath		= "",
+			stagePath		= "",
+			previewTime		= 0,
+			noteCount		= importer.noteCount,
+			length			= importer.length,
+			bpm				= mid.bpm,
+			inputMode		= "88key",
+			minTime         = importer.minTime,
+			maxTime         = importer.maxTime
+		})
 	end
 end
 

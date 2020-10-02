@@ -4,6 +4,7 @@ local o2jam		= require("o2jam")
 local osu		= require("osu")
 local quaver	= require("quaver")
 local sph		= require("sph")
+local midi		= require("midi")
 
 local NoteChartFactory = {}
 
@@ -19,7 +20,8 @@ local RelatedContainerExtensions = {
 }
 
 local UnrelatedContainerExtensions = {
-	[".ojn"] = true
+	[".ojn"] = true,
+	[".mid"] = true
 }
 
 local NoteChartImporters = {
@@ -31,7 +33,8 @@ local NoteChartImporters = {
 	[".pms"] = bms.NoteChartImporter,
 	[".ksh"] = ksm.NoteChartImporter,
 	[".ojn"] = o2jam.NoteChartImporter,
-	[".sph"] = sph.NoteChartImporter
+	[".sph"] = sph.NoteChartImporter,
+	[".mid"] = midi.NoteChartImporter
 }
 
 local sub = string.sub
