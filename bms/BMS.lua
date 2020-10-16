@@ -126,12 +126,7 @@ end
 
 BMS.detectKeymodePMS = function(self)
 	local ce = self.channelExisting
-	if
-		ce["18"] and ce["22"] or ce["58"] and ce["62"] or
-		ce["19"] and ce["23"] or ce["59"] and ce["63"] or
-		ce["16"] and ce["24"] or ce["56"] and ce["64"] or
-		ce["17"] and ce["25"] or ce["57"] and ce["65"]
-	then
+	if ce["17"] or ce["57"] or ce["27"] or ce["67"] then
 		self.mode = 18
 		return
 	end

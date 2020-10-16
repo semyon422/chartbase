@@ -25,6 +25,7 @@ enums.ChannelEnum = {
 	["19"] = {name = "Note", inputType = "key", inputIndex = 7},
 	
 	["16"] = {name = "Note", inputType = "scratch", inputIndex = 1},
+	["17"] = {name = "Note", inputType = "freezone ", inputIndex = 1},
 	
 	["51"] = {name = "Note", inputType = "key", inputIndex = 1, long = true},
 	["52"] = {name = "Note", inputType = "key", inputIndex = 2, long = true},
@@ -35,6 +36,7 @@ enums.ChannelEnum = {
 	["59"] = {name = "Note", inputType = "key", inputIndex = 7, long = true},
 	
 	["56"] = {name = "Note", inputType = "scratch", inputIndex = 1, long = true},
+	["57"] = {name = "Note", inputType = "freezone ", inputIndex = 1, long = true},
 	
 	["21"] = {name = "Note", inputType = "key", inputIndex = 8},
 	["22"] = {name = "Note", inputType = "key", inputIndex = 9},
@@ -45,6 +47,7 @@ enums.ChannelEnum = {
 	["29"] = {name = "Note", inputType = "key", inputIndex = 14},
 	
 	["26"] = {name = "Note", inputType = "scratch", inputIndex = 2},
+	["27"] = {name = "Note", inputType = "freezone", inputIndex = 2},
 	
 	["61"] = {name = "Note", inputType = "key", inputIndex = 8, long = true},
 	["62"] = {name = "Note", inputType = "key", inputIndex = 9, long = true},
@@ -55,6 +58,7 @@ enums.ChannelEnum = {
 	["69"] = {name = "Note", inputType = "key", inputIndex = 14, long = true},
 	
 	["66"] = {name = "Note", inputType = "scratch", inputIndex = 2, long = true},
+	["67"] = {name = "Note", inputType = "freezone", inputIndex = 2, long = true},
 	
 	["D1"] = {name = "Note", inputType = "key", inputIndex = 1, mine = true},
 	["D2"] = {name = "Note", inputType = "key", inputIndex = 2, mine = true},
@@ -65,6 +69,7 @@ enums.ChannelEnum = {
 	["D9"] = {name = "Note", inputType = "key", inputIndex = 7, mine = true},
 	
 	["D6"] = {name = "Note", inputType = "scratch", inputIndex = 1, mine = true},
+	["D7"] = {name = "Note", inputType = "freezone ", inputIndex = 1, mine = true},
 	
 	["E1"] = {name = "Note", inputType = "key", inputIndex = 8, mine = true},
 	["E2"] = {name = "Note", inputType = "key", inputIndex = 9, mine = true},
@@ -75,6 +80,7 @@ enums.ChannelEnum = {
 	["E9"] = {name = "Note", inputType = "key", inputIndex = 14, mine = true},
 	
 	["E6"] = {name = "Note", inputType = "scratch", inputIndex = 2, mine = true},
+	["E7"] = {name = "Note", inputType = "freezone", inputIndex = 2, mine = true},
 }
 
 enums.ChannelEnum5Keys = {
