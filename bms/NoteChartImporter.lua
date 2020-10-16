@@ -217,6 +217,7 @@ NoteChartImporter.processData = function(self)
 							longNoteData[channelIndex] = noteData
 						else
 							noteData.noteType = "LongNoteEnd"
+							noteData.sounds = {}
 							noteData.startNoteData = longNoteData[channelIndex]
 							longNoteData[channelIndex].endNoteData = noteData
 							longNoteData[channelIndex] = nil
@@ -227,6 +228,7 @@ NoteChartImporter.processData = function(self)
 							longNoteData[channelIndex].endNoteData = noteData
 							noteData.startNoteData = longNoteData[channelIndex]
 							noteData.noteType = "LongNoteEnd"
+							noteData.sounds = {}
 							longNoteData[channelIndex] = nil
 						else
 							noteData.noteType = "ShortNote"
