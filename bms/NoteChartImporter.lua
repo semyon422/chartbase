@@ -258,6 +258,9 @@ NoteChartImporter.processData = function(self)
 			end
 		end
 	end
+	for _, noteData in pairs(longNoteData) do
+		noteData.noteType = "ShortNote"
+	end
 end
 
 NoteChartImporter.processMeasureLines = function(self)
