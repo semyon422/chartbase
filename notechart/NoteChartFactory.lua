@@ -39,15 +39,15 @@ local NoteChartImporters = {
 
 local sub = string.sub
 NoteChartFactory.isRelatedContainer = function(self, path)
-	return RelatedContainerExtensions[sub(path, -4, -1)]
+	return RelatedContainerExtensions[sub(path, -4, -1):lower()]
 end
 
 NoteChartFactory.isUnrelatedContainer = function(self, path)
-	return UnrelatedContainerExtensions[sub(path, -4, -1)]
+	return UnrelatedContainerExtensions[sub(path, -4, -1):lower()]
 end
 
 NoteChartFactory.getNoteChartImporter = function(self, path)
-	return NoteChartImporters[sub(path, -4, -1)]
+	return NoteChartImporters[sub(path, -4, -1):lower()]
 end
 
 NoteChartFactory.getNoteCharts = function(self, path, content, index, settings)
