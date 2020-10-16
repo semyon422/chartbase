@@ -148,6 +148,8 @@ end
 OJM.parseOMC = function(self, decrypt)
 	local buffer = self.buffer
 
+	buffer:seek(4)
+
 	local unk1 = buffer:int16_le()
 	local unk2 = buffer:int16_le()
 	local wav_start = buffer:int32_le()
@@ -161,6 +163,7 @@ OJM.parseOMC = function(self, decrypt)
 	self.acc_counter = 0
 
 	while file_offset < ogg_start do
+		buffer:seek(file_offset)
 		file_offset = file_offset + 56
 
 		local sample_name = buffer:cstring(32)
@@ -220,6 +223,7 @@ OJM.parseOMC = function(self, decrypt)
 
 	sample_id = 1000
 	while file_offset < filesize do
+		buffer:seek(file_offset)
 		file_offset = file_offset + 36
 
 		local sample_name = buffer:cstring(32)
