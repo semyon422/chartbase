@@ -25,7 +25,7 @@ enums.ChannelEnum = {
 	["19"] = {name = "Note", inputType = "key", inputIndex = 7},
 	
 	["16"] = {name = "Note", inputType = "scratch", inputIndex = 1},
-	["17"] = {name = "Note", inputType = "freezone ", inputIndex = 1},
+	["17"] = {name = "Note", inputType = "freezone", inputIndex = 1},
 	
 	["51"] = {name = "Note", inputType = "key", inputIndex = 1, long = true},
 	["52"] = {name = "Note", inputType = "key", inputIndex = 2, long = true},
@@ -36,7 +36,7 @@ enums.ChannelEnum = {
 	["59"] = {name = "Note", inputType = "key", inputIndex = 7, long = true},
 	
 	["56"] = {name = "Note", inputType = "scratch", inputIndex = 1, long = true},
-	["57"] = {name = "Note", inputType = "freezone ", inputIndex = 1, long = true},
+	["57"] = {name = "Note", inputType = "freezone", inputIndex = 1, long = true},
 	
 	["21"] = {name = "Note", inputType = "key", inputIndex = 8},
 	["22"] = {name = "Note", inputType = "key", inputIndex = 9},
@@ -69,7 +69,7 @@ enums.ChannelEnum = {
 	["D9"] = {name = "Note", inputType = "key", inputIndex = 7, mine = true},
 	
 	["D6"] = {name = "Note", inputType = "scratch", inputIndex = 1, mine = true},
-	["D7"] = {name = "Note", inputType = "freezone ", inputIndex = 1, mine = true},
+	["D7"] = {name = "Note", inputType = "freezone", inputIndex = 1, mine = true},
 	
 	["E1"] = {name = "Note", inputType = "key", inputIndex = 8, mine = true},
 	["E2"] = {name = "Note", inputType = "key", inputIndex = 9, mine = true},
@@ -109,10 +109,6 @@ enums.ChannelEnum9Keys = {
 	["25"] = {name = "Note", inputType = "key", inputIndex = 9},
 	
 	["51"] = {name = "Note", inputType = "key", inputIndex = 1, long = true},
-	["52"] = {name = "Note", inputType = "key", inputIndex = 2, long = true},
-	["53"] = {name = "Note", inputType = "key", inputIndex = 3, long = true},
-	["54"] = {name = "Note", inputType = "key", inputIndex = 4, long = true},
-	["55"] = {name = "Note", inputType = "key", inputIndex = 5, long = true},
 	["52"] = {name = "Note", inputType = "key", inputIndex = 6, long = true},
 	["53"] = {name = "Note", inputType = "key", inputIndex = 7, long = true},
 	["54"] = {name = "Note", inputType = "key", inputIndex = 8, long = true},
