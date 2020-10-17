@@ -91,6 +91,8 @@ OJM.parseM30 = function(self)
 	local payload_size = buffer:int32_le()
 	local padding = buffer:int32_le()
 
+	assert(buffer.offset == sample_offset)
+
 	for i = 0, sample_count - 1 do
 		if buffer.size - buffer.offset < 52 then
 			break
@@ -109,10 +111,6 @@ OJM.parseM30 = function(self)
 		local ref = buffer:int16_le()
 		local unk_zero = buffer:int16_le()
 		local pcm_samples = buffer:int32_le()
-
-		-- local buffer_sample_offset = buffer.offset -- !!! compare with sample_offset
-		-- local sample_data_buffer = byte.slice(buffer, 0, sample_size)
-		-- byte.step(buffer, sample_size)
 
 		if encryption_flag == 0 then
 		elseif encryption_flag == 16 then
@@ -136,7 +134,7 @@ end
 
 OJM.M30_xor = function(self, mask, length)
 	local buffer = self.buffer
-	local pointer = buffer.pointer
+	local pointer = buffer.pointer + buffer.offset
 	for i = 0, length - 4, 4 do
 		pointer[i + 0] = bit.bxor(pointer[i + 0], mask[1])
 		pointer[i + 1] = bit.bxor(pointer[i + 1], mask[2])
