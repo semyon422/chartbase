@@ -91,6 +91,8 @@ OJM.parseM30 = function(self)
 	local payload_size = buffer:int32_le()
 	local padding = buffer:int32_le()
 
+	assert(buffer.offset == sample_offset)
+
 	for i = 0, sample_count - 1 do
 		if buffer.size - buffer.offset < 52 then
 			break
@@ -109,10 +111,6 @@ OJM.parseM30 = function(self)
 		local ref = buffer:int16_le()
 		local unk_zero = buffer:int16_le()
 		local pcm_samples = buffer:int32_le()
-
-		-- local buffer_sample_offset = buffer.offset -- !!! compare with sample_offset
-		-- local sample_data_buffer = byte.slice(buffer, 0, sample_size)
-		-- byte.step(buffer, sample_size)
 
 		if encryption_flag == 0 then
 		elseif encryption_flag == 16 then
@@ -136,7 +134,7 @@ end
 
 OJM.M30_xor = function(self, mask, length)
 	local buffer = self.buffer
-	local pointer = buffer.pointer
+	local pointer = buffer.pointer + buffer.offset
 	for i = 0, length - 4, 4 do
 		pointer[i + 0] = bit.bxor(pointer[i + 0], mask[1])
 		pointer[i + 1] = bit.bxor(pointer[i + 1], mask[2])
@@ -147,6 +145,8 @@ end
 
 OJM.parseOMC = function(self, decrypt)
 	local buffer = self.buffer
+
+	buffer:seek(4)
 
 	local unk1 = buffer:int16_le()
 	local unk2 = buffer:int16_le()
@@ -161,6 +161,7 @@ OJM.parseOMC = function(self, decrypt)
 	self.acc_counter = 0
 
 	while file_offset < ogg_start do
+		buffer:seek(file_offset)
 		file_offset = file_offset + 56
 
 		local sample_name = buffer:cstring(32)
@@ -220,6 +221,7 @@ OJM.parseOMC = function(self, decrypt)
 
 	sample_id = 1000
 	while file_offset < filesize do
+		buffer:seek(file_offset)
 		file_offset = file_offset + 36
 
 		local sample_name = buffer:cstring(32)

@@ -101,12 +101,17 @@ end
 
 BMS.detectKeymodeBMS = function(self)
 	local ie = self.inputExisting
+	local ce = self.channelExisting
 	if ie[6] or ie[7] then
 		for i = 8, 14 do
 			if ie[i] then
 				self.mode = 14
 				return
 			end
+		end
+		if ce["26"] then
+			self.mode = 22
+			return
 		end
 		self.mode = 7
 	else
@@ -120,7 +125,16 @@ BMS.detectKeymodeBMS = function(self)
 				return
 			end
 		end
-		self.mode = 5
+		if ie[1] then
+			if ce["26"] then
+				self.mode = 20
+				return
+			else
+				self.mode = 5
+				return
+			end
+		end
+		-- return nothing here?
 	end
 end
 
@@ -142,14 +156,16 @@ BMS.updateMode = function(self, channel)
 end
 
 BMS.updateModeBMS = function(self, channel)
-	local channelInfo = enums.ChannelEnum[channel]
-	
-	local inputExisting = self.inputExisting
-	if channelInfo and channelInfo.name == "Note" and not self.pms and not self.pmsdp then
-		if channelInfo.inputType == "key" then
-			inputExisting[channelInfo.inputIndex] = true
-		end
-	end
+    self.channelExisting[channel] = true
+
+    local channelInfo = enums.ChannelEnum[channel]
+    
+    local inputExisting = self.inputExisting
+    if channelInfo and channelInfo.name == "Note" and not self.pms and not self.pmsdp then
+        if channelInfo.inputType == "key" then
+            inputExisting[channelInfo.inputIndex] = true
+        end
+    end
 end
 
 BMS.updateModePMS = function(self, channel)

@@ -72,6 +72,12 @@ NoteChartImporter.setInputMode = function(self)
 		self.ChannelEnum = enums.ChannelEnum9Keys
 	elseif mode == 18 then
 		self.ChannelEnum = enums.ChannelEnum18Keys
+	
+	elseif mode == 20 or mode == 22 then
+		self.noteChart.inputMode:setInputCount("key", mode-15)
+		self.noteChart.inputMode:setInputCount("scratch", 1)
+		self.noteChart.inputMode:setInputCount("pedal", 1)
+		self.ChannelEnum = enums.ChannelEnumDsc
 	end
 end
 
@@ -217,6 +223,7 @@ NoteChartImporter.processData = function(self)
 							longNoteData[channelIndex] = noteData
 						else
 							noteData.noteType = "LongNoteEnd"
+							noteData.sounds = {}
 							noteData.startNoteData = longNoteData[channelIndex]
 							longNoteData[channelIndex].endNoteData = noteData
 							longNoteData[channelIndex] = nil
@@ -227,6 +234,7 @@ NoteChartImporter.processData = function(self)
 							longNoteData[channelIndex].endNoteData = noteData
 							noteData.startNoteData = longNoteData[channelIndex]
 							noteData.noteType = "LongNoteEnd"
+							noteData.sounds = {}
 							longNoteData[channelIndex] = nil
 						else
 							noteData.noteType = "ShortNote"
@@ -255,6 +263,9 @@ NoteChartImporter.processData = function(self)
 				end
 			end
 		end
+	end
+	for _, noteData in pairs(longNoteData) do
+		noteData.noteType = "ShortNote"
 	end
 end
 
