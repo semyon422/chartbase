@@ -201,11 +201,11 @@ MetaData.fillData = function(self)
 			stagePath		= "",
 			previewTime		= 0,
 			noteCount		= importer.noteCount,
-			length			= importer.length,
+			length			= mid.length,
 			bpm				= mid.bpm,
 			inputMode		= "88key",
-			minTime         = importer.minTime,
-			maxTime         = importer.maxTime
+			minTime         = mid.minTime,
+			maxTime         = mid.maxTime
 		})
 	end
 end
