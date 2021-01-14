@@ -1,4 +1,5 @@
 local ncdk = require("ncdk")
+local Fraction = require("ncdk.Fraction")
 local NoteChart = require("ncdk.NoteChart")
 local MetaData = require("notechart.MetaData")
 local MID = require("midi.MID")
@@ -11,9 +12,7 @@ NoteChartImporter_metatable.__index = NoteChartImporter
 NoteChartImporter.new = function(self)
 	local noteChartImporter = {}
 
-	-- index 1 is measureline
-	-- 2..* indexes are tracks
-	self.foregroundLayerDatas = {}
+	self.LayerDatas = {}
 
 	setmetatable(noteChartImporter, NoteChartImporter_metatable)
 	
@@ -31,151 +30,172 @@ NoteChartImporter.import = function(self)
 
 	self.title = self.path:match("^.*/(.*).mid$")
 
+	local hitsounds = love.filesystem.getDirectoryItems("userdata/hitsounds/midi")
+	self.hitsoundType = hitsounds[1]:match("^.+(%..+)$")
+	self.hitsoundFormat = tonumber(hitsounds[1]:sub(1, 1)) ~= nil and "numbs" or "keys"
+	if self.hitsoundFormat == "keys" then
+		NoteChartImporter:fillKeys()
+	end
+
 	if not self.mid then
 		self.mid = MID:new(self.content)
 	end
-	
-	local hitsounds = love.filesystem.getDirectoryItems("userdata/hitsounds/midi")
-	self.hitsoundFormat = hitsounds[1]:match("^.+(%..+)$") -- .ogg for example
 
 	self.noteCount = 0
-	self.firstNote = 0 -- time of the first note
-	self.length = 0 -- time of the last note
-	for i = 2, #self.mid.score do -- go through tracks
-		self:processData(i, self:createForegroundLayerData(i))
+	for i = 1, #self.mid.notes do
+		self:processData(i, self:createLayerData(i))
 	end
-
-	self.minTime = 0
-	self.maxTime = self.length
-
-	self:processMeasureLines()
 	
+	self:processMeasureLines()
+
 	noteChart:compute()
 	noteChart.index = 1
 	noteChart.metaData:fillData()
 end
 
--- create a new ForegroundLayerData
--- set the TimeMode, TempoData and VelocityData
--- add it to self.foregroundLayerDatas
-NoteChartImporter.createForegroundLayerData = function(self, index)
-	local index = index or #self.foregroundLayerDatas + 1
+NoteChartImporter.fillKeys = function(self)
+	local keyLabels = {"A","A#","B","C","C#","D","D#","E","F","F#","G","G#"}
 
-	local foregroundLayerData = self.noteCharts[1].layerDataSequence:requireLayerData(index)
-	foregroundLayerData:setTimeMode("absolute")
-
-	local tempoData = ncdk.TempoData:new(0, self.mid.bpm[1]["bpm"])
-	foregroundLayerData:addTempoData(tempoData)
-
-	local velocityData = ncdk.VelocityData:new(foregroundLayerData:getTimePoint(0, 1))
-	velocityData.currentSpeed = tempoData.tempo
-	foregroundLayerData:addVelocityData(velocityData)
-
-	self.foregroundLayerDatas[index] = foregroundLayerData
-	return foregroundLayerData
+	local keys = {}
+	for i = 1, 8 do
+		for _, label in ipairs(keyLabels) do
+			keys[#keys+1] = label .. i
+		end
+	end
+	
+	self.keys = keys
 end
 
-NoteChartImporter.processData = function(self, trackIndex, foregroundLayerData)
-	local score = self.mid.score
+NoteChartImporter.createLayerData = function(self, index)
+	local index = index or #self.LayerDatas + 1
+
+	local LayerData = self.noteCharts[1].layerDataSequence:requireLayerData(index)
+	LayerData:setTimeMode("measure")
+	LayerData:setSignatureMode("short")
+
+	LayerData:setSignature(0, Fraction:new(4))
+
+	for _, tempo in ipairs(self.mid.tempos) do
+		LayerData:addTempoData(
+			ncdk.TempoData:new(
+				Fraction:fromNumber(tempo[1], 1000),
+				tempo[2]
+			)
+		)
+	end
+
+	local velocityData = ncdk.VelocityData:new(
+		LayerData:getTimePoint(
+			Fraction:new(0),
+			-1
+		)
+	)
+	velocityData.currentVelocity = 1
+	LayerData:addVelocityData(velocityData)
+
+	self.LayerDatas[index] = LayerData
+
+	return LayerData
+end
+
+NoteChartImporter.processData = function(self, trackIndex, LayerData)
+	local notes = self.mid.notes
 	local noteChart = self.noteCharts[1]
 	local constantVolume = self.settings and self.settings["midiConstantVolume"] or false
+	local hitsoundType = self.hitsoundType
 	local hitsoundFormat = self.hitsoundFormat
+	local keys = self.keys
 	local noteCount = self.noteCount
 
+	local prevNotes = {}
+	for i = 1, 88 do
+		prevNotes[i] = false
+	end
+
 	local hitsoundPath
-	local startTimePoint
 	local startNoteData
-	local endTimePoint
 	local endNoteData
+	for _, event in ipairs(notes[trackIndex]) do
+		if event[1] then
+			if hitsoundFormat == "numbs" then
+				hitsoundPath = tostring(event[3])
+			elseif hitsoundFormat == "keys" then
+				hitsoundPath = keys[event[3]]
+			end
+			hitsoundPath = hitsoundPath .. hitsoundType
 
-	local checkFirstNote = true
-	for _, event in ipairs(score[trackIndex]) do
-		if event[1] == "note" then
-			hitsoundPath = tostring(event[5] - 20) .. hitsoundFormat -- - 20 because the event goes from 21 to 108 instead of 1 to 88
-
-			startTimePoint = foregroundLayerData:getTimePoint(event[2] / 1000, 1)
-			startNoteData = ncdk.NoteData:new(startTimePoint)
+			startNoteData = ncdk.NoteData:new(LayerData:getTimePoint(
+					Fraction:fromNumber(event[2], 1000),
+					-1
+				)
+			)
 			startNoteData.inputType = "key"
-			startNoteData.inputIndex = event[5] - 20
-			startNoteData.sounds = {{hitsoundPath, constantVolume and 1 or event[6] / 127}} -- / 127 because the event goes from 0 to 127 instead of 1 based
+			startNoteData.inputIndex = event[3]
+			startNoteData.sounds = {{hitsoundPath, constantVolume and 1 or event[4]}}
 			startNoteData.noteType = "LongNoteStart"
-
-			endTimePoint = foregroundLayerData:getTimePoint((event[2] + event[3]) / 1000, 1) -- (event time + event duration) / 1000
-			endNoteData = ncdk.NoteData:new(endTimePoint)
-			endNoteData.inputType = startNoteData.inputType
-			endNoteData.inputIndex = startNoteData.inputIndex
-			endNoteData.sounds = {{"none" .. hitsoundFormat, 0}}
-			endNoteData.noteType = "LongNoteEnd"
-
-			startNoteData.endNoteData = endNoteData
-			endNoteData.startNoteData = startNoteData
-
-			foregroundLayerData:addNoteData(startNoteData)
-			foregroundLayerData:addNoteData(endNoteData)
 
 			noteChart:addResource("sound", hitsoundPath, {hitsoundPath})
 
-			noteCount = noteCount + 1
+			prevNotes[event[3]] = startNoteData
+		else
+			startNoteData = prevNotes[event[3]]
+			if startNoteData and not startNoteData.endNoteData then
+				endNoteData = ncdk.NoteData:new(LayerData:getTimePoint(
+						Fraction:fromNumber(event[2], 1000),
+						-1
+					)
+				)
+				endNoteData.inputType = "key"
+				endNoteData.inputIndex = event[3]
+				endNoteData.sounds = {{"none" .. hitsoundType, 0}}
+				endNoteData.noteType = "LongNoteEnd"
 
-			-- check if the startTimePoint time is less than the current self.firstNote time
-			if checkFirstNote then
-				checkFirstNote = false -- only check once in this for loop
-				if self.firstNote == 0 or startTimePoint.absoluteTime < self.firstNote then
-					self.firstNote = startTimePoint.absoluteTime
-				end
+				startNoteData.endNoteData = endNoteData
+				endNoteData.startNoteData = startNoteData
+				
+				LayerData:addNoteData(startNoteData)
+				LayerData:addNoteData(endNoteData)
+
+				noteCount = noteCount + 1
 			end
 		end
-	end
-
-	-- check if last note's endTimePoint time is more than current self.length time
-	if endTimePoint and endTimePoint.absoluteTime > self.length then
-		self.length = endTimePoint.absoluteTime
 	end
 
 	self.noteCount = noteCount
 end
 
--- fill first ForegroundLayerData with measure lines
--- only measure lines need to account for bpm changes, because to_millisecs calculates it for the notes
 NoteChartImporter.processMeasureLines = function(self)
-	local foregroundLayerData = self:createForegroundLayerData(1)
+	local LayerData = self.LayerDatas[1]
+	local minTime = self.mid.minTime
+	local maxTime = self.mid.maxTime
 
-	local time = self.firstNote
+	local time = minTime
 
-	local currentBpm = 1
-	local bpmChange -- when to change to a new bpm
-	local SecondsPerMeasure -- duration between measure lines
+	local i = 1
+	while time < maxTime do
+		local timePoint = LayerData:getTimePoint(
+			Fraction:fromNumber(time, 1000),
+			-1
+		)
+		
+		local startNoteData = ncdk.NoteData:new(timePoint)
+		startNoteData.inputType = "measure"
+		startNoteData.inputIndex = 1
+		startNoteData.noteType = "LineNoteStart"
+		
+		local endNoteData = ncdk.NoteData:new(timePoint)
+		endNoteData.inputType = "measure"
+		endNoteData.inputIndex = 1
+		endNoteData.noteType = "LineNoteEnd"
+		
+		startNoteData.endNoteData = endNoteData
+		endNoteData.startNoteData = startNoteData
+		
+		LayerData:addNoteData(startNoteData)
+		LayerData:addNoteData(endNoteData)
 
-	-- add measure lines untill the end of the chart
-	while time < self.length do
-		-- change to new bpm
-		bpmChange = self.mid.bpm[currentBpm+1] and self.mid.bpm[currentBpm+1]["dt"] or self.length
-		SecondsPerMeasure = 1 / ((self.mid.bpm[currentBpm]["bpm"] / 4) / 60)
-
-		-- add measure lines untill it's time for a new bpm
-		while time < bpmChange do
-			local timePoint = foregroundLayerData:getTimePoint(time, 1)
-			
-			local startNoteData = ncdk.NoteData:new(timePoint)
-			startNoteData.inputType = "measure"
-			startNoteData.inputIndex = 1
-			startNoteData.noteType = "LineNoteStart"
-			foregroundLayerData:addNoteData(startNoteData)
-			
-			local endNoteData = ncdk.NoteData:new(timePoint)
-			endNoteData.inputType = "measure"
-			endNoteData.inputIndex = 1
-			endNoteData.noteType = "LineNoteEnd"
-			foregroundLayerData:addNoteData(endNoteData)
-			
-			startNoteData.endNoteData = endNoteData
-			endNoteData.startNoteData = startNoteData
-
-			time = time + SecondsPerMeasure
-		end
-
-		time = bpmChange
-		currentBpm = currentBpm + 1
+		time = (i * 0.25) + minTime
+		i = i + 1
 	end
 end
 
