@@ -54,10 +54,10 @@ NoteChartImporter.import = function(self)
 end
 
 NoteChartImporter.fillKeys = function(self)
-	local keyLabels = {"A","A#","B","C","C#","D","D#","E","F","F#","G","G#"}
+	local keyLabels = {"C","C#","D","D#","E","F","F#","G","G#","A","A#","B"}
 
-	local keys = {}
-	for i = 1, 8 do
+	local keys = {"A1","A#1","B1"}
+	for i = 2, 8 do
 		for _, label in ipairs(keyLabels) do
 			keys[#keys+1] = label .. i
 		end
@@ -107,39 +107,40 @@ NoteChartImporter.processData = function(self, trackIndex, LayerData)
 	local keys = self.keys
 	local noteCount = self.noteCount
 
-	local prevNotes = {}
+	local prevEvents = {}
 	for i = 1, 88 do
-		prevNotes[i] = false
+		prevEvents[i] = false
 	end
 
 	local hitsoundPath
+	local startEvent
 	local startNoteData
 	local endNoteData
 	for _, event in ipairs(notes[trackIndex]) do
 		if event[1] then
-			if hitsoundFormat == "numbs" then
-				hitsoundPath = tostring(event[3])
-			elseif hitsoundFormat == "keys" then
-				hitsoundPath = keys[event[3]]
-			end
-			hitsoundPath = hitsoundPath .. hitsoundType
-
-			startNoteData = ncdk.NoteData:new(LayerData:getTimePoint(
-					Fraction:fromNumber(event[2], 1000),
-					-1
-				)
-			)
-			startNoteData.inputType = "key"
-			startNoteData.inputIndex = event[3]
-			startNoteData.sounds = {{hitsoundPath, constantVolume and 1 or event[4]}}
-			startNoteData.noteType = "LongNoteStart"
-
-			noteChart:addResource("sound", hitsoundPath, {hitsoundPath})
-
-			prevNotes[event[3]] = startNoteData
+			prevEvents[event[3]] = event
 		else
-			startNoteData = prevNotes[event[3]]
-			if startNoteData and not startNoteData.endNoteData then
+			startEvent = prevEvents[event[3]]
+			if startEvent and not startEvent.used then
+				hitsoundPath = hitsoundFormat == "numbs" and tostring(event[3]) or keys[event[3]]
+				if event[2] - startEvent[2] > 0.2 then
+					hitsoundPath = hitsoundPath .. "R"
+				end
+				hitsoundPath = hitsoundPath .. hitsoundType
+				noteChart:addResource("sound", hitsoundPath, {hitsoundPath})
+
+				startNoteData = ncdk.NoteData:new(LayerData:getTimePoint(
+						Fraction:fromNumber(startEvent[2], 1000),
+						-1
+					)
+				)
+				startNoteData.inputType = "key"
+				startNoteData.inputIndex = startEvent[3]
+				startNoteData.sounds = {{hitsoundPath, constantVolume and 1 or startEvent[4]}}
+				startNoteData.noteType = "LongNoteStart"
+
+				startEvent.used = true
+
 				endNoteData = ncdk.NoteData:new(LayerData:getTimePoint(
 						Fraction:fromNumber(event[2], 1000),
 						-1
@@ -194,7 +195,7 @@ NoteChartImporter.processMeasureLines = function(self)
 		LayerData:addNoteData(startNoteData)
 		LayerData:addNoteData(endNoteData)
 
-		time = (i * 0.25) + minTime
+		time = (i * 0.5) + minTime
 		i = i + 1
 	end
 end
