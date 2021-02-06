@@ -9,7 +9,7 @@ MID.new = function(self, midString)
 	local mid = {}
 
 	setmetatable(mid, MID_metatable)
-	mid:process(midString, path)
+	mid:process(midString)
 
 	return mid
 end
@@ -26,9 +26,6 @@ MID.process = function(self, midString)
     for i = 2, #opus do
         dt = 0
         for _, event in ipairs(opus[i]) do
-            if event[2] > 10000 then
-                event[2] = 0
-            end
             dt = dt + event[2]
             
             if event[1] == "note_on" or event[1] == "note_off" then
