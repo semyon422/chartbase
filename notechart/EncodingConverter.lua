@@ -1,4 +1,4 @@
-local iconv = require("aqua.iconv")
+local iconv = require("iconv")
 local validate = require("aqua.utf8").validate
 
 local EncodingConverter = {}
