@@ -183,6 +183,31 @@ MetaData.fillData = function(self)
 			minTime         = importer.minTime / 1000,
 			maxTime         = importer.maxTime / 1000,
 		})
+	elseif noteChart.type == "sm" then
+		local importer = noteChart.importer
+		local sm = noteChart.importer.sm
+		local header = sm.header
+		self:setTable({
+			hash			= "",
+			index			= noteChart.index,
+			format			= "sm",
+			title			= header["TITLE"],
+			artist			= header["ARTIST"],
+			source			= header["SUBTITLE"],
+			tags			= "",
+			name			= "Challenge",
+			creator			= header["CREDIT"],
+			level			= 0,
+			audioPath		= header["MUSIC"],
+			stagePath		= header["BACKGROUND"],
+			previewTime		= header["SAMPLESTART"],
+			noteCount		= importer.noteCount,
+			length			= importer.totalLength,
+			bpm				= 120,
+			inputMode		= noteChart.inputMode:getString(),
+			minTime         = importer.minTime,
+			maxTime         = importer.maxTime,
+		})
 	elseif noteChart.type == "midi" then
 		local importer = noteChart.importer
 		local mid = importer.mid
