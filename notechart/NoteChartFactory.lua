@@ -41,15 +41,15 @@ local NoteChartImporters = {
 }
 
 NoteChartFactory.isRelatedContainer = function(self, path)
-	return RelatedContainerExtensions[path:lower():match("%.(.-)$")]
+	return RelatedContainerExtensions[path:lower():match("^.+%.(.-)$")]
 end
 
 NoteChartFactory.isUnrelatedContainer = function(self, path)
-	return UnrelatedContainerExtensions[path:lower():match("%.(.-)$")]
+	return UnrelatedContainerExtensions[path:lower():match("^.+%.(.-)$")]
 end
 
 NoteChartFactory.getNoteChartImporter = function(self, path)
-	return NoteChartImporters[path:lower():match("%.(.-)$")]
+	return NoteChartImporters[path:lower():match("^.+%.(.-)$")]
 end
 
 NoteChartFactory.getNoteCharts = function(self, path, content, index, settings)
