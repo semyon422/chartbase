@@ -41,9 +41,10 @@ NoteChartImporter.import = function(self)
 		self.mid = MID:new(self.content)
 	end
 
+	local addedNotes = {}
 	self.noteCount = 0
 	for i = 1, #self.mid.notes do
-		self:processData(i, self:createLayerData(i))
+		self:processData(i, self:createLayerData(i), addedNotes)
 	end
 	
 	self:processMeasureLines()
@@ -98,7 +99,7 @@ NoteChartImporter.createLayerData = function(self, index)
 	return LayerData
 end
 
-NoteChartImporter.processData = function(self, trackIndex, LayerData)
+NoteChartImporter.processData = function(self, trackIndex, LayerData, addedNotes)
 	local notes = self.mid.notes
 	local noteChart = self.noteCharts[1]
 	local constantVolume = self.settings and self.settings["midiConstantVolume"] or false
@@ -122,6 +123,8 @@ NoteChartImporter.processData = function(self, trackIndex, LayerData)
 		else
 			startEvent = prevEvents[event[3]]
 			if startEvent and not startEvent.used then
+				local eventId = startEvent[2] .. ":" .. startEvent[3]
+
 				hitsoundPath = hitsoundFormat == "numbs" and tostring(event[3]) or keys[event[3]]
 				if event[2] - startEvent[2] > 0.2 then
 					hitsoundPath = hitsoundPath .. "R"
@@ -134,10 +137,16 @@ NoteChartImporter.processData = function(self, trackIndex, LayerData)
 						-1
 					)
 				)
-				startNoteData.inputType = "key"
-				startNoteData.inputIndex = startEvent[3]
 				startNoteData.sounds = {{hitsoundPath, constantVolume and 1 or startEvent[4]}}
-				startNoteData.noteType = "LongNoteStart"
+				if addedNotes[eventId] then
+					startNoteData.inputType = "auto"
+					startNoteData.noteType = "SoundNote"
+					startNoteData.inputIndex = 0
+				else
+					startNoteData.inputType = "key"
+					startNoteData.noteType = "LongNoteStart"
+					startNoteData.inputIndex = startEvent[3]
+				end
 
 				startEvent.used = true
 
@@ -146,10 +155,16 @@ NoteChartImporter.processData = function(self, trackIndex, LayerData)
 						-1
 					)
 				)
-				endNoteData.inputType = "key"
-				endNoteData.inputIndex = event[3]
 				endNoteData.sounds = {{"none" .. hitsoundType, 0}}
-				endNoteData.noteType = "LongNoteEnd"
+				if addedNotes[eventId] then
+					endNoteData.inputType = "auto"
+					endNoteData.noteType = "SoundNote"
+					endNoteData.inputIndex = 0
+				else
+					endNoteData.inputType = "key"
+					endNoteData.noteType = "LongNoteEnd"
+					endNoteData.inputIndex = event[3]
+				end
 
 				startNoteData.endNoteData = endNoteData
 				endNoteData.startNoteData = startNoteData
@@ -158,6 +173,7 @@ NoteChartImporter.processData = function(self, trackIndex, LayerData)
 				LayerData:addNoteData(endNoteData)
 
 				noteCount = noteCount + 1
+				addedNotes[eventId] = true
 			end
 		end
 	end
