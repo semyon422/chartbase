@@ -36,7 +36,16 @@ NoteChartImporter.import = function(self)
 	
 	self:process()
 	
-	noteChart.inputMode:setInputCount("key", math.floor(self.osu.keymode))
+	local mode = self.osu.mode
+	if mode == 0 then
+		noteChart.inputMode:setInputCount("osu", 1)
+	elseif mode == 1 then
+		noteChart.inputMode:setInputCount("taiko", 1)
+	elseif mode == 2 then
+		noteChart.inputMode:setInputCount("fruits", 1)
+	elseif mode == 3 then
+		noteChart.inputMode:setInputCount("key", math.floor(self.osu.keymode))
+	end
 	noteChart.type = "osu"
 	noteChart:compute()
 	noteChart.index = 1
