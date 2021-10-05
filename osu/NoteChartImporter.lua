@@ -36,7 +36,7 @@ NoteChartImporter.import = function(self)
 	
 	self:process()
 	
-	noteChart.inputMode:setInputCount("key", self.osu.keymode)
+	noteChart.inputMode:setInputCount("key", math.floor(self.osu.keymode))
 	noteChart.type = "osu"
 	noteChart:compute()
 	noteChart.index = 1
