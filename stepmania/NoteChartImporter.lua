@@ -17,6 +17,30 @@ NoteChartImporter.new = function(self)
 end
 
 NoteChartImporter.import = function(self)
+	local noteCharts = {}
+
+	if not self.sm then
+		self.sm = SM:new()
+		self.sm:import(self.content:gsub("\r[\r\n]?", "\n"))
+	end
+
+	local i0, i1 = 1, #self.sm.charts
+	if self.index then
+		i0, i1 = self.index, self.index
+	end
+
+	for i = i0, i1 do
+		local importer = NoteChartImporter:new()
+		importer.sm = self.sm
+		importer.chartIndex = i
+		importer.chart = self.sm.charts[i]
+		noteCharts[#noteCharts + 1] = importer:importSingle()
+	end
+
+	self.noteCharts = noteCharts
+end
+
+NoteChartImporter.importSingle = function(self)
 	self.noteChart = NoteChart:new()
 	local noteChart = self.noteChart
 
@@ -26,16 +50,10 @@ NoteChartImporter.import = function(self)
 
 	self.foregroundLayerData = noteChart.layerDataSequence:requireLayerData(1)
 	self.foregroundLayerData:setTimeMode("measure")
-	
-	
+
 	self.backgroundLayerData = noteChart.layerDataSequence:requireLayerData(2)
 	self.backgroundLayerData.invisible = true
 	self.backgroundLayerData:setTimeMode("absolute")
-
-	if not self.sm then
-		self.sm = SM:new()
-		self.sm:import(self.content:gsub("\r[\r\n]?", "\n"))
-	end
 
 	self:setInputMode()
 	self:processTempo()
@@ -47,14 +65,14 @@ NoteChartImporter.import = function(self)
 
 	self:updateLength()
 
-	noteChart.index = 1
+	noteChart.index = self.chartIndex
 	noteChart.metaData:fillData()
 
-	self.noteCharts = {noteChart}
+	return noteChart
 end
 
 NoteChartImporter.setInputMode = function(self)
-	local mode = self.sm.mode
+	local mode = self.chart.mode
 	self.noteChart.inputMode:setInputCount("key", mode)
 end
 
@@ -97,8 +115,8 @@ NoteChartImporter.processNotes = function(self)
 	self.minTimePoint = nil
 	self.maxTimePoint = nil
 
-	for _, note in ipairs(self.sm.notes) do
-		local measureTime = ncdk.Fraction:new(note.offset, self.sm.linesPerMeasure[note.measure]) + note.measure
+	for _, note in ipairs(self.chart.notes) do
+		local measureTime = ncdk.Fraction:new(note.offset, self.chart.linesPerMeasure[note.measure]) + note.measure
 		local timePoint = self.foregroundLayerData:getTimePoint(measureTime, -1)
 
 		local noteData = ncdk.NoteData:new(timePoint)
@@ -138,7 +156,7 @@ NoteChartImporter.processAudio = function(self)
 end
 
 NoteChartImporter.processMeasureLines = function(self)
-	for measureIndex = 0, self.sm.measure do
+	for measureIndex = 0, self.chart.measure do
 		local measureTime = ncdk.Fraction:new(measureIndex)
 		local timePoint = self.foregroundLayerData:getTimePoint(measureTime, -1)
 

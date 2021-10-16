@@ -8,17 +8,24 @@ SM.new = function(self)
 
 	sm.header = {}
 	sm.bpm = {}
-	sm.primaryTempo = 130
-
-	self.measure = 0
-	self.offset = 0
-	self.mode = 0
-	self.notes = {}
-	self.linesPerMeasure = {}
+	sm.charts = {}
 
 	setmetatable(sm, SM_metatable)
 
 	return sm
+end
+
+SM.newChart = function(self)
+	local chart = {
+		measure = 0,
+		offset = 0,
+		mode = 0,
+		notes = {},
+		linesPerMeasure = {},
+		metaData = {},
+	}
+	self.chart = chart
+	table.insert(self.charts, chart)
 end
 
 SM.import = function(self, noteChartString)
@@ -28,6 +35,7 @@ SM.import = function(self, noteChartString)
 end
 
 SM.processLine = function(self, line)
+	local chart = self.chart
 	if self.parsingBpm then
 		self:processBPM(line)
 		if line:find(";") then
@@ -35,10 +43,19 @@ SM.processLine = function(self, line)
 		end
 		return
 	end
-	if line:find("^%d+$") then
+	if line:find("^#NOTES") then
+		self.parsingNotes = true
+		self.parsingNotesMetaData = true
+		self:newChart()
+	elseif self.parsingNotes and line:find("^%d+.*$") then
+		self.parsingNotesMetaData = false
 		self:processNotesLine(line)
-	elseif line:find("^,$") then
+	elseif self.parsingNotes and line:find("^,.*$") then
 		self:processCommaLine()
+	elseif self.parsingNotes and line:find("^;.*$") then
+		self.parsingNotes = false
+	elseif self.parsingNotesMetaData then
+		table.insert(chart.metaData, line:match("^%s*(.-):%s*$"))
 	elseif line:find("#%S+:.*") then
 		self:processHeaderLine(line)
 	end
@@ -57,6 +74,10 @@ SM.processHeaderLine = function(self, line)
 		if not line:find(";") then
 			self.parsingBpm = true
 		end
+	elseif key == "BACKGROUND" then
+		if value == "" then
+			self.header[key] = "bg"
+		end
 	end
 end
 
@@ -73,34 +94,39 @@ SM.processBPM = function(self, line)
 					tempo = tonumber(tempo)
 				}
 			)
-			return
+			if not self.primaryTempo then
+				self.primaryTempo = tempo
+			end
 		end
 	end
 end
 
 SM.processCommaLine = function(self)
-	self.measure = self.measure + 1
-	self.offset = 0
+	local chart = self.chart
+	chart.measure = chart.measure + 1
+	chart.offset = 0
 end
 
 SM.processNotesLine = function(self, line)
-	self.mode = math.max(self.mode, #line)
+	line = line:match("^(%d+).*$")
+	local chart = self.chart
+	chart.mode = math.max(chart.mode, #line)
 	for i = 1, #line do
 		local noteType = line:sub(i, i)
 		if noteType == "1" then
 			table.insert(
-				self.notes,
+				chart.notes,
 				{
-					measure = self.measure,
-					offset = self.offset,
+					measure = chart.measure,
+					offset = chart.offset,
 					noteType = noteType,
 					inputIndex = i
 				}
 			)
 		end
 	end
-	self.offset = self.offset + 1
-	self.linesPerMeasure[self.measure] = (self.linesPerMeasure[self.measure] or 0) + 1
+	chart.offset = chart.offset + 1
+	chart.linesPerMeasure[chart.measure] = (chart.linesPerMeasure[chart.measure] or 0) + 1
 end
 
 return SM

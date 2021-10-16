@@ -52,12 +52,19 @@ NoteChartFactory.getNoteChartImporter = function(self, path)
 	return NoteChartImporters[path:lower():match("^.+%.(.-)$")]
 end
 
+NoteChartFactory.deleteBOM = function(self, content)
+	if content:sub(1, 3) == string.char(0xEF, 0xBB, 0xBF) then
+		return content:sub(4, -1)
+	end
+	return content
+end
+
 NoteChartFactory.getNoteCharts = function(self, path, content, index, settings)
 	local NoteChartImporter = self:getNoteChartImporter(path)
 	local importer = NoteChartImporter:new()
 
 	importer.path = path
-	importer.content = content
+	importer.content = self:deleteBOM(content)
 	importer.index = index
 	importer.settings = settings
 

@@ -16,15 +16,8 @@ NoteChartImporter.new = function(self)
 	noteChartImporter.measureCount = 0
 	
 	setmetatable(noteChartImporter, NoteChartImporter_metatable)
-	
-	return noteChartImporter
-end
 
-NoteChartImporter.deleteBOM = function(self, content)
-	if content:sub(1, 3) == string.char(0xEF, 0xBB, 0xBF) then
-		return content:sub(4, -1)
-	end
-	return content
+	return noteChartImporter
 end
 
 NoteChartImporter.import = function(self, noteChartString)
@@ -37,7 +30,7 @@ NoteChartImporter.import = function(self, noteChartString)
 	
 	if not self.ksh then
 		self.ksh = Ksh:new()
-		self.ksh:import(self:deleteBOM(self.content):gsub("\r\n", "\n"))
+		self.ksh:import(self.content:gsub("\r\n", "\n"))
 	end
 	
 	self.foregroundLayerData = noteChart.layerDataSequence:requireLayerData(1)

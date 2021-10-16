@@ -20,11 +20,11 @@ MetaData.defaults = {
 	name = "",
 	creator = "",
 	level = 0,
-	
+
 	previewTime = 0,
 	audioPath = "",
 	stagePath = "",
-	
+
 	inputMode = ""
 }
 
@@ -187,6 +187,8 @@ MetaData.fillData = function(self)
 		local importer = noteChart.importer
 		local sm = noteChart.importer.sm
 		local header = sm.header
+		local index = noteChart.index
+		local chart = sm.charts[index]
 		self:setTable({
 			hash			= "",
 			index			= noteChart.index,
@@ -195,15 +197,15 @@ MetaData.fillData = function(self)
 			artist			= header["ARTIST"],
 			source			= header["SUBTITLE"],
 			tags			= "",
-			name			= "Challenge",
+			name			= chart.metaData[3],
 			creator			= header["CREDIT"],
-			level			= 0,
+			level			= tonumber(chart.metaData[4]),
 			audioPath		= header["MUSIC"],
 			stagePath		= header["BACKGROUND"],
 			previewTime		= header["SAMPLESTART"],
 			noteCount		= importer.noteCount,
 			length			= importer.totalLength,
-			bpm				= 120,
+			bpm				= sm.primaryTempo,
 			inputMode		= noteChart.inputMode:getString(),
 			minTime         = importer.minTime,
 			maxTime         = importer.maxTime,
