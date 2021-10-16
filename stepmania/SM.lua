@@ -47,6 +47,11 @@ SM.processLine = function(self, line)
 		self.parsingNotes = true
 		self.parsingNotesMetaData = true
 		self:newChart()
+	elseif self.parsingNotesMetaData then
+		table.insert(chart.metaData, line:match("^(.-):.*$"))
+		if #chart.metaData == 5 then
+			self.parsingNotesMetaData = false
+		end
 	elseif self.parsingNotes and line:find("^%d+.*$") then
 		self.parsingNotesMetaData = false
 		self:processNotesLine(line)
@@ -54,8 +59,6 @@ SM.processLine = function(self, line)
 		self:processCommaLine()
 	elseif self.parsingNotes and line:find("^;.*$") then
 		self.parsingNotes = false
-	elseif self.parsingNotesMetaData then
-		table.insert(chart.metaData, line:match("^%s*(.-):%s*$"))
 	elseif line:find("#%S+:.*") then
 		self:processHeaderLine(line)
 	end
