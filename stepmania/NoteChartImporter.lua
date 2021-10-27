@@ -149,6 +149,7 @@ NoteChartImporter.processAudio = function(self)
 	noteData.inputType = "auto"
 	noteData.inputIndex = 0
 	noteData.sounds = {{self.sm.header["MUSIC"], 1}}
+	noteData.stream = true
 	self.noteChart:addResource("sound", self.sm.header["MUSIC"], {self.sm.header["MUSIC"]})
 
 	noteData.noteType = "SoundNote"
