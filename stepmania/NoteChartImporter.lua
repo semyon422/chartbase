@@ -142,7 +142,7 @@ NoteChartImporter.processNotes = function(self)
 end
 
 NoteChartImporter.processAudio = function(self)
-	local startTime = tonumber(self.sm.header["OFFSET"])
+	local startTime = tonumber(self.sm.header["OFFSET"]) or 0
 	local timePoint = self.backgroundLayerData:getTimePoint(startTime, -1)
 
 	local noteData = ncdk.NoteData:new(timePoint)
