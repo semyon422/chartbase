@@ -59,6 +59,7 @@ NoteChartImporter.importSingle = function(self)
 	self:processTempo()
 	self:processNotes()
 	self:processAudio()
+	self:processMeasureLines()
 
 	noteChart.type = "sm"
 	noteChart:compute()
