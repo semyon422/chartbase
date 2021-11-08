@@ -2,34 +2,26 @@ local NoteChartFactory = require("notechart.NoteChartFactory")
 
 local NoteChartDataEntryFactory = {}
 
-NoteChartDataEntryFactory.getEntries = function(self, fileDatas)
-	local entries = {}
-	local allNoteCharts = {}
-	
-	for _, fileData in ipairs(fileDatas) do
-		print(fileData.path)
-		local status, noteCharts = NoteChartFactory:getNoteCharts(fileData.path, fileData.content)
-		
-		if status then
-			for _, noteChart in ipairs(noteCharts) do
-				noteChart.metaData:set("hash", fileData.hash)
+NoteChartDataEntryFactory.getEntries = function(self, path, content, hash, noteChartEntry)
+	print(path)
+	local status, noteCharts = NoteChartFactory:getNoteCharts(path, content)
 
-				local entry = self:getEntry(noteChart.metaData)
-				
-				entries[#entries + 1] = entry
-				allNoteCharts[#allNoteCharts + 1] = noteChart
-				entry.noteChartEntry = fileData.noteChartEntry
-			end
-		else
-			print(noteCharts)
-		end
+	local entries = {}
+	if not status then
+		print(noteCharts)
+		return
 	end
 
-	return entries, allNoteCharts
-end
+	for _, noteChart in ipairs(noteCharts) do
+		noteChart.metaData:set("hash", hash)
 
-NoteChartDataEntryFactory.getEntry = function(self, metaData)
-	return metaData:getTable()
+		local entry = noteChart.metaData:getTable()
+
+		entries[#entries + 1] = entry
+		entry.noteChartEntry = noteChartEntry
+	end
+
+	return entries, noteCharts
 end
 
 return NoteChartDataEntryFactory
