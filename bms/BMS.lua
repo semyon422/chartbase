@@ -87,98 +87,90 @@ BMS.processHeaderLine = function(self, line)
 	end
 end
 
+-- CHANGED
+--[[
+****self.mode****
+78: 18key
+69: 9key BME
+59: 9key BMS
+55: 5key PMS/pop'n
+
+27: 7key + 1 pedals using second scratch channel
+25: 5key + 1 pedals using second scratch channel
+--]]
 BMS.detectKeymode = function(self)
-	if self.mode then
-		return
-	end
-
-	if not self.pms then
-		return self:detectKeymodeBMS()
-	else
-		return self:detectKeymodePMS()
-	end
-end
-
-BMS.detectKeymodeBMS = function(self)
-	local ie = self.inputExisting
 	local ce = self.channelExisting
-	if ie[6] or ie[7] then
-		for i = 8, 14 do
-			if ie[i] then
+	
+	if not self.pms then
+		if ce["28"] or ce["29"] then
+			self.mode = 14
+			return
+		elseif ce["21"] or ce["22"] or ce["23"] or ce["24"] or ce["25"] then
+			if ce["18"] or ce["19"] then
 				self.mode = 14
 				return
 			end
-		end
-		if ce["26"] then
-			self.mode = 22
+			self.mode = 10
 			return
-		end
-		self.mode = 7
-	else
-		if ie[13] or ie[14] then
-			self.mode = 14
-			return
-		end
-		for i = 8, 12 do
-			if ie[i] then
-				self.mode = 10
-				return
-			end
-		end
-		if ie[1] then
+		elseif ce["18"] or ce["19"] then
 			if ce["26"] then
-				self.mode = 20
-				return
-			else
-				self.mode = 5
+				self.mode = 27
 				return
 			end
+			self.mode = 7
+			return
+		elseif ce["11"] or ce["12"] or ce["13"] or ce["14"] or ce["15"] then
+			if ce["26"] then
+				self.mode = 25
+				return
+			end
+			self.mode = 5
+			return
+		elseif ce["16"] then
+			if ce["26"] then
+				self.mode = 14
+				return
+			end
+			self.mode = 7
+			return
 		end
-		-- return nothing here?
-	end
-end
-
-BMS.detectKeymodePMS = function(self)
-	local ce = self.channelExisting
-	if ce["17"] or ce["57"] or ce["27"] or ce["67"] then
-		self.mode = 18
+	elseif ce["21"] or ce["26"] or ce["27"] or ce["28"] or ce["29"] then
+		self.mode = 78
+		return
+	elseif ce["16"] or ce["17"] or ce["18"] or ce["19"] then
+		if ce["22"] or ce["23"] or ce["24"] or ce["25"] then
+			self.mode = 78
+			return
+		end
+		self.mode = 69
+		return
+	elseif ce["24"] or ce["25"] then
+		self.mode = 59
+		return
+	elseif ce["23"] or ce["13"] or ce["14"] or ce["15"] or ce["22"] then
+		if ce["11"] or ce["12"] then
+			self.mode = 59
+			return
+		end
+		self.mode = 55
+		return
+	elseif ce["11"] or ce["12"] then
+		self.mode = 59
 		return
 	end
-	self.mode = 9
 end
 
+--[[ CHANGED
+This function will verify for each channel found if it correspond to an initial channel using "channelBase" value, 
+for exemple when channel "56", the long note of "16" is found, we get ce["16"] == true
+works similarily to the old function "inputExisting" but allows you to be more flexible since you're using channels
+--]]
 BMS.updateMode = function(self, channel)
-	if not self.pms then
-		return self:updateModeBMS(channel)
-	else
-		return self:updateModePMS(channel)
-	end
-end
-
-BMS.updateModeBMS = function(self, channel)
-    self.channelExisting[channel] = true
-
-    local channelInfo = enums.ChannelEnum[channel]
-    
-    local inputExisting = self.inputExisting
-    if channelInfo and channelInfo.name == "Note" and not self.pms and not self.pmsdp then
-        if channelInfo.inputType == "key" then
-            inputExisting[channelInfo.inputIndex] = true
-        end
-    end
-end
-
-BMS.updateModePMS = function(self, channel)
 	local channelExisting = self.channelExisting
 
-	local channelInfo9Keys = enums.ChannelEnum9Keys[channel]
-	if channelInfo9Keys and channelInfo9Keys.name == "Note" then
-		channelExisting[channel] = true
-	end
-
-	local channelInfo18Keys = enums.ChannelEnum18Keys[channel]
-	if channelInfo18Keys and channelInfo18Keys.name == "Note" then
-		channelExisting[channel] = true
+    local channelInfo = enums.ChannelEnum[channel]
+    if channelInfo and channelInfo.name == "Note" then
+        channelExisting[channelInfo.channelBase] = true
 	end
 end
 
