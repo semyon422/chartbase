@@ -12,9 +12,9 @@ NoteChartImporter_metatable.__index = NoteChartImporter
 
 NoteChartImporter.new = function(self)
 	local noteChartImporter = {}
-	
+
 	setmetatable(noteChartImporter, NoteChartImporter_metatable)
-	
+
 	return noteChartImporter
 end
 
@@ -25,37 +25,36 @@ NoteChartImporter.import = function(self)
 	noteChart.importer = self
 	noteChart.metaData = MetaData:new()
 	noteChart.metaData.noteChart = noteChart
-	
+
 	self.foregroundLayerData = noteChart.layerDataSequence:requireLayerData(1)
 	self.foregroundLayerData:setTimeMode("measure")
-	
+
 	if not self.bms then
 		self.bms = BMS:new()
 		self.bms.pms = self.path:lower():sub(-4, -1) == ".pms"
 		self.bms:import(self.content:gsub("\r[\r\n]?", "\n"))
 	end
-	
+
 	self:setInputMode()
 	self:addFirstTempo()
 	self:processData()
 	self:processMeasureLines()
-	
+
 	noteChart.type = "bms"
 	noteChart:compute()
-	
+
 	self:updateLength()
-	
+
 	noteChart.index = 1
 	noteChart.metaData:fillData()
-	
+
 	self.noteCharts = {noteChart}
 end
 
--- CHANGED
 NoteChartImporter.setInputMode = function(self)
 	local mode = self.bms.mode
 	self.noteChart.inputMode:setInputCount("key", mode)
-	
+
 	self.ChannelEnum = enums.ChannelEnum
 	if mode == 5 then
 		self.noteChart.inputMode:setInputCount("scratch", 1)
@@ -73,9 +72,6 @@ NoteChartImporter.setInputMode = function(self)
 	elseif mode == 55 then
 		self.noteChart.inputMode:setInputCount("key", mode-50)
 		self.ChannelEnum = enums.ChannelEnumPMS5Keys
-	elseif mode == 69 or mode == 78 then
-		self.noteChart.inputMode:setInputCount("key", mode-60)
-		self.ChannelEnum = enums.ChannelEnum18Keys
 	elseif mode == 25 or mode == 27 then
 		self.noteChart.inputMode:setInputCount("key", mode-20)
 		self.noteChart.inputMode:setInputCount("scratch", 1)
@@ -104,7 +100,7 @@ NoteChartImporter.setTempo = function(self, timeData)
 			tonumber(value, 16)
 		)
 		self.foregroundLayerData:addTempoData(self.currentTempoData)
-		
+
 		local timePoint = self.foregroundLayerData:getTimePoint(timeData.measureTime, -1)
 		self.currentVelocityData = ncdk.VelocityData:new(timePoint)
 		self.currentVelocityData.currentSpeed = self.currentTempoData.tempo / self.bms.primaryTempo
@@ -124,7 +120,7 @@ NoteChartImporter.setExtendedTempo = function(self, timeData)
 			self.bms.bpm[value]
 		)
 		self.foregroundLayerData:addTempoData(self.currentTempoData)
-		
+
 		local timePoint = self.foregroundLayerData:getTimePoint(timeData.measureTime, -1)
 		self.currentVelocityData = ncdk.VelocityData:new(timePoint)
 		self.currentVelocityData.currentSpeed = self.currentTempoData.tempo / self.bms.primaryTempo
@@ -139,7 +135,7 @@ NoteChartImporter.setStop = function(self, timeData)
 		if not self.bms.stop[value] then
 			return
 		end
-		
+
 		local measureDuration = ncdk.Fraction:fromNumber(self.bms.stop[value] / 192, 32768)
 		local stopData = ncdk.StopData:new()
 		stopData.measureTime = timeData.measureTime
@@ -147,7 +143,7 @@ NoteChartImporter.setStop = function(self, timeData)
 		stopData.tempoData = self.currentTempoData
 		stopData.signature = ncdk.Fraction:new(4)
 		self.foregroundLayerData:addStopData(stopData)
-		
+
 		local timePoint = self.foregroundLayerData:getTimePoint(timeData.measureTime, -1)
 		if self.currentVelocityData.timePoint == timePoint then
 			self.foregroundLayerData:removeLastVelocityData()
@@ -155,7 +151,7 @@ NoteChartImporter.setStop = function(self, timeData)
 		self.currentVelocityData = ncdk.VelocityData:new(timePoint)
 		self.currentVelocityData.currentSpeed = 0
 		self.foregroundLayerData:addVelocityData(self.currentVelocityData)
-		
+
 		local timePoint = self.foregroundLayerData:getTimePoint(timeData.measureTime, 1)
 		self.currentVelocityData = ncdk.VelocityData:new(timePoint)
 		self.currentVelocityData.currentSpeed = self.currentTempoData.tempo / self.bms.primaryTempo
@@ -165,28 +161,28 @@ end
 
 NoteChartImporter.processData = function(self)
 	local longNoteData = {}
-	
+
 	self.noteCount = 0
-	
+
 	self.minTimePoint = nil
 	self.maxTimePoint = nil
-	
+
 	for measureIndex, value in pairs(self.bms.signature) do
 		self.foregroundLayerData:setSignature(
 			measureIndex,
 			ncdk.Fraction:fromNumber(value * 4, 32768)
 		)
 	end
-	
+
 	for _, timeData in ipairs(self.bms.timeList) do
 		if not self:setExtendedTempo(timeData) then
 			self:setTempo(timeData)
 		end
 		self:setStop(timeData)
-		
+
 		for channelIndex, indexDataValues in pairs(timeData) do
 			local channelInfo = self.ChannelEnum[channelIndex] or enums.ChannelEnum[channelIndex]
-			
+
 			if channelInfo and (
 				channelInfo.name == "Note" and channelInfo.invisible ~= true or
 				channelInfo.name == "BGM" or
@@ -195,11 +191,11 @@ NoteChartImporter.processData = function(self)
 			then
 				for _, value in ipairs(indexDataValues) do
 					local timePoint = self.foregroundLayerData:getTimePoint(timeData.measureTime, -1)
-					
+
 					local noteData = ncdk.NoteData:new(timePoint)
 					noteData.inputType = channelInfo.inputType
 					noteData.inputIndex = channelInfo.inputIndex
-					
+
 					noteData.sounds = {}
 					noteData.images = {}
 					if channelInfo.name == "Note" or channelInfo.name == "BGM" then
@@ -215,7 +211,7 @@ NoteChartImporter.processData = function(self)
 							self.noteChart:addResource("image", image, {image})
 						end
 					end
-					
+
 					if channelInfo.name == "BGA" then
 						noteData.noteType = "ImageNote"
 					elseif channelInfo.inputType == "auto" or channelInfo.mine then
@@ -245,7 +241,7 @@ NoteChartImporter.processData = function(self)
 						end
 					end
 					self.foregroundLayerData:addNoteData(noteData)
-					
+
 					if
 						channelInfo.inputType ~= "auto" and
 						not channelInfo.mine and
@@ -254,11 +250,11 @@ NoteChartImporter.processData = function(self)
 						if noteData.noteType ~= "LongNoteEnd" then
 							self.noteCount = self.noteCount + 1
 						end
-						
+
 						if not self.minTimePoint or timePoint < self.minTimePoint then
 							self.minTimePoint = timePoint
 						end
-						
+
 						if not self.maxTimePoint or timePoint > self.maxTimePoint then
 							self.maxTimePoint = timePoint
 						end
@@ -276,19 +272,19 @@ NoteChartImporter.processMeasureLines = function(self)
 	for measureIndex = 0, self.bms.measureCount do
 		local measureTime = ncdk.Fraction:new(measureIndex)
 		local timePoint = self.foregroundLayerData:getTimePoint(measureTime, -1)
-		
+
 		local startNoteData = ncdk.NoteData:new(timePoint)
 		startNoteData.inputType = "measure"
 		startNoteData.inputIndex = 1
 		startNoteData.noteType = "LineNoteStart"
 		self.foregroundLayerData:addNoteData(startNoteData)
-		
+
 		local endNoteData = ncdk.NoteData:new(timePoint)
 		endNoteData.inputType = "measure"
 		endNoteData.inputIndex = 1
 		endNoteData.noteType = "LineNoteEnd"
 		self.foregroundLayerData:addNoteData(endNoteData)
-		
+
 		startNoteData.endNoteData = endNoteData
 		endNoteData.startNoteData = startNoteData
 	end
@@ -299,7 +295,7 @@ NoteChartImporter.addFirstTempo = function(self)
 		local measureTime = ncdk.Fraction:new(0)
 		self.currentTempoData = ncdk.TempoData:new(measureTime, self.bms.baseTempo)
 		self.foregroundLayerData:addTempoData(self.currentTempoData)
-		
+
 		local timePoint = self.foregroundLayerData:getTimePoint(measureTime, -1)
 		self.currentVelocityData = ncdk.VelocityData:new(timePoint)
 		self.currentVelocityData.currentSpeed = self.bms.baseTempo / self.bms.primaryTempo

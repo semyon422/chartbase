@@ -87,20 +87,9 @@ BMS.processHeaderLine = function(self, line)
 	end
 end
 
--- CHANGED
---[[
-****self.mode****
-78: 18key
-69: 9key BME
-59: 9key BMS
-55: 5key PMS/pop'n
-
-27: 7key + 1 pedals using second scratch channel
-25: 5key + 1 pedals using second scratch channel
---]]
 BMS.detectKeymode = function(self)
 	local ce = self.channelExisting
-	
+
 	if not self.pms then
 		if ce["28"] or ce["29"] then
 			self.mode = 14
@@ -134,16 +123,6 @@ BMS.detectKeymode = function(self)
 			self.mode = 7
 			return
 		end
-	elseif ce["21"] or ce["26"] or ce["27"] or ce["28"] or ce["29"] then
-		self.mode = 78
-		return
-	elseif ce["16"] or ce["17"] or ce["18"] or ce["19"] then
-		if ce["22"] or ce["23"] or ce["24"] or ce["25"] then
-			self.mode = 78
-			return
-		end
-		self.mode = 69
-		return
 	elseif ce["24"] or ce["25"] then
 		self.mode = 59
 		return
@@ -160,11 +139,6 @@ BMS.detectKeymode = function(self)
 	end
 end
 
---[[ CHANGED
-This function will verify for each channel found if it correspond to an initial channel using "channelBase" value, 
-for exemple when channel "56", the long note of "16" is found, we get ce["16"] == true
-works similarily to the old function "inputExisting" but allows you to be more flexible since you're using channels
---]]
 BMS.updateMode = function(self, channel)
 	local channelExisting = self.channelExisting
 
