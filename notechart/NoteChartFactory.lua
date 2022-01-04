@@ -60,7 +60,7 @@ NoteChartFactory.deleteBOM = function(self, content)
 end
 
 NoteChartFactory.getNoteCharts = function(self, path, content, index, settings)
-	local NoteChartImporter = self:getNoteChartImporter(path)
+	local NoteChartImporter = assert(self:getNoteChartImporter(path), "Importer is not found for " .. path)
 	local importer = NoteChartImporter:new()
 
 	importer.path = path
