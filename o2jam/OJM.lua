@@ -6,10 +6,14 @@ local OJM = {}
 local OJM_metatable = {}
 OJM_metatable.__index = OJM
 
-OJM.new = function(self, ojmString)
+OJM.new = function(self, pointer, size)
 	local ojm = {}
 
-	ojm.buffer = byte.buffer(#ojmString):fill(ojmString):seek(0)
+	if type(pointer) == "string" then
+		ojm.buffer = byte.buffer(#pointer):fill(pointer):seek(0)
+	else
+		ojm.buffer = byte.buffer_t(pointer, size)
+	end
 
 	ojm.samples = {}
 	ojm.acc_keybyte = 0xFF
@@ -119,16 +123,13 @@ OJM.parseM30 = function(self)
 			self:M30_xor(self.mask_0412, sample_size)
 		end
 
-		local audioData = {
-			sampleData = buffer:string(sample_size)
-		}
 		local value = ref
 		if codec_code == 0 then
 			value = 1000 + ref
 		elseif codec_code ~= 5 then
 
 		end
-		self.samples[value] = audioData
+		self.samples[value] = buffer:string(sample_size)
 	end
 end
 
@@ -207,13 +208,10 @@ OJM.parseOMC = function(self, decrypt)
 
 			if decrypt then
 				self:rearrange(buf, buffer)
-				self:OMC_xor(buf, buffer)
+				self:OMC_xor(buf)
 			end
 
-			local audioData = {
-				sampleData = headerString .. buf:string(chunk_size)
-			}
-			self.samples[sample_id] = audioData
+			self.samples[sample_id] = headerString .. buf:string(chunk_size)
 
 			sample_id = sample_id + 1
 		end
@@ -235,10 +233,7 @@ OJM.parseOMC = function(self, decrypt)
 		else
 			file_offset = file_offset + sample_size
 
-			local audioData = {
-				sampleData = buffer:string(sample_size)
-			}
-			self.samples[sample_id] = audioData
+			self.samples[sample_id] = buffer:string(sample_size)
 			sample_id = sample_id + 1
 		end
 	end
