@@ -154,15 +154,13 @@ NoteChartImporter.processData = function(self)
 					end
 					
 					self.noteCount = self.noteCount + 1
-					
-					if not self.minTimePoint or timePoint < self.minTimePoint then
-						self.minTimePoint = timePoint
-					end
-					
-					if not self.maxTimePoint or timePoint > self.maxTimePoint then
-						self.maxTimePoint = timePoint
-					end
 					noteData.sounds = {{event.value, event.volume}}
+				end
+				if not self.minTimePoint or timePoint < self.minTimePoint then
+					self.minTimePoint = timePoint
+				end
+				if not self.maxTimePoint or timePoint > self.maxTimePoint then
+					self.maxTimePoint = timePoint
 				end
 				self.foregroundLayerData:addNoteData(noteData)
 			end
