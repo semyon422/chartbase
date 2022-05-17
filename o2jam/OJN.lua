@@ -10,12 +10,13 @@ OJN_metatable.__index = OJN
 OJN.new = function(self, ojnString)
 	local ojn = {}
 
-	ojn.buffer = byte.buffer(#ojnString):fill(ojnString):seek(0)
-
+	ojn.buffer = byte.buffer_t(ffi.cast("unsigned char *", ojnString), #ojnString)
 	ojn.charts = {{}, {}, {}}
 
 	setmetatable(ojn, OJN_metatable)
 	ojn:process()
+
+	ojn.buffer = nil
 
 	return ojn
 end
