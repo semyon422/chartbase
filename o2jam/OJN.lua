@@ -1,3 +1,5 @@
+local ffi = require("ffi")
+local bit = require("bit")
 local byte = require("byte")
 
 local OJN = {}
@@ -21,6 +23,12 @@ end
 OJN.genre_map = {"Ballad", "Rock", "Dance", "Techno", "Hip-hop", "Soul/R&B", "Jazz", "Funk", "Classical", "Traditional", "Etc"}
 
 OJN.process = function(self)
+	local buffer = self.buffer
+	local encrypt = buffer:seek(0):string(3)
+	if encrypt == "new" then
+		self.buffer = self:decrypt()
+	end
+
 	self:readHeader()
 	self:readCover()
 	for _, chart in ipairs(self.charts) do
@@ -28,11 +36,45 @@ OJN.process = function(self)
 	end
 end
 
+-- https://github.com/SirusDoma/O2MusicList/blob/master/Source/Decoders/OJNDecoder.cs
+OJN.decrypt = function(self)
+	local buffer = self.buffer
+	buffer:seek(0)
+	local input = buffer.pointer
+
+	buffer:seek(3)
+	local blockSize = buffer:uint8()
+	local mainKey = buffer:uint8()
+	local midKey = buffer:uint8()
+	local initialKey = buffer:uint8()
+
+	local encryptKeys = ffi.new("uint8_t[?]", blockSize, mainKey)
+	encryptKeys[0] = initialKey
+	encryptKeys[math.floor(blockSize / 2)] = midKey
+
+	local outputBuffer = byte.buffer(buffer.size - buffer.offset)
+	local output = outputBuffer.pointer
+	for i = 0, tonumber(outputBuffer.size - 1), blockSize do
+		for j = 0, blockSize - 1 do
+			local offset = i + j
+			if offset >= outputBuffer.size then
+				return outputBuffer
+			end
+
+			output[offset] = bit.bxor(input[buffer.size - (offset + 1)], encryptKeys[j])
+		end
+	end
+
+	return outputBuffer
+end
+
 OJN.readHeader = function(self)
-	local buffer = self. buffer
+	local buffer = self.buffer
+	buffer:seek(0)
+
 	self.songid = buffer:int32_le()
-	self.signature = buffer:int32_le()
-	assert(self.signature, 0x006E6A6F)
+	self.signature = buffer:cstring(4)
+	assert(self.signature == "ojn", "Invalid OJN signature")
 
 	self.encode_version = buffer:float_le()
 	self.genre = buffer:int32_le()
