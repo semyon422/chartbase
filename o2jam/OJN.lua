@@ -20,7 +20,19 @@ OJN.new = function(self, ojnString)
 	return ojn
 end
 
-OJN.genre_map = {"Ballad", "Rock", "Dance", "Techno", "Hip-hop", "Soul/R&B", "Jazz", "Funk", "Classical", "Traditional", "Etc"}
+OJN.genre_map = {
+	"Ballad",
+	"Rock",
+	"Dance",
+	"Techno",
+	"Hip-hop",
+	"Soul/R&B",
+	"Jazz",
+	"Funk",
+	"Classical",
+	"Traditional",
+	"Etc"
+}
 
 OJN.process = function(self)
 	local buffer = self.buffer
@@ -30,7 +42,7 @@ OJN.process = function(self)
 	end
 
 	self:readHeader()
-	self:readCover()
+	self.cover = self.buffer:seek(self.cover_offset):string(self.cover_size)
 	for _, chart in ipairs(self.charts) do
 		self:readChart(chart)
 	end
@@ -81,26 +93,27 @@ OJN.readHeader = function(self)
 	self.str_genre = self.genre_map[(self.genre < 0 or self.genre > 10) and 10 or self.genre]
 	self.bpm = buffer:float_le()
 
-	self.charts[1].level = buffer:int16_le()
-	self.charts[2].level = buffer:int16_le()
-	self.charts[3].level = buffer:int16_le()
+	local charts = self.charts
+	charts[1].level = buffer:int16_le()
+	charts[2].level = buffer:int16_le()
+	charts[3].level = buffer:int16_le()
 	buffer:int16_le()
 
-	self.charts[1].event_count = buffer:int32_le()
-	self.charts[2].event_count = buffer:int32_le()
-	self.charts[3].event_count = buffer:int32_le()
+	charts[1].event_count = buffer:int32_le()
+	charts[2].event_count = buffer:int32_le()
+	charts[3].event_count = buffer:int32_le()
 
-	self.charts[1].notes = buffer:int32_le()
-	self.charts[2].notes = buffer:int32_le()
-	self.charts[3].notes = buffer:int32_le()
+	charts[1].notes = buffer:int32_le()
+	charts[2].notes = buffer:int32_le()
+	charts[3].notes = buffer:int32_le()
 
-	self.charts[1].measure_count = buffer:int32_le()
-	self.charts[2].measure_count = buffer:int32_le()
-	self.charts[3].measure_count = buffer:int32_le()
+	charts[1].measure_count = buffer:int32_le()
+	charts[2].measure_count = buffer:int32_le()
+	charts[3].measure_count = buffer:int32_le()
 
-	self.charts[1].package_count = buffer:int32_le()
-	self.charts[2].package_count = buffer:int32_le()
-	self.charts[3].package_count = buffer:int32_le()
+	charts[1].package_count = buffer:int32_le()
+	charts[2].package_count = buffer:int32_le()
+	charts[3].package_count = buffer:int32_le()
 
 	self.old_encode_version = buffer:int16_le()
 	self.old_songid = buffer:int16_le()
@@ -109,36 +122,39 @@ OJN.readHeader = function(self)
 	self.file_version = buffer:int32_le()
 
 	self.str_title = buffer:cstring(64)
-	-- self.title = byte.bytes(self.str_title)
-
 	self.str_artist = buffer:cstring(32)
-	-- self.artist = byte.bytes(self.str_artist)
-
 	self.str_noter = buffer:cstring(32)
-	-- self.noter = byte.bytes(self.str_noter)
 
 	self.sample_file = buffer:cstring(32)
 	self.ojm_file = self.sample_file
 
 	self.cover_size = buffer:int32_le()
 
-	self.charts[1].duration = buffer:int32_le()
-	self.charts[2].duration = buffer:int32_le()
-	self.charts[3].duration = buffer:int32_le()
+	charts[1].duration = buffer:int32_le()
+	charts[2].duration = buffer:int32_le()
+	charts[3].duration = buffer:int32_le()
 
-	self.charts[1].note_offset = buffer:int32_le()
-	self.charts[2].note_offset = buffer:int32_le()
-	self.charts[3].note_offset = buffer:int32_le()
+	charts[1].note_offset = buffer:int32_le()
+	charts[2].note_offset = buffer:int32_le()
+	charts[3].note_offset = buffer:int32_le()
 	self.cover_offset = buffer:int32_le()
 
-	self.charts[1].note_offset_end = self.charts[2].note_offset
-	self.charts[2].note_offset_end = self.charts[3].note_offset
-	self.charts[3].note_offset_end = self.cover_offset
+	charts[1].note_offset_end = self.charts[2].note_offset
+	charts[2].note_offset_end = self.charts[3].note_offset
+	charts[3].note_offset_end = self.cover_offset
 end
 
-OJN.readCover = function(self)
-	self.cover = self.buffer:seek(self.cover_offset):string(self.cover_size)
-end
+local channel_names = {
+	[0] = "TIME_SIGNATURE",
+	[1] = "BPM_CHANGE",
+	[2] = "NOTE_1",
+	[3] = "NOTE_2",
+	[4] = "NOTE_3",
+	[5] = "NOTE_4",
+	[6] = "NOTE_5",
+	[7] = "NOTE_6",
+	[8] = "NOTE_7",
+}
 
 OJN.readChart = function(self, chart)
 	local buffer = self.buffer:seek(chart.note_offset)
@@ -149,28 +165,7 @@ OJN.readChart = function(self, chart)
 		local channel_number = buffer:int16_le()
 		local events_count = buffer:int16_le()
 
-		local channel
-		if channel_number == 0 then
-			channel = "TIME_SIGNATURE"
-		elseif channel_number == 1 then
-			channel = "BPM_CHANGE"
-		elseif channel_number == 2 then
-			channel = "NOTE_1"
-		elseif channel_number == 3 then
-			channel = "NOTE_2"
-		elseif channel_number == 4 then
-			channel = "NOTE_3"
-		elseif channel_number == 5 then
-			channel = "NOTE_4"
-		elseif channel_number == 6 then
-			channel = "NOTE_5"
-		elseif channel_number == 7 then
-			channel = "NOTE_6"
-		elseif channel_number == 8 then
-			channel = "NOTE_7"
-		else
-			channel = "AUTO_PLAY"
-		end
+		local channel = channel_names[channel_number] or "AUTO_PLAY"
 
 		for i = 0, events_count - 1 do
 			local position = i / events_count
@@ -200,20 +195,16 @@ OJN.readChart = function(self, chart)
 
 					value = value - 1
 
-					local f = "NONE"
-
 					if type % 8 > 3 then
 						value = value + 1000
 					end
 					type = type % 4
 
-					if type == 0 then
-						f = "NONE"
-					elseif type == 1 then
-					elseif type == 2 then
-						f = "HOLD"
+					local type_name = "NONE"
+					if type == 2 then
+						type_name = "HOLD"
 					elseif type == 3 then
-						f = "RELEASE"
+						type_name = "RELEASE"
 					end
 
 					table.insert(chart.event_list, {
@@ -221,7 +212,7 @@ OJN.readChart = function(self, chart)
 						measure = measure,
 						position = position,
 						value = value,
-						type = f,
+						type = type_name,
 						volume = volume,
 						pan = pan
 					})
