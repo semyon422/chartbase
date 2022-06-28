@@ -116,6 +116,7 @@ NoteChartImporter.processNotes = function(self)
 	self.minTimePoint = nil
 	self.maxTimePoint = nil
 
+	local longNotes = {}
 	for _, note in ipairs(self.chart.notes) do
 		local measureTime = ncdk.Fraction:new(note.offset, self.chart.linesPerMeasure[note.measure]) + note.measure
 		local timePoint = self.foregroundLayerData:getTimePoint(measureTime, -1)
@@ -127,10 +128,24 @@ NoteChartImporter.processNotes = function(self)
 		noteData.sounds = {}
 		noteData.images = {}
 
-		noteData.noteType = "ShortNote"
-		self.foregroundLayerData:addNoteData(noteData)
+		if note.noteType == "1" then
+			noteData.noteType = "ShortNote"
+			self.noteCount = self.noteCount + 1
+		elseif note.noteType == "M" or note.noteType == "F" then
+			noteData.noteType = "SoundNote"
+		elseif note.noteType == "2" or note.noteType == "4" then
+			noteData.noteType = "ShortNote"
+			longNotes[noteData.inputIndex] = noteData
+			self.noteCount = self.noteCount + 1
+		elseif note.noteType == "3" then
+			noteData.noteType = "LongNoteEnd"
+			noteData.startNoteData = longNotes[noteData.inputIndex]
+			longNotes[noteData.inputIndex].endNoteData = noteData
+			longNotes[noteData.inputIndex].noteType = "LongNoteStart"
+			longNotes[noteData.inputIndex] = nil
+		end
 
-		self.noteCount = self.noteCount + 1
+		self.foregroundLayerData:addNoteData(noteData)
 
 		if not self.minTimePoint or timePoint < self.minTimePoint then
 			self.minTimePoint = timePoint

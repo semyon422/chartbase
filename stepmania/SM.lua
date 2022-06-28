@@ -111,12 +111,13 @@ SM.processCommaLine = function(self)
 end
 
 SM.processNotesLine = function(self, line)
-	line = line:match("^(%d+).*$")
 	local chart = self.chart
-	chart.mode = math.max(chart.mode, #line)
+	if tonumber(line) then
+		chart.mode = math.max(chart.mode, #line)
+	end
 	for i = 1, #line do
 		local noteType = line:sub(i, i)
-		if noteType == "1" then
+		if noteType ~= "0" then
 			table.insert(
 				chart.notes,
 				{
