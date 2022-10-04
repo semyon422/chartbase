@@ -1,5 +1,5 @@
 local iconv = require("iconv")
-local validate = require("aqua.utf8").validate
+local utf8validate = require("utf8validate")
 
 local EncodingConverter = {}
 
@@ -19,11 +19,11 @@ EncodingConverter.init = function(self)
 
 	local conversionDescriptors = {}
 	self.conversionDescriptors = conversionDescriptors
-	
+
 	for i, tofrom in ipairs(Encodings) do
 		conversionDescriptors[i] = iconv:open(tofrom[1], tofrom[2])
     end
-    
+
     self.inited = true
 end
 
@@ -32,7 +32,7 @@ EncodingConverter.fix = function(self, line)
 
 	if not line then
 		return ""
-	elseif validate(line) == line then
+	elseif utf8validate(line) == line then
 		return line
 	else
 		local validLine
@@ -41,7 +41,7 @@ EncodingConverter.fix = function(self, line)
 			if validLine then break end
 		end
 		validLine = validLine or "<conversion error>"
-		return validate(validLine)
+		return utf8validate(validLine)
 	end
 end
 
