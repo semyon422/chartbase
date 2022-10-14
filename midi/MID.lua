@@ -1,4 +1,4 @@
-local MidiLua = require("midi.MidiLua")
+local MidiLua = require("MIDI")
 
 local MID = {}
 
@@ -27,7 +27,7 @@ MID.process = function(self, midString)
         dt = 0
         for _, event in ipairs(opus[i]) do
             dt = dt + event[2]
-            
+
             if event[1] == "note_on" or event[1] == "note_off" then
                 notes[notesIndex] = notes[notesIndex] or {}
                 noteType = (event[1] == "note_on" and event[5] ~= 0) and true or false
