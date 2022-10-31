@@ -4,6 +4,7 @@ local MetaData = require("notechart.MetaData")
 local enums = require("bms.enums")
 local BMS = require("bms.BMS")
 local EncodingConverter = require("notechart.EncodingConverter")
+local dpairs = require("dpairs")
 
 local NoteChartImporter = {}
 
@@ -180,7 +181,7 @@ NoteChartImporter.processData = function(self)
 		end
 		self:setStop(timeData)
 
-		for channelIndex, indexDataValues in pairs(timeData) do
+		for channelIndex, indexDataValues in dpairs(timeData) do
 			local channelInfo = self.ChannelEnum[channelIndex] or enums.ChannelEnum[channelIndex]
 
 			if channelInfo and (
