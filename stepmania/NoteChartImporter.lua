@@ -96,7 +96,7 @@ NoteChartImporter.processTempo = function(self)
 end
 
 NoteChartImporter.setTempo = function(self, beat, tempo)
-	local measureTime = ncdk.Fraction:fromNumber(beat / 4, 1000)
+	local measureTime = ncdk.Fraction:new(beat / 4, 1000, true)
 	self.currentTempoData = ncdk.TempoData:new(
 		measureTime,
 		tempo

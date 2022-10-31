@@ -15,7 +15,7 @@ NoteChartImporter.new = function(self)
 	self.LayerDatas = {}
 
 	setmetatable(noteChartImporter, NoteChartImporter_metatable)
-	
+
 	return noteChartImporter
 end
 
@@ -46,7 +46,7 @@ NoteChartImporter.import = function(self)
 	for i = 1, #self.mid.notes do
 		self:processData(i, self:createLayerData(i), addedNotes)
 	end
-	
+
 	self:processMeasureLines()
 
 	noteChart:compute()
@@ -63,7 +63,7 @@ NoteChartImporter.fillKeys = function(self)
 			keys[#keys+1] = label .. i
 		end
 	end
-	
+
 	self.keys = keys
 end
 
@@ -79,7 +79,7 @@ NoteChartImporter.createLayerData = function(self, index)
 	for _, tempo in ipairs(self.mid.tempos) do
 		LayerData:addTempoData(
 			ncdk.TempoData:new(
-				Fraction:fromNumber(tempo[1], 1000),
+				Fraction:new(tempo[1], 1000, true),
 				tempo[2]
 			)
 		)
@@ -133,7 +133,7 @@ NoteChartImporter.processData = function(self, trackIndex, LayerData, addedNotes
 				noteChart:addResource("sound", hitsoundPath, {hitsoundPath})
 
 				startNoteData = ncdk.NoteData:new(LayerData:getTimePoint(
-						Fraction:fromNumber(startEvent[2], 1000),
+						Fraction:new(startEvent[2], 1000, true),
 						-1
 					)
 				)
@@ -151,7 +151,7 @@ NoteChartImporter.processData = function(self, trackIndex, LayerData, addedNotes
 				startEvent.used = true
 
 				endNoteData = ncdk.NoteData:new(LayerData:getTimePoint(
-						Fraction:fromNumber(event[2], 1000),
+						Fraction:new(event[2], 1000, true),
 						-1
 					)
 				)
@@ -168,7 +168,7 @@ NoteChartImporter.processData = function(self, trackIndex, LayerData, addedNotes
 
 				startNoteData.endNoteData = endNoteData
 				endNoteData.startNoteData = startNoteData
-				
+
 				LayerData:addNoteData(startNoteData)
 				LayerData:addNoteData(endNoteData)
 
@@ -191,23 +191,23 @@ NoteChartImporter.processMeasureLines = function(self)
 	local i = 1
 	while time < maxTime do
 		local timePoint = LayerData:getTimePoint(
-			Fraction:fromNumber(time, 1000),
+			Fraction:new(time, 1000, true),
 			-1
 		)
-		
+
 		local startNoteData = ncdk.NoteData:new(timePoint)
 		startNoteData.inputType = "measure"
 		startNoteData.inputIndex = 1
 		startNoteData.noteType = "LineNoteStart"
-		
+
 		local endNoteData = ncdk.NoteData:new(timePoint)
 		endNoteData.inputType = "measure"
 		endNoteData.inputIndex = 1
 		endNoteData.noteType = "LineNoteEnd"
-		
+
 		startNoteData.endNoteData = endNoteData
 		endNoteData.startNoteData = startNoteData
-		
+
 		LayerData:addNoteData(startNoteData)
 		LayerData:addNoteData(endNoteData)
 

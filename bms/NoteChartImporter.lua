@@ -137,7 +137,7 @@ NoteChartImporter.setStop = function(self, timeData)
 			return
 		end
 
-		local measureDuration = ncdk.Fraction:fromNumber(self.bms.stop[value] / 192, 32768)
+		local measureDuration = ncdk.Fraction:new(self.bms.stop[value] / 192, 32768, true)
 		local stopData = ncdk.StopData:new()
 		stopData.measureTime = timeData.measureTime
 		stopData.measureDuration = measureDuration
@@ -171,7 +171,7 @@ NoteChartImporter.processData = function(self)
 	for measureIndex, value in pairs(self.bms.signature) do
 		self.foregroundLayerData:setSignature(
 			measureIndex,
-			ncdk.Fraction:fromNumber(value * 4, 32768)
+			ncdk.Fraction:new(value * 4, 32768, true)
 		)
 	end
 
