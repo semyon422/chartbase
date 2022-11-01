@@ -61,7 +61,7 @@ NoteChartImporter.importSingle = function(self, index)
 
 	self:processMeasureLines()
 
-	noteChart.inputMode:setInputCount("key", 7)
+	noteChart.inputMode.key = 7
 	noteChart.type = "o2jam"
 
 	noteChart:compute()

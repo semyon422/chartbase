@@ -55,7 +55,7 @@ NoteChartImporter.importSingle = function(self)
 	self.backgroundLayerData.invisible = true
 	self.backgroundLayerData:setTimeMode("absolute")
 
-	self:setInputMode()
+	noteChart.inputMode.key = self.chart.mode
 	self:processTempo()
 	self:processNotes()
 	self:processAudio()
@@ -70,11 +70,6 @@ NoteChartImporter.importSingle = function(self)
 	noteChart.metaData:fillData()
 
 	return noteChart
-end
-
-NoteChartImporter.setInputMode = function(self)
-	local mode = self.chart.mode
-	self.noteChart.inputMode:setInputCount("key", mode)
 end
 
 NoteChartImporter.updateLength = function(self)

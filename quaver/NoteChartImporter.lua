@@ -14,11 +14,11 @@ NoteChartImporter_metatable.__index = NoteChartImporter
 
 NoteChartImporter.new = function(self)
 	local noteChartImporter = {}
-	
+
 	noteChartImporter.metaData = {}
-	
+
 	setmetatable(noteChartImporter, NoteChartImporter_metatable)
-	
+
 	return noteChartImporter
 end
 
@@ -29,23 +29,23 @@ NoteChartImporter.import = function(self)
 	noteChart.importer = self
 	noteChart.metaData = MetaData:new()
 	noteChart.metaData.noteChart = noteChart
-	
+
 	if not self.qua then
 		self.qua = tinyyaml.parse(self.content:gsub("\r\n", "\n"))
 	end
-	
+
 	self.foregroundLayerData = noteChart.layerDataSequence:requireLayerData(1)
 	self.foregroundLayerData:setTimeMode("absolute")
-	
+
 	self:process()
-	
-	noteChart.inputMode:setInputCount("key", tonumber(self.qua.Mode:sub(-1, -1)))
+
+	noteChart.inputMode.key = tonumber(self.qua.Mode:sub(-1, -1))
 	noteChart.type = "quaver"
-	
+
 	noteChart:compute()
 	noteChart.index = 1
 	noteChart.metaData:fillData()
-	
+
 	self.noteCharts = {noteChart}
 end
 
@@ -55,39 +55,39 @@ NoteChartImporter.process = function(self)
 	self.tempTimingDataImporters = {}
 	self.timingDataImporters = {}
 	self.noteDataImporters = {}
-	
+
 	self.noteCount = 0
-	
+
 	local TimingPoints = self.qua.TimingPoints
 	for i = 1, #TimingPoints do
 		self:addTimingPointParser(TimingPoints[i])
 	end
-	
+
 	local SliderVelocities = self.qua.SliderVelocities
 	for i = 1, #SliderVelocities do
 		self:addTimingPointParser(SliderVelocities[i])
 	end
-	
+
 	local HitObjects = self.qua.HitObjects
 	for i = 1, #HitObjects do
 		self:addNoteParser(HitObjects[i])
 	end
-	
+
 	self:updateLength()
 	self.noteCount = #HitObjects
-	
+
 	self:processTimingDataImporters()
 	table.sort(self.noteDataImporters, function(a, b) return a.startTime < b.startTime end)
-	
+
 	self:updatePrimaryBPM()
-	
+
 	self:processMeasureLines()
-	
+
 	self.audioFileName = self.qua.AudioFile
 	self:processAudio()
-	
+
 	self:processTimingPoints()
-	
+
 	for _, noteParser in ipairs(self.noteDataImporters) do
 		self.foregroundLayerData:addNoteData(noteParser:getNoteData())
 	end
@@ -105,7 +105,7 @@ NoteChartImporter.addTimingPointParser = function(self, timingPoint)
 	timingDataImporter.timingPoint = timingPoint
 	timingDataImporter.noteChartImporter = self
 	timingDataImporter:init()
-	
+
 	table.insert(self.tempTimingDataImporters, timingDataImporter)
 end
 
@@ -115,7 +115,7 @@ NoteChartImporter.addNoteParser = function(self, hitObject)
 	noteDataImporter.noteChartImporter = self
 	noteDataImporter.noteChart = self.noteChart
 	noteDataImporter:init()
-	
+
 	table.insert(self.noteDataImporters, noteDataImporter)
 end
 

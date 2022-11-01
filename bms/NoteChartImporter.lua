@@ -54,29 +54,30 @@ end
 
 NoteChartImporter.setInputMode = function(self)
 	local mode = self.bms.mode
-	self.noteChart.inputMode:setInputCount("key", mode)
+	local inputMode = self.noteChart.inputMode
+	inputMode.key = mode
 
 	self.ChannelEnum = enums.ChannelEnum
 	if mode == 5 then
-		self.noteChart.inputMode:setInputCount("scratch", 1)
+		inputMode.scratch = 1
 		self.ChannelEnum = enums.ChannelEnum5Keys
 	elseif mode == 7 then
-		self.noteChart.inputMode:setInputCount("scratch", 1)
+		inputMode.scratch = 1
 	elseif mode == 10 then
-		self.noteChart.inputMode:setInputCount("scratch", 2)
+		inputMode.scratch = 2
 		self.ChannelEnum = enums.ChannelEnum5Keys
 	elseif mode == 14 then
-		self.noteChart.inputMode:setInputCount("scratch", 2)
+		inputMode.scratch = 2
 	elseif mode == 59 then
-		self.noteChart.inputMode:setInputCount("key", mode-50)
+		inputMode.key = mode - 50
 		self.ChannelEnum = enums.ChannelEnum9Keys
 	elseif mode == 55 then
-		self.noteChart.inputMode:setInputCount("key", mode-50)
+		inputMode.key = mode - 50
 		self.ChannelEnum = enums.ChannelEnumPMS5Keys
 	elseif mode == 25 or mode == 27 then
-		self.noteChart.inputMode:setInputCount("key", mode-20)
-		self.noteChart.inputMode:setInputCount("scratch", 1)
-		self.noteChart.inputMode:setInputCount("pedal", 1)
+		inputMode.key = mode - 20
+		inputMode.scratch = 1
+		inputMode.pedal = 1
 		self.ChannelEnum = enums.ChannelEnumDsc
 	end
 end

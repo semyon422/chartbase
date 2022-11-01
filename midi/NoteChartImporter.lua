@@ -24,7 +24,7 @@ NoteChartImporter.import = function(self)
 	noteChart.importer = self
 	noteChart.metaData = MetaData:new()
 	noteChart.metaData.noteChart = noteChart
-	noteChart.inputMode:setInputCount("key", 88)
+	noteChart.inputMode.key = 88
 	noteChart.type = "midi"
 	self.noteCharts = {noteChart}
 

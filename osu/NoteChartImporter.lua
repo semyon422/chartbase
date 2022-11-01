@@ -12,9 +12,9 @@ NoteChartImporter_metatable.__index = NoteChartImporter
 
 NoteChartImporter.new = function(self)
 	local noteChartImporter = {}
-	
+
 	setmetatable(noteChartImporter, NoteChartImporter_metatable)
-	
+
 	return noteChartImporter
 end
 
@@ -25,32 +25,32 @@ NoteChartImporter.import = function(self)
 	noteChart.importer = self
 	noteChart.metaData = MetaData:new()
 	noteChart.metaData.noteChart = noteChart
-	
+
 	if not self.osu then
 		self.osu = Osu:new()
 		self.osu:import(self.content:gsub("\r\n", "\n"))
 	end
-	
+
 	self.foregroundLayerData = noteChart.layerDataSequence:requireLayerData(1)
 	self.foregroundLayerData:setTimeMode("absolute")
-	
+
 	self:process()
-	
+
 	local mode = self.osu.mode
 	if mode == 0 then
-		noteChart.inputMode:setInputCount("osu", 1)
+		noteChart.inputMode.osu = 1
 	elseif mode == 1 then
-		noteChart.inputMode:setInputCount("taiko", 1)
+		noteChart.inputMode.taiko = 1
 	elseif mode == 2 then
-		noteChart.inputMode:setInputCount("fruits", 1)
+		noteChart.inputMode.fruits = 1
 	elseif mode == 3 then
-		noteChart.inputMode:setInputCount("key", math.floor(self.osu.keymode))
+		noteChart.inputMode.key = math.floor(self.osu.keymode)
 	end
 	noteChart.type = "osu"
 	noteChart:compute()
 	noteChart.index = 1
 	noteChart.metaData:fillData()
-	
+
 	self.noteCharts = {noteChart}
 end
 
@@ -59,34 +59,34 @@ NoteChartImporter.process = function(self)
 	self.tempTimingDataImporters = {}
 	self.timingDataImporters = {}
 	self.noteDataImporters = {}
-	
+
 	self.noteCount = 0
-	
+
 	for _, event in ipairs(self.osu.events) do
 		self:addNoteParser(event, true)
 	end
-	
+
 	for _, tp in ipairs(self.osu.timingPoints) do
 		self:addTimingPointParser(tp)
 	end
-	
+
 	for _, note in ipairs(self.osu.hitObjects) do
 		self:addNoteParser(note)
 	end
-	
+
 	self:updateLength()
-	
+
 	self:processTimingDataImporters()
 	table.sort(self.noteDataImporters, function(a, b) return a.startTime < b.startTime end)
-	
+
 	self:updatePrimaryBPM()
-	
+
 	self:processMeasureLines()
-	
+
 	self.audioFileName = self.osu.metadata["AudioFilename"]
 	self:processAudio()
 	self:processTimingPoints()
-	
+
 	for _, noteParser in ipairs(self.noteDataImporters) do
 		self.foregroundLayerData:addNoteData(noteParser:getNoteData())
 	end
@@ -108,7 +108,7 @@ end
 NoteChartImporter.processTimingDataImporters = function(self)
 	local redTimingData = {}
 	local greenTimingData = {}
-	
+
 	for i = #self.tempTimingDataImporters, 1, -1 do
 		local tdi = self.tempTimingDataImporters[i]
 		if tdi.timingChange and not redTimingData[tdi.startTime] then
@@ -117,15 +117,15 @@ NoteChartImporter.processTimingDataImporters = function(self)
 			greenTimingData[tdi.startTime] = tdi
 		end
 	end
-	
+
 	for _, timingDataImporter in pairs(redTimingData) do
 		table.insert(self.timingDataImporters, timingDataImporter)
 	end
-	
+
 	for _, timingDataImporter in pairs(greenTimingData) do
 		table.insert(self.timingDataImporters, timingDataImporter)
 	end
-	
+
 	table.sort(self.timingDataImporters, compareTdi)
 end
 
@@ -133,55 +133,55 @@ NoteChartImporter.updatePrimaryBPM = function(self)
 	local lastTime = self.maxTime
 	local currentBeatLength = 0
 	local bpmDurations = {}
-	
+
 	for i = #self.timingDataImporters, 1, -1 do
 		local tdi = self.timingDataImporters[i]
-		
+
 		if tdi.timingChange then
 			currentBeatLength = tdi.beatLength
 		end
-		
+
 		if not (currentBeatLength == 0 or tdi.startTime > lastTime or (not tdi.timingChange and i > 1)) then
 			bpmDurations[currentBeatLength] = bpmDurations[currentBeatLength] or 0
 			bpmDurations[currentBeatLength] = bpmDurations[currentBeatLength] + (lastTime - (i == 1 and 0 or tdi.startTime))
-			
+
 			lastTime = tdi.startTime
 		end
 	end
-	
+
 	local longestDuration = 0
 	local average = 0
-	
+
 	for beatLength, duration in pairs(bpmDurations) do
 		if duration > longestDuration then
 			longestDuration = duration
 			average = beatLength
 		end
 	end
-	
+
 	if longestDuration == 0 then
 		self.primaryBeatLength = 0
 		self.primaryBPM = 0
 		return
 	end
-	
+
 	self.primaryBeatLength = average
 	self.primaryBPM = 60000 / average
 end
 
 NoteChartImporter.processAudio = function(self)
 	local audioFileName = self.audioFileName
-	
+
 	if audioFileName and audioFileName ~= "virtual" then
 		local timePoint = self.foregroundLayerData:getZeroTimePoint()
-		
+
 		local noteData = ncdk.NoteData:new(timePoint)
 		noteData.inputType = "auto"
 		noteData.inputIndex = 0
 		noteData.sounds = {{audioFileName, 1}}
 		noteData.stream = true
 		self.noteChart:addResource("sound", audioFileName, {audioFileName})
-		
+
 		noteData.noteType = "SoundNote"
 		self.foregroundLayerData:addNoteData(noteData)
 	end
@@ -189,13 +189,13 @@ end
 
 NoteChartImporter.processTimingPoints = function(self)
 	local currentBeatLength = self.primaryBeatLength
-	
+
 	local timingState = {}
 	for i = 1, #self.timingDataImporters do
 		local tdi = self.timingDataImporters[i]
-		
+
 		timingState[tdi.startTime] = timingState[tdi.startTime] or {}
-		
+
 		if tdi.timingChange then
 			currentBeatLength = tdi.beatLength
 			local data = timingState[tdi.startTime]
@@ -210,23 +210,23 @@ NoteChartImporter.processTimingPoints = function(self)
 			data.modifiedSpeed = tdi.velocity * self.primaryBeatLength / currentBeatLength
 		end
 	end
-	
+
 	for offset, data in pairs(timingState) do
 		local time = offset / 1000
 		local timePoint = self.foregroundLayerData:getTimePoint(time, 1)
-		
+
 		local velocityData = ncdk.VelocityData:new(timePoint)
 		velocityData.currentSpeed = data.modifiedSpeed
 		velocityData.clearCurrentSpeed = data.clearSpeed
 		velocityData.sv = data.isVelocity
 		self.foregroundLayerData:addVelocityData(velocityData)
-		
+
 		if data.isTempo then
 			local tempoData = ncdk.TempoData:new(time, 60000 / data.beatLength)
 			self.foregroundLayerData:addTempoData(tempoData)
 		end
 	end
-	
+
 	self.foregroundLayerData.spaceData.velocityDataSequence:sort()
 end
 
@@ -234,7 +234,7 @@ NoteChartImporter.addTimingPointParser = function(self, tp)
 	local timingDataImporter = TimingDataImporter:new(tp)
 	timingDataImporter.noteChartImporter = self
 	timingDataImporter:init()
-	
+
 	table.insert(self.tempTimingDataImporters, timingDataImporter)
 end
 
@@ -248,7 +248,7 @@ NoteChartImporter.addNoteParser = function(self, note, event)
 	else
 		noteDataImporter:initEvent()
 	end
-	
+
 	table.insert(self.noteDataImporters, noteDataImporter)
 end
 
@@ -267,7 +267,7 @@ NoteChartImporter.processMeasureLines = function(self)
 	if not firstTdi then
 		return
 	end
-	
+
 	if offset > 0 then
 		while true do
 			if offset - firstTdi.measureLength <= 0 then
@@ -279,7 +279,7 @@ NoteChartImporter.processMeasureLines = function(self)
 	elseif offset < 0 then
 		offset = offset + math.floor(-offset / firstTdi.measureLength) * firstTdi.measureLength
 	end
-	
+
 	local lines = {}
 	for i = 1, #self.timingDataImporters do
 		local currentTdi = self.timingDataImporters[i]
@@ -291,7 +291,7 @@ NoteChartImporter.processMeasureLines = function(self)
 					break
 				end
 			end
-			
+
 			local nextLastTime = math.min(nextTdi and nextTdi.startTime - 1 or self.maxTime, self.maxTime)
 			while true do
 				if offset < nextLastTime then
@@ -304,22 +304,22 @@ NoteChartImporter.processMeasureLines = function(self)
 			end
 		end
 	end
-	
+
 	for _, startTime in ipairs(lines) do
 		local timePoint = self.foregroundLayerData:getTimePoint(startTime / 1000, 1)
-		
+
 		local startNoteData = ncdk.NoteData:new(timePoint)
 		startNoteData.inputType = "measure"
 		startNoteData.inputIndex = 1
 		startNoteData.noteType = "LineNoteStart"
 		self.foregroundLayerData:addNoteData(startNoteData)
-		
+
 		local endNoteData = ncdk.NoteData:new(timePoint)
 		endNoteData.inputType = "measure"
 		endNoteData.inputIndex = 1
 		endNoteData.noteType = "LineNoteEnd"
 		self.foregroundLayerData:addNoteData(endNoteData)
-		
+
 		startNoteData.endNoteData = endNoteData
 		endNoteData.startNoteData = startNoteData
 	end
