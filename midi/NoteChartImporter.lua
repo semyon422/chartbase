@@ -21,9 +21,6 @@ end
 
 NoteChartImporter.import = function(self)
 	local noteChart = NoteChart:new()
-	noteChart.importer = self
-	noteChart.metaData = MetaData:new()
-	noteChart.metaData.noteChart = noteChart
 	noteChart.inputMode.key = 88
 	noteChart.type = "midi"
 	self.noteCharts = {noteChart}
@@ -51,7 +48,7 @@ NoteChartImporter.import = function(self)
 
 	noteChart:compute()
 	noteChart.index = 1
-	noteChart.metaData:fillData()
+	noteChart.metaData = MetaData(noteChart, self)
 end
 
 NoteChartImporter.fillKeys = function(self)

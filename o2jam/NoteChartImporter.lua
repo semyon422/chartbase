@@ -46,10 +46,6 @@ NoteChartImporter.importSingle = function(self, index)
 	self.noteChart = NoteChart:new()
 	local noteChart = self.noteChart
 
-	noteChart.importer = self
-	noteChart.metaData = MetaData:new()
-	noteChart.metaData.noteChart = noteChart
-
 	if not self.ojn then
 		self.ojn = OJN:new(self.content)
 	end
@@ -69,7 +65,7 @@ NoteChartImporter.importSingle = function(self, index)
 	self:updateLength()
 
 	noteChart.index = index
-	noteChart.metaData:fillData()
+	noteChart.metaData = MetaData(noteChart, self)
 
 	return noteChart
 end

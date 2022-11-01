@@ -26,10 +26,6 @@ NoteChartImporter.import = function(self)
 	self.noteChart = NoteChart:new()
 	local noteChart = self.noteChart
 
-	noteChart.importer = self
-	noteChart.metaData = MetaData:new()
-	noteChart.metaData.noteChart = noteChart
-
 	if not self.qua then
 		self.qua = tinyyaml.parse(self.content:gsub("\r\n", "\n"))
 	end
@@ -44,7 +40,7 @@ NoteChartImporter.import = function(self)
 
 	noteChart:compute()
 	noteChart.index = 1
-	noteChart.metaData:fillData()
+	noteChart.metaData = MetaData(noteChart, self)
 
 	self.noteCharts = {noteChart}
 end

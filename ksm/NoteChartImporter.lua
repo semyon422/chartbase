@@ -24,10 +24,6 @@ NoteChartImporter.import = function(self, noteChartString)
 	self.noteChart = NoteChart:new()
 	local noteChart = self.noteChart
 
-	noteChart.importer = self
-	noteChart.metaData = MetaData:new()
-	noteChart.metaData.noteChart = noteChart
-
 	if not self.ksh then
 		self.ksh = Ksh:new()
 		self.ksh:import(self.content:gsub("\r\n", "\n"))
@@ -67,7 +63,7 @@ NoteChartImporter.import = function(self, noteChartString)
 	self:processAudio()
 
 	noteChart.index = 1
-	noteChart.metaData:fillData()
+	noteChart.metaData = MetaData(noteChart, self)
 
 	self.noteCharts = {noteChart}
 end

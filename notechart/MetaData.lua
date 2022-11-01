@@ -1,35 +1,7 @@
 local EncodingConverter = require("notechart.EncodingConverter")
 
-local MetaData = require("ncdk.MetaData"):new()
-
-MetaData.defaults = {
-	hash = "",
-	index = 0,
-	format = "",
-
-	noteCount = 0,
-	length = 0,
-	maxTime = 0,
-	minTime = 0,
-	bpm = 0,
-
-	title = "",
-	artist = "",
-	source = "",
-	tags = "",
-	name = "",
-	creator = "",
-	level = 0,
-
-	previewTime = 0,
-	audioPath = "",
-	stagePath = "",
-
-	inputMode = ""
-}
-
-local bracketFindPattern = "%s.+%s$"
-local bracketMatchPattern = "%s(.+)%s$"
+local bracketFind = "%s.+%s$"
+local bracketMatch = "%s(.+)%s$"
 local brackets = {
 	{"%[", "%]"},
 	{"%(", "%)"},
@@ -40,29 +12,27 @@ local brackets = {
 	{"~", "~"}
 }
 
-local trimName = function(name)
+local function trimName(name)
 	for i = 1, #brackets do
 		local lb, rb = brackets[i][1], brackets[i][2]
-		if name:find(bracketFindPattern:format(lb, rb)) then
-			return name:match(bracketMatchPattern:format(lb, rb)), name:find(bracketFindPattern:format(lb, rb))
+		if name:find(bracketFind:format(lb, rb)) then
+			return name:match(bracketMatch:format(lb, rb)), name:find(bracketFind:format(lb, rb))
 		end
 	end
 	return name, #name + 1
 end
 
-local splitTitle = function(title)
+local function splitTitle(title)
 	local name, bracketStart = trimName(title)
 	return title:sub(1, bracketStart - 1), name
 end
 
 local O2jamDifficultyNames = {"Easy", "Normal", "Hard"}
-MetaData.fillData = function(self)
-	local noteChart = self.noteChart
 
+return function(noteChart, importer)
 	if noteChart.type == "osu" then
-		local importer = noteChart.importer
 		local metadata = importer.osu.metadata
-		self:setTable({
+		return {
 			hash			= "",
 			index			= noteChart.index,
 			format			= "osu",
@@ -78,17 +48,16 @@ MetaData.fillData = function(self)
 			previewTime		= metadata["PreviewTime"] / 1000,
 			noteCount		= importer.noteCount,
 			length			= importer.totalLength / 1000,
-			bpm				= noteChart.importer.primaryBPM,
+			bpm				= importer.primaryBPM,
 			inputMode		= tostring(noteChart.inputMode),
 			minTime         = importer.minTime / 1000,
 			maxTime         = importer.maxTime / 1000,
-		})
+		}
 	elseif noteChart.type == "bms" then
-		local importer = noteChart.importer
 		local bms = importer.bms
 		local header = bms.header
 		local title, name = splitTitle(EncodingConverter:fix(header["TITLE"]))
-		self:setTable({
+		return {
 			hash			= "",
 			index			= noteChart.index,
 			format			= "bms",
@@ -108,12 +77,11 @@ MetaData.fillData = function(self)
 			inputMode		= tostring(noteChart.inputMode),
 			minTime         = importer.minTime,
 			maxTime         = importer.maxTime
-		})
+		}
 	elseif noteChart.type == "o2jam" then
-		local importer = noteChart.importer
 		local ojn = importer.ojn
 		local index = noteChart.index
-		self:setTable({
+		return {
 			hash			= "",
 			index			= index,
 			format			= "ojn",
@@ -130,15 +98,14 @@ MetaData.fillData = function(self)
 			noteCount		= ojn.charts[index].notes,
 			length			= ojn.charts[index].duration,
 			bpm				= ojn.bpm,
-			inputMode		= "7key",
+			inputMode		= tostring(noteChart.inputMode),
 			minTime         = importer.minTime,
 			maxTime         = importer.maxTime
-		})
+		}
 	elseif noteChart.type == "ksm" then
-		local importer = noteChart.importer
 		local ksh = importer.ksh
 		local options = ksh.options
-		self:setTable({
+		return {
 			hash			= "",
 			index			= noteChart.index,
 			format			= "ksh",
@@ -158,11 +125,10 @@ MetaData.fillData = function(self)
 			inputMode		= tostring(noteChart.inputMode),
 			minTime         = importer.minTime,
 			maxTime         = importer.maxTime
-		})
+		}
 	elseif noteChart.type == "quaver" then
-		local importer = noteChart.importer
-		local qua = noteChart.importer.qua
-		self:setTable({
+		local qua = importer.qua
+		return {
 			hash			= "",
 			index			= noteChart.index,
 			format			= "qua",
@@ -178,18 +144,17 @@ MetaData.fillData = function(self)
 			previewTime		= (qua["SongPreviewTime"] or 0) / 1000,
 			noteCount		= importer.noteCount,
 			length			= importer.totalLength / 1000,
-			bpm				= noteChart.importer.primaryBPM,
+			bpm				= importer.primaryBPM,
 			inputMode		= tostring(noteChart.inputMode),
 			minTime         = importer.minTime / 1000,
 			maxTime         = importer.maxTime / 1000,
-		})
+		}
 	elseif noteChart.type == "sm" then
-		local importer = noteChart.importer
-		local sm = noteChart.importer.sm
+		local sm = importer.sm
 		local header = sm.header
 		local index = noteChart.index
 		local chart = sm.charts[index]
-		self:setTable({
+		return {
 			hash			= "",
 			index			= noteChart.index,
 			format			= "sm",
@@ -209,11 +174,10 @@ MetaData.fillData = function(self)
 			inputMode		= tostring(noteChart.inputMode),
 			minTime         = importer.minTime,
 			maxTime         = importer.maxTime,
-		})
+		}
 	elseif noteChart.type == "midi" then
-		local importer = noteChart.importer
 		local mid = importer.mid
-		self:setTable({
+		return {
 			hash			= "",
 			index			= noteChart.index,
 			format			= "mid",
@@ -230,11 +194,9 @@ MetaData.fillData = function(self)
 			noteCount		= importer.noteCount,
 			length			= mid.length,
 			bpm				= mid.bpm,
-			inputMode		= "88key",
+			inputMode		= tostring(noteChart.inputMode),
 			minTime         = mid.minTime,
 			maxTime         = mid.maxTime
-		})
+		}
 	end
 end
-
-return MetaData

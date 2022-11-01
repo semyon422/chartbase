@@ -22,10 +22,6 @@ NoteChartImporter.import = function(self)
 	self.noteChart = NoteChart:new()
 	local noteChart = self.noteChart
 
-	noteChart.importer = self
-	noteChart.metaData = MetaData:new()
-	noteChart.metaData.noteChart = noteChart
-
 	if not self.osu then
 		self.osu = Osu:new()
 		self.osu:import(self.content:gsub("\r\n", "\n"))
@@ -49,7 +45,7 @@ NoteChartImporter.import = function(self)
 	noteChart.type = "osu"
 	noteChart:compute()
 	noteChart.index = 1
-	noteChart.metaData:fillData()
+	noteChart.metaData = MetaData(noteChart, self)
 
 	self.noteCharts = {noteChart}
 end

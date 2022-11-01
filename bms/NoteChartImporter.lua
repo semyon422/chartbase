@@ -23,10 +23,6 @@ NoteChartImporter.import = function(self)
 	self.noteChart = NoteChart:new()
 	local noteChart = self.noteChart
 
-	noteChart.importer = self
-	noteChart.metaData = MetaData:new()
-	noteChart.metaData.noteChart = noteChart
-
 	self.foregroundLayerData = noteChart.layerDataSequence:requireLayerData(1)
 	self.foregroundLayerData:setTimeMode("measure")
 
@@ -47,7 +43,7 @@ NoteChartImporter.import = function(self)
 	self:updateLength()
 
 	noteChart.index = 1
-	noteChart.metaData:fillData()
+	noteChart.metaData = MetaData(noteChart, self)
 
 	self.noteCharts = {noteChart}
 end

@@ -13,12 +13,10 @@ NoteChartDataEntryFactory.getEntries = function(self, path, content, hash, noteC
 	end
 
 	for _, noteChart in ipairs(noteCharts) do
-		noteChart.metaData:set("hash", hash)
-
-		local entry = noteChart.metaData:getTable()
-
-		entries[#entries + 1] = entry
+		local entry = noteChart.metaData
+		entry.hash = hash
 		entry.noteChartEntry = noteChartEntry
+		entries[#entries + 1] = entry
 	end
 
 	return entries, noteCharts
