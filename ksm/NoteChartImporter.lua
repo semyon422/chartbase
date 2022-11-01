@@ -29,11 +29,11 @@ NoteChartImporter.import = function(self, noteChartString)
 		self.ksh:import(self.content:gsub("\r\n", "\n"))
 	end
 
-	self.foregroundLayerData = noteChart.layerDataSequence:requireLayerData(1)
+	self.foregroundLayerData = noteChart.layerDataSequence:getLayerData(1)
 	self.foregroundLayerData:setTimeMode("measure")
 	self.foregroundLayerData:setSignatureMode("long")
 
-	self.backgroundLayerData = noteChart.layerDataSequence:requireLayerData(2)
+	self.backgroundLayerData = noteChart.layerDataSequence:getLayerData(2)
 	self.backgroundLayerData.invisible = true
 	self.backgroundLayerData:setTimeMode("absolute")
 	self.backgroundLayerData:setSignatureMode("long")

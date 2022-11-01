@@ -50,7 +50,7 @@ NoteChartImporter.importSingle = function(self, index)
 		self.ojn = OJN:new(self.content)
 	end
 
-	self.foregroundLayerData = noteChart.layerDataSequence:requireLayerData(1)
+	self.foregroundLayerData = noteChart.layerDataSequence:getLayerData(1)
 	self.foregroundLayerData:setTimeMode("measure")
 
 	self:processData()

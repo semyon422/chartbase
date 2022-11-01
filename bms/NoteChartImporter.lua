@@ -23,7 +23,7 @@ NoteChartImporter.import = function(self)
 	self.noteChart = NoteChart:new()
 	local noteChart = self.noteChart
 
-	self.foregroundLayerData = noteChart.layerDataSequence:requireLayerData(1)
+	self.foregroundLayerData = noteChart.layerDataSequence:getLayerData(1)
 	self.foregroundLayerData:setTimeMode("measure")
 
 	if not self.bms then

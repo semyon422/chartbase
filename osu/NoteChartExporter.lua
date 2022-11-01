@@ -49,8 +49,7 @@ NoteChartExporter.loadNotes = function(self)
 	local events = self.events
 	local hitObjects = self.hitObjects
 
-	for layerIndex in self.noteChart:getLayerDataIndexIterator() do
-		local layerData = self.noteChart:requireLayerData(layerIndex)
+	for _, layerData in self.noteChart:getLayerDataIterator() do
 		for noteDataIndex = 1, layerData:getNoteDataCount() do
 			local noteData = layerData:getNoteData(noteDataIndex)
 			if noteData.noteType == "ShortNote" or noteData.noteType == "LongNoteStart" then
@@ -151,7 +150,7 @@ end
 NoteChartExporter.addTimingPoints = function(self)
 	local timingStates = {}
 
-	local layerData = self.noteChart:requireLayerData(1)
+	local layerData = self.noteChart:getLayerData(1)
 	for tempoDataIndex = 1, layerData:getTempoDataCount() do
 		local tde = TimingDataExporter:new()
 		tde.tempoData = layerData:getTempoData(tempoDataIndex)

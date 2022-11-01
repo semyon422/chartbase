@@ -27,7 +27,7 @@ NoteChartImporter.import = function(self)
 		self.osu:import(self.content:gsub("\r\n", "\n"))
 	end
 
-	self.foregroundLayerData = noteChart.layerDataSequence:requireLayerData(1)
+	self.foregroundLayerData = noteChart.layerDataSequence:getLayerData(1)
 	self.foregroundLayerData:setTimeMode("absolute")
 
 	self:process()

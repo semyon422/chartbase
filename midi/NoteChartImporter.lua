@@ -67,7 +67,7 @@ end
 NoteChartImporter.createLayerData = function(self, index)
 	local index = index or #self.LayerDatas + 1
 
-	local LayerData = self.noteCharts[1].layerDataSequence:requireLayerData(index)
+	local LayerData = self.noteCharts[1].layerDataSequence:getLayerData(index)
 	LayerData:setTimeMode("measure")
 	LayerData:setSignatureMode("short")
 
