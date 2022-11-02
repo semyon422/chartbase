@@ -27,7 +27,7 @@ NoteChartImporter.import = function(self)
 		self.osu:import(self.content:gsub("\r\n", "\n"))
 	end
 
-	self.foregroundLayerData = noteChart.layerDataSequence:getLayerData(1)
+	self.foregroundLayerData = noteChart:getLayerData(1)
 	self.foregroundLayerData:setTimeMode("absolute")
 
 	self:process()
@@ -223,7 +223,7 @@ NoteChartImporter.processTimingPoints = function(self)
 		end
 	end
 
-	self.foregroundLayerData.spaceData.velocityDataSequence:sort()
+	self.foregroundLayerData.spaceData:sort()
 end
 
 NoteChartImporter.addTimingPointParser = function(self, tp)

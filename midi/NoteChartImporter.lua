@@ -12,7 +12,7 @@ NoteChartImporter_metatable.__index = NoteChartImporter
 NoteChartImporter.new = function(self)
 	local noteChartImporter = {}
 
-	self.LayerDatas = {}
+	self.layerDatas = {}
 
 	setmetatable(noteChartImporter, NoteChartImporter_metatable)
 
@@ -65,16 +65,16 @@ NoteChartImporter.fillKeys = function(self)
 end
 
 NoteChartImporter.createLayerData = function(self, index)
-	local index = index or #self.LayerDatas + 1
+	index = index or #self.layerDatas + 1
 
-	local LayerData = self.noteCharts[1].layerDataSequence:getLayerData(index)
-	LayerData:setTimeMode("measure")
-	LayerData:setSignatureMode("short")
+	local layerData = self.noteCharts[1]:getLayerData(index)
+	layerData:setTimeMode("measure")
+	layerData:setSignatureMode("short")
 
-	LayerData:setSignature(0, Fraction:new(4))
+	layerData:setSignature(0, Fraction:new(4))
 
 	for _, tempo in ipairs(self.mid.tempos) do
-		LayerData:addTempoData(
+		layerData:addTempoData(
 			ncdk.TempoData:new(
 				Fraction:new(tempo[1], 1000, true),
 				tempo[2]
@@ -83,17 +83,17 @@ NoteChartImporter.createLayerData = function(self, index)
 	end
 
 	local velocityData = ncdk.VelocityData:new(
-		LayerData:getTimePoint(
+		layerData:getTimePoint(
 			Fraction:new(0),
 			-1
 		)
 	)
 	velocityData.currentVelocity = 1
-	LayerData:addVelocityData(velocityData)
+	layerData:addVelocityData(velocityData)
 
-	self.LayerDatas[index] = LayerData
+	self.layerDatas[index] = layerData
 
-	return LayerData
+	return layerData
 end
 
 NoteChartImporter.processData = function(self, trackIndex, LayerData, addedNotes)
@@ -179,7 +179,7 @@ NoteChartImporter.processData = function(self, trackIndex, LayerData, addedNotes
 end
 
 NoteChartImporter.processMeasureLines = function(self)
-	local LayerData = self.LayerDatas[1]
+	local LayerData = self.layerDatas[1]
 	local minTime = self.mid.minTime
 	local maxTime = self.mid.maxTime
 

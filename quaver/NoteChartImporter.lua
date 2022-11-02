@@ -30,7 +30,7 @@ NoteChartImporter.import = function(self)
 		self.qua = tinyyaml.parse(self.content:gsub("\r\n", "\n"))
 	end
 
-	self.foregroundLayerData = noteChart.layerDataSequence:getLayerData(1)
+	self.foregroundLayerData = noteChart:getLayerData(1)
 	self.foregroundLayerData:setTimeMode("absolute")
 
 	self:process()

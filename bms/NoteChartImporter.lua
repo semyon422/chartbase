@@ -23,7 +23,7 @@ NoteChartImporter.import = function(self)
 	self.noteChart = NoteChart:new()
 	local noteChart = self.noteChart
 
-	self.foregroundLayerData = noteChart.layerDataSequence:getLayerData(1)
+	self.foregroundLayerData = noteChart:getLayerData(1)
 	self.foregroundLayerData:setTimeMode("measure")
 
 	if not self.bms then
@@ -144,7 +144,7 @@ NoteChartImporter.setStop = function(self, timeData)
 
 		local timePoint = self.foregroundLayerData:getTimePoint(timeData.measureTime, -1)
 		if self.currentVelocityData.timePoint == timePoint then
-			self.foregroundLayerData:removeLastVelocityData()
+			self.foregroundLayerData:removeLastVelocityData():delete()
 		end
 		self.currentVelocityData = ncdk.VelocityData:new(timePoint)
 		self.currentVelocityData.currentSpeed = 0

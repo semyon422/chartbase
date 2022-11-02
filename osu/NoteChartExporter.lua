@@ -167,9 +167,11 @@ NoteChartExporter.addTimingPoints = function(self)
 		timingStates[time] = timingStates[time] or {}
 		timingStates[time].stop = tde
 	end
-	for velocityDataIndex = 1, layerData:getVelocityDataCount() do
+
+	local spaceData = layerData.spaceData
+	for velocityDataIndex = 1, spaceData:getVelocityDataCount() do
 		local tde = TimingDataExporter:new()
-		tde.velocityData = layerData:getVelocityData(velocityDataIndex)
+		tde.velocityData = spaceData:getVelocityData(velocityDataIndex)
 		if tde.velocityData.sv then
 			local time = tde.velocityData.timePoint.absoluteTime
 			timingStates[time] = timingStates[time] or {}
