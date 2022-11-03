@@ -169,7 +169,7 @@ NoteChartImporter.processAudio = function(self)
 	local audioFileName = self.audioFileName
 
 	if audioFileName and audioFileName ~= "virtual" then
-		local timePoint = self.foregroundLayerData:getZeroTimePoint()
+		local timePoint = self.foregroundLayerData:getTimePoint(0, -1)
 
 		local noteData = ncdk.NoteData:new(timePoint)
 		noteData.inputType = "auto"
