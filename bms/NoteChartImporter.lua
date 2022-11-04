@@ -136,8 +136,8 @@ NoteChartImporter.setStop = function(self, timeData)
 
 		local measureDuration = ncdk.Fraction:new(self.bms.stop[value] / 192, 32768, true)
 		local stopData = ncdk.StopData:new()
-		stopData.measureTime = timeData.measureTime
-		stopData.measureDuration = measureDuration
+		stopData.time = timeData.measureTime
+		stopData.duration = measureDuration
 		stopData.tempoData = self.currentTempoData
 		stopData.signature = ncdk.Fraction:new(4)
 		self.foregroundLayerData:addStopData(stopData)
