@@ -222,8 +222,6 @@ NoteChartImporter.processTimingPoints = function(self)
 			self.foregroundLayerData:addTempoData(tempoData)
 		end
 	end
-
-	self.foregroundLayerData.spaceData:sort()
 end
 
 NoteChartImporter.addTimingPointParser = function(self, tp)
