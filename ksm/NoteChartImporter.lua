@@ -96,22 +96,16 @@ NoteChartImporter.processData = function(self)
 	self.minTimePoint = nil
 	self.maxTimePoint = nil
 
+	local ld = self.foregroundLayerData
+
 	for _, tempoData in ipairs(self.ksh.tempos) do
 		local measureTime = ncdk.Fraction:new(tempoData.lineOffset, tempoData.lineCount) + tempoData.measureOffset
-		self.currentTempoData = ncdk.TempoData:new(
-			measureTime,
-			tempoData.tempo
-		)
-		self.foregroundLayerData:addTempoData(self.currentTempoData)
-
-		local timePoint = self.foregroundLayerData:getTimePoint(measureTime, -1)
-		self.currentVelocityData = ncdk.VelocityData:new(timePoint)
-		self.currentVelocityData.currentSpeed = self.currentTempoData.tempo / self.primaryTempo
-		self.foregroundLayerData:addVelocityData(self.currentVelocityData)
+		self.currentTempoData = ld:insertTempoData(measureTime, tempoData.tempo)
+		self.currentVelocityData = ld:insertVelocityData(measureTime, -1, tempoData.tempo / self.primaryTempo)
 	end
 
 	for _, signatureData in ipairs(self.ksh.timeSignatures) do
-		self.foregroundLayerData:setSignature(
+		ld:setSignature(
 			signatureData.measureIndex,
 			ncdk.Fraction:new(signatureData.n * 4, signatureData.d)
 		)
@@ -127,7 +121,7 @@ NoteChartImporter.processData = function(self)
 
 	for _, _noteData in ipairs(allNotes) do
 		local startMeasureTime = ncdk.Fraction:new(_noteData.startLineOffset, _noteData.startLineCount) + _noteData.startMeasureOffset
-		local startTimePoint = self.foregroundLayerData:getTimePoint(startMeasureTime, -1)
+		local startTimePoint = ld:getTimePoint(startMeasureTime, -1)
 
 		local startNoteData = ncdk.NoteData:new(startTimePoint)
 		startNoteData.inputType = _noteData.input
@@ -158,7 +152,7 @@ NoteChartImporter.processData = function(self)
 
 		startNoteData.sounds = {}
 
-		self.foregroundLayerData:addNoteData(startNoteData)
+		ld:addNoteData(startNoteData)
 
 		local lastTimePoint = startTimePoint
 		local endMeasureTime = ncdk.Fraction:new(_noteData.endLineOffset, _noteData.endLineCount) + _noteData.endMeasureOffset
@@ -172,7 +166,7 @@ NoteChartImporter.processData = function(self)
 				startNoteData.noteType = "LaserNoteStart"
 			end
 
-			local endTimePoint = self.foregroundLayerData:getTimePoint(endMeasureTime, -1)
+			local endTimePoint = ld:getTimePoint(endMeasureTime, -1)
 
 			local endNoteData = ncdk.NoteData:new(endTimePoint)
 			endNoteData.inputType = startNoteData.inputType
@@ -188,7 +182,7 @@ NoteChartImporter.processData = function(self)
 			endNoteData.startNoteData = startNoteData
 			startNoteData.endNoteData = endNoteData
 
-			self.foregroundLayerData:addNoteData(endNoteData)
+			ld:addNoteData(endNoteData)
 
 			lastTimePoint = endTimePoint
 		end

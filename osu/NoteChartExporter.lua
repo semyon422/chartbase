@@ -155,7 +155,7 @@ NoteChartExporter.addTimingPoints = function(self)
 		local tde = TimingDataExporter:new()
 		tde.tempoData = layerData:getTempoData(tempoDataIndex)
 
-		local time = tde.tempoData.leftTimePoint.absoluteTime
+		local time = tde.tempoData.timePoint.absoluteTime
 		timingStates[time] = timingStates[time] or {}
 		timingStates[time].tempo = tde
 	end

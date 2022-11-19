@@ -87,19 +87,11 @@ NoteChartImporter.processTempo = function(self)
 end
 
 NoteChartImporter.setTempo = function(self, beat, tempo)
+	local ld = self.foregroundLayerData
 	local measureTime = ncdk.Fraction:new(beat / 4, 1000, true)
-	self.currentTempoData = ncdk.TempoData:new(
-		measureTime,
-		tempo
-	)
-	self.foregroundLayerData:addTempoData(self.currentTempoData)
-
-	local timePoint = self.foregroundLayerData:getTimePoint(measureTime, -1)
-	self.currentVelocityData = ncdk.VelocityData:new(timePoint)
-	self.currentVelocityData.currentSpeed = tempo / self.sm.primaryTempo
-	self.foregroundLayerData:addVelocityData(self.currentVelocityData)
+	self.currentTempoData = ld:insertTempoData(measureTime, tempo)
+	self.currentVelocityData = ld:insertVelocityData(measureTime, -1, tempo / self.sm.primaryTempo)
 end
-
 
 NoteChartImporter.processNotes = function(self)
 	self.noteCount = 0

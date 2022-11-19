@@ -91,70 +91,61 @@ NoteChartImporter.updateLength = function(self)
 end
 
 NoteChartImporter.setTempo = function(self, timeData)
-	if timeData[enums.BackChannelEnum["Tempo"]] then
-		local value = timeData[enums.BackChannelEnum["Tempo"]][1]
-		self.currentTempoData = ncdk.TempoData:new(
-			timeData.measureTime,
-			tonumber(value, 16)
-		)
-		self.foregroundLayerData:addTempoData(self.currentTempoData)
-
-		local timePoint = self.foregroundLayerData:getTimePoint(timeData.measureTime, -1)
-		self.currentVelocityData = ncdk.VelocityData:new(timePoint)
-		self.currentVelocityData.currentSpeed = self.currentTempoData.tempo / self.bms.primaryTempo
-		self.foregroundLayerData:addVelocityData(self.currentVelocityData)
+	if not timeData[enums.BackChannelEnum["Tempo"]] then
+		return
 	end
+	local tempo = tonumber(timeData[enums.BackChannelEnum["Tempo"]][1], 16)
+	local ld = self.foregroundLayerData
+	self.currentTempoData = ld:insertTempoData(timeData.measureTime, tempo)
+	self.currentVelocityData = ld:insertVelocityData(timeData.measureTime, -1, tempo / self.bms.primaryTempo)
 end
 
 NoteChartImporter.setExtendedTempo = function(self, timeData)
-	if timeData[enums.BackChannelEnum["ExtendedTempo"]] then
-		local value = timeData[enums.BackChannelEnum["ExtendedTempo"]][1]
-		if not self.bms.bpm[value] then
-			return
-		end
-
-		self.currentTempoData = ncdk.TempoData:new(
-			timeData.measureTime,
-			self.bms.bpm[value]
-		)
-		self.foregroundLayerData:addTempoData(self.currentTempoData)
-
-		local timePoint = self.foregroundLayerData:getTimePoint(timeData.measureTime, -1)
-		self.currentVelocityData = ncdk.VelocityData:new(timePoint)
-		self.currentVelocityData.currentSpeed = self.currentTempoData.tempo / self.bms.primaryTempo
-		self.foregroundLayerData:addVelocityData(self.currentVelocityData)
-		return true
+	if not timeData[enums.BackChannelEnum["ExtendedTempo"]] then
+		return
 	end
+	local value = timeData[enums.BackChannelEnum["ExtendedTempo"]][1]
+	local tempo = self.bms.bpm[value]
+	if not tempo then
+		return
+	end
+
+	local ld = self.foregroundLayerData
+
+	self.currentTempoData = ld:insertTempoData(timeData.measureTime, tempo)
+	self.currentVelocityData = ld:insertVelocityData(timeData.measureTime, -1, tempo / self.bms.primaryTempo)
+	return true
 end
 
 NoteChartImporter.setStop = function(self, timeData)
-	if timeData[enums.BackChannelEnum["Stop"]] then
-		local value = timeData[enums.BackChannelEnum["Stop"]][1]
-		if not self.bms.stop[value] then
-			return
-		end
-
-		local measureDuration = ncdk.Fraction:new(self.bms.stop[value] / 192, 32768, true)
-		local stopData = ncdk.StopData:new()
-		stopData.time = timeData.measureTime
-		stopData.duration = measureDuration
-		stopData.tempoData = self.currentTempoData
-		stopData.signature = ncdk.Fraction:new(4)
-		self.foregroundLayerData:addStopData(stopData)
-
-		local timePoint = self.foregroundLayerData:getTimePoint(timeData.measureTime, -1)
-		if self.currentVelocityData.timePoint == timePoint then
-			self.foregroundLayerData:removeLastVelocityData():delete()
-		end
-		self.currentVelocityData = ncdk.VelocityData:new(timePoint)
-		self.currentVelocityData.currentSpeed = 0
-		self.foregroundLayerData:addVelocityData(self.currentVelocityData)
-
-		local timePoint = self.foregroundLayerData:getTimePoint(timeData.measureTime, 1)
-		self.currentVelocityData = ncdk.VelocityData:new(timePoint)
-		self.currentVelocityData.currentSpeed = self.currentTempoData.tempo / self.bms.primaryTempo
-		self.foregroundLayerData:addVelocityData(self.currentVelocityData)
+	if not timeData[enums.BackChannelEnum["Stop"]] then
+		return
 	end
+	local value = timeData[enums.BackChannelEnum["Stop"]][1]
+	local duration = self.bms.stop[value]
+	if not duration then
+		return
+	end
+
+	local ld = self.foregroundLayerData
+
+	duration = duration * 4
+	local measureDuration
+	if duration % 1 == 0 then
+		measureDuration = ncdk.Fraction:new(duration, 192)
+	else
+		measureDuration = ncdk.Fraction:new(duration, 1e6, true) / 192
+	end
+
+	ld:insertStopData(timeData.measureTime, measureDuration)
+
+	local timePoint = self.foregroundLayerData:getTimePoint(timeData.measureTime, -1)
+	if self.currentVelocityData.timePoint == timePoint then
+		ld:removeVelocityData()
+	end
+	ld:insertVelocityData(timeData.measureTime, -1, 0)
+	local speed = self.currentTempoData.tempo / self.bms.primaryTempo
+	self.currentVelocityData = ld:insertVelocityData(timeData.measureTime, 1, speed)
 end
 
 NoteChartImporter.processData = function(self)
@@ -291,13 +282,11 @@ end
 NoteChartImporter.addFirstTempo = function(self)
 	if not self.bms.tempoAtStart and self.bms.baseTempo then
 		local measureTime = ncdk.Fraction:new(0)
-		self.currentTempoData = ncdk.TempoData:new(measureTime, self.bms.baseTempo)
-		self.foregroundLayerData:addTempoData(self.currentTempoData)
+		local ld = self.foregroundLayerData
 
-		local timePoint = self.foregroundLayerData:getTimePoint(measureTime, -1)
-		self.currentVelocityData = ncdk.VelocityData:new(timePoint)
-		self.currentVelocityData.currentSpeed = self.bms.baseTempo / self.bms.primaryTempo
-		self.foregroundLayerData:addVelocityData(self.currentVelocityData)
+		self.currentTempoData = ld:insertTempoData(measureTime, self.bms.baseTempo)
+		local speed = self.bms.baseTempo / self.bms.primaryTempo
+		self.currentVelocityData = ld:insertVelocityData(measureTime, -1, speed)
 	end
 end
 

@@ -186,6 +186,8 @@ end
 NoteChartImporter.processTimingPoints = function(self)
 	local currentBeatLength = self.primaryBeatLength
 
+	local ld = self.foregroundLayerData
+
 	local timingState = {}
 	for i = 1, #self.timingDataImporters do
 		local tdi = self.timingDataImporters[i]
@@ -209,17 +211,14 @@ NoteChartImporter.processTimingPoints = function(self)
 
 	for offset, data in pairs(timingState) do
 		local time = offset / 1000
-		local timePoint = self.foregroundLayerData:getTimePoint(time, 1)
+		local timePoint = ld:getTimePoint(time, 1)
 
-		local velocityData = ncdk.VelocityData:new(timePoint)
-		velocityData.currentSpeed = data.modifiedSpeed
+		local velocityData = ld:insertVelocityData(time, 1, data.modifiedSpeed)
 		velocityData.clearCurrentSpeed = data.clearSpeed
 		velocityData.sv = data.isVelocity
-		self.foregroundLayerData:addVelocityData(velocityData)
 
 		if data.isTempo then
-			local tempoData = ncdk.TempoData:new(time, 60000 / data.beatLength)
-			self.foregroundLayerData:addTempoData(tempoData)
+			ld:insertTempoData(time, 60000 / data.beatLength)
 		end
 	end
 end

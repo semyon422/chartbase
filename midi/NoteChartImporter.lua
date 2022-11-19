@@ -74,22 +74,10 @@ NoteChartImporter.createLayerData = function(self, index)
 	layerData:setSignature(0, Fraction:new(4))
 
 	for _, tempo in ipairs(self.mid.tempos) do
-		layerData:addTempoData(
-			ncdk.TempoData:new(
-				Fraction:new(tempo[1], 1000, true),
-				tempo[2]
-			)
-		)
+		layerData:insertTempoData(Fraction:new(tempo[1], 1000, true), tempo[2])
 	end
 
-	local velocityData = ncdk.VelocityData:new(
-		layerData:getTimePoint(
-			Fraction:new(0),
-			-1
-		)
-	)
-	velocityData.currentVelocity = 1
-	layerData:addVelocityData(velocityData)
+	layerData:insertVelocityData(Fraction:new(0), -1, 1)
 
 	self.layerDatas[index] = layerData
 
