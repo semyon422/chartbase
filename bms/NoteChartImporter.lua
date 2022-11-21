@@ -25,6 +25,7 @@ NoteChartImporter.import = function(self)
 
 	self.foregroundLayerData = noteChart:getLayerData(1)
 	self.foregroundLayerData:setTimeMode("measure")
+	self.foregroundLayerData:setSignatureMode("short")
 
 	if not self.bms then
 		self.bms = BMS:new()
