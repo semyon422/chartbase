@@ -52,6 +52,8 @@ SM.processLine = function(self, line)
 		if #chart.metaData == 5 then
 			self.parsingNotesMetaData = false
 		end
+	elseif self.parsingNotes and not line:find(",") and line:find("//") then
+		return
 	elseif self.parsingNotes and line:find("^[^,^;]+$") then
 		self.parsingNotesMetaData = false
 		self:processNotesLine(line)
