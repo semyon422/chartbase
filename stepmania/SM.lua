@@ -8,6 +8,7 @@ SM.new = function(self)
 
 	sm.header = {}
 	sm.bpm = {}
+	sm.stop = {}
 	sm.charts = {}
 
 	setmetatable(sm, SM_metatable)
@@ -40,6 +41,13 @@ SM.processLine = function(self, line)
 		self:processBPM(line)
 		if line:find(";") then
 			self.parsingBpm = false
+		end
+		return
+	end
+	if self.parsingStop then
+		self:processSTOP(line)
+		if line:find(";") then
+			self.parsingStop = false
 		end
 		return
 	end
@@ -79,6 +87,11 @@ SM.processHeaderLine = function(self, line)
 		if not line:find(";") then
 			self.parsingBpm = true
 		end
+	elseif key == "STOPS" then
+		self:processSTOP(value)
+		if not line:find(";") then
+			self.parsingStop = true
+		end
 	elseif key == "BACKGROUND" then
 		if value == "" then
 			self.header[key] = "bg"
@@ -102,6 +115,22 @@ SM.processBPM = function(self, line)
 			if not self.primaryTempo then
 				self.primaryTempo = tempo
 			end
+		end
+	end
+end
+
+SM.processSTOP = function(self, line)
+	local stopValues = line:split(",")
+	for _, stopValue in ipairs(stopValues) do
+		local beat, duration = stopValue:match("^(.+)=(.+)$")
+		if beat and duration then
+			table.insert(
+				self.stop,
+				{
+					beat = tonumber(beat),
+					duration = tonumber(duration)
+				}
+			)
 		end
 	end
 end
