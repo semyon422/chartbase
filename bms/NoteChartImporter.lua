@@ -26,6 +26,7 @@ NoteChartImporter.import = function(self)
 	self.foregroundLayerData = noteChart:getLayerData(1)
 	self.foregroundLayerData:setTimeMode("measure")
 	self.foregroundLayerData:setSignatureMode("short")
+	self.foregroundLayerData:setPrimaryTempo(130)
 
 	if not self.bms then
 		self.bms = BMS:new()
@@ -97,8 +98,7 @@ NoteChartImporter.setTempo = function(self, timeData)
 	end
 	local tempo = tonumber(timeData[enums.BackChannelEnum["Tempo"]][1], 16)
 	local ld = self.foregroundLayerData
-	self.currentTempoData = ld:insertTempoData(timeData.measureTime, tempo)
-	self.currentVelocityData = ld:insertVelocityData(timeData.measureTime, -1, tempo / self.bms.primaryTempo)
+	ld:insertTempoData(timeData.measureTime, tempo)
 end
 
 NoteChartImporter.setExtendedTempo = function(self, timeData)
@@ -113,8 +113,7 @@ NoteChartImporter.setExtendedTempo = function(self, timeData)
 
 	local ld = self.foregroundLayerData
 
-	self.currentTempoData = ld:insertTempoData(timeData.measureTime, tempo)
-	self.currentVelocityData = ld:insertVelocityData(timeData.measureTime, -1, tempo / self.bms.primaryTempo)
+	ld:insertTempoData(timeData.measureTime, tempo)
 	return true
 end
 
@@ -139,14 +138,6 @@ NoteChartImporter.setStop = function(self, timeData)
 	end
 
 	ld:insertStopData(timeData.measureTime, measureDuration)
-
-	local timePoint = self.foregroundLayerData:getTimePoint(timeData.measureTime, -1)
-	if self.currentVelocityData.timePoint == timePoint then
-		ld:removeVelocityData()
-	end
-	ld:insertVelocityData(timeData.measureTime, -1, 0)
-	local speed = self.currentTempoData.tempo / self.bms.primaryTempo
-	self.currentVelocityData = ld:insertVelocityData(timeData.measureTime, 1, speed)
 end
 
 NoteChartImporter.processData = function(self)
@@ -285,9 +276,7 @@ NoteChartImporter.addFirstTempo = function(self)
 		local measureTime = ncdk.Fraction:new(0)
 		local ld = self.foregroundLayerData
 
-		self.currentTempoData = ld:insertTempoData(measureTime, self.bms.baseTempo)
-		local speed = self.bms.baseTempo / self.bms.primaryTempo
-		self.currentVelocityData = ld:insertVelocityData(measureTime, -1, speed)
+		ld:insertTempoData(measureTime, self.bms.baseTempo)
 	end
 end
 

@@ -37,7 +37,7 @@ end
 TimingDataExporter.getVelocity = function(self)
 	return timingPointString:format(
 		self.velocityData.timePoint.absoluteTime * 1000,
-		-100 / (self.velocityData.clearCurrentSpeed or self.velocityData.currentSpeed),
+		-100 / self.velocityData.currentSpeed,
 		0
 	)
 end

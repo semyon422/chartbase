@@ -113,7 +113,7 @@ SM.processBPM = function(self, line)
 				}
 			)
 			if not self.primaryTempo then
-				self.primaryTempo = tempo
+				self.primaryTempo = tonumber(tempo)
 			end
 		end
 	end

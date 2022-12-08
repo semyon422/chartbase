@@ -46,10 +46,12 @@ NoteChartImporter.importSingle = function(self)
 
 	self.foregroundLayerData = noteChart:getLayerData(1)
 	self.foregroundLayerData:setTimeMode("measure")
+	self.foregroundLayerData:setPrimaryTempo(self.sm.primaryTempo)
 
 	self.backgroundLayerData = noteChart:getLayerData(2)
 	self.backgroundLayerData.invisible = true
 	self.backgroundLayerData:setTimeMode("absolute")
+	self.backgroundLayerData:setPrimaryTempo(self.sm.primaryTempo)
 
 	noteChart.inputMode.key = self.chart.mode
 	self:processTempo()
@@ -85,7 +87,6 @@ NoteChartImporter.processTempo = function(self)
 	for _, bpm in ipairs(self.sm.bpm) do
 		local measureTime = ncdk.Fraction:new(bpm.beat / 4, 1000, true)
 		ld:insertTempoData(measureTime, bpm.tempo)
-		ld:insertVelocityData(measureTime, -1, bpm.tempo / self.sm.primaryTempo)
 	end
 	for _, stop in ipairs(self.sm.stop) do
 		local measureTime = ncdk.Fraction:new(stop.beat / 4, 1000, true)

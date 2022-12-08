@@ -32,11 +32,12 @@ NoteChartImporter.import = function(self, noteChartString)
 	self.foregroundLayerData = noteChart:getLayerData(1)
 	self.foregroundLayerData:setTimeMode("measure")
 	self.foregroundLayerData:setSignatureMode("long")
+	self.foregroundLayerData:setPrimaryTempo(120)
 
 	self.backgroundLayerData = noteChart:getLayerData(2)
-	self.backgroundLayerData.invisible = true
 	self.backgroundLayerData:setTimeMode("absolute")
 	self.backgroundLayerData:setSignatureMode("long")
+	self.backgroundLayerData:setPrimaryTempo(120)
 
 	self:processData()
 
@@ -89,8 +90,6 @@ NoteChartImporter.processAudio = function(self)
 end
 
 NoteChartImporter.processData = function(self)
-	local longNoteData = {}
-
 	self.noteCount = 0
 
 	self.minTimePoint = nil
@@ -100,8 +99,7 @@ NoteChartImporter.processData = function(self)
 
 	for _, tempoData in ipairs(self.ksh.tempos) do
 		local measureTime = ncdk.Fraction:new(tempoData.lineOffset, tempoData.lineCount) + tempoData.measureOffset
-		self.currentTempoData = ld:insertTempoData(measureTime, tempoData.tempo)
-		self.currentVelocityData = ld:insertVelocityData(measureTime, -1, tempoData.tempo / self.primaryTempo)
+		ld:insertTempoData(measureTime, tempoData.tempo)
 	end
 
 	for _, signatureData in ipairs(self.ksh.timeSignatures) do

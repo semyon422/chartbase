@@ -29,6 +29,7 @@ NoteChartImporter.import = function(self)
 
 	self.foregroundLayerData = noteChart:getLayerData(1)
 	self.foregroundLayerData:setTimeMode("absolute")
+	self.foregroundLayerData:setSignatureMode("long")
 
 	self:process()
 
@@ -184,9 +185,8 @@ NoteChartImporter.processAudio = function(self)
 end
 
 NoteChartImporter.processTimingPoints = function(self)
-	local currentBeatLength = self.primaryBeatLength
-
 	local ld = self.foregroundLayerData
+	ld:setPrimaryTempo(self.primaryBPM)
 
 	local timingState = {}
 	for i = 1, #self.timingDataImporters do
@@ -194,30 +194,21 @@ NoteChartImporter.processTimingPoints = function(self)
 
 		timingState[tdi.startTime] = timingState[tdi.startTime] or {}
 
+		local data = timingState[tdi.startTime]
 		if tdi.timingChange then
-			currentBeatLength = tdi.beatLength
-			local data = timingState[tdi.startTime]
-			data.isTempo = true
-			data.clearSpeed = 1
-			data.modifiedSpeed = self.primaryBeatLength / currentBeatLength
 			data.beatLength = tdi.beatLength
 		else
-			local data = timingState[tdi.startTime]
-			data.isVelocity = true
-			data.clearSpeed = tdi.velocity
-			data.modifiedSpeed = tdi.velocity * self.primaryBeatLength / currentBeatLength
+			data.velocity = tdi.velocity
 		end
 	end
 
 	for offset, data in pairs(timingState) do
 		local time = offset / 1000
-		local timePoint = ld:getTimePoint(time, 1)
 
-		local velocityData = ld:insertVelocityData(time, 1, data.modifiedSpeed)
-		velocityData.clearCurrentSpeed = data.clearSpeed
-		velocityData.sv = data.isVelocity
-
-		if data.isTempo then
+		if data.velocity then
+			ld:insertVelocityData(time, 1, data.velocity)
+		end
+		if data.beatLength then
 			ld:insertTempoData(time, 60000 / data.beatLength)
 		end
 	end

@@ -70,14 +70,13 @@ NoteChartImporter.createLayerData = function(self, index)
 	local layerData = self.noteCharts[1]:getLayerData(index)
 	layerData:setTimeMode("measure")
 	layerData:setSignatureMode("short")
+	layerData:setPrimaryTempo(120)
 
 	layerData:setSignature(0, Fraction:new(4))
 
 	for _, tempo in ipairs(self.mid.tempos) do
 		layerData:insertTempoData(Fraction:new(tempo[1], 1000, true), tempo[2])
 	end
-
-	layerData:insertVelocityData(Fraction:new(0), -1, 1)
 
 	self.layerDatas[index] = layerData
 
