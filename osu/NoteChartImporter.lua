@@ -51,6 +51,15 @@ NoteChartImporter.import = function(self)
 	self.noteCharts = {noteChart}
 end
 
+NoteChartImporter.addNoteDatas = function(self, ...)
+	for i = 1, select("#", ...) do
+		local noteData = select(i, ...)
+		if noteData then
+			self.foregroundLayerData:addNoteData(noteData)
+		end
+	end
+end
+
 NoteChartImporter.process = function(self)
 	self.eventParsers = {}
 	self.tempTimingDataImporters = {}
@@ -85,7 +94,7 @@ NoteChartImporter.process = function(self)
 	self:processTimingPoints()
 
 	for _, noteParser in ipairs(self.noteDataImporters) do
-		self.foregroundLayerData:addNoteData(noteParser:getNoteData())
+		self:addNoteDatas(noteParser:getNoteData())
 	end
 end
 
