@@ -194,7 +194,7 @@ NoteChartExporter.addTimingPoints = function(self)
 		elseif timingState.tempo then
 			lines[#lines + 1] = timingState.tempo:getTempo()
 		end
-		if timingState.velocity then
+		if timingState.velocity and (not timingState.tempo or timingState.velocity.velocityData.currentSpeed ~= 1) then
 			lines[#lines + 1] = timingState.velocity:getVelocity()
 		end
 	end

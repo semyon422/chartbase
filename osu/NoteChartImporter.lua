@@ -210,6 +210,9 @@ NoteChartImporter.processTimingPoints = function(self)
 		end
 		if data.beatLength then
 			ld:insertTempoData(time, 60000 / data.beatLength)
+			if not data.velocity then
+				ld:insertVelocityData(time, 1, 1)
+			end
 		end
 	end
 end
