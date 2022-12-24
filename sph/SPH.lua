@@ -1,4 +1,5 @@
 local Fraction = require("ncdk.Fraction")
+local InputMode = require("ncdk.InputMode")
 
 local SPH = {}
 
@@ -10,7 +11,9 @@ function SPH:new()
 	sph.metadata = {}
 	sph.lines = {}
 	sph.intervals = {}
-	sph.beatOffset = 0
+	sph.velocities = {}
+	sph.expands = {}
+	sph.beatOffset = -1
 
 	return setmetatable(sph, mt)
 end
@@ -20,6 +23,9 @@ function SPH:import(s)
 	for _, line in ipairs(s:split("\n")) do
 		if line == "" then
 			headers = false
+			self.inputMode = InputMode:new(self.metadata.input)
+			self.columns = self.inputMode:getColumns()
+			self.inputMap = self.inputMode:getInputMap()
 		elseif headers then
 			local k, v = line:match("^(.-)=(.*)$")
 			self.metadata[k] = v
@@ -31,21 +37,40 @@ function SPH:import(s)
 end
 
 function SPH:processLine(s)
-	local notes, info = s:match("^([^:]+)(.*)$")
+	local columns = self.columns
+	local notes = s:sub(1, columns)
+	local info = s:sub(columns + 1, -1)
 
-	local intervalOffset
-	for _, pair in ipairs(info:gsub("^:", ""):split(",")) do
-		local k, v = pair:match("^(.-)=(.+)$")
-		if k == "t" then
-			intervalOffset = tonumber(v)
+	local intervalOffset, fraction, velocity, expand
+
+	local charOffset = 0
+	while charOffset < #info do
+		local k, n, d = info:match("^(.)(%d+)/(%d+)")
+		local length
+		if not k then
+			k, n = info:match("^(.)(%d+)")
+			d = 1
+			length = #n + 1
+		else
+			length = #n + #d + 2
 		end
+		n, d = tonumber(n), tonumber(d)
+
+		if k == "=" then
+			intervalOffset = n
+		elseif k == "+" then
+			fraction = {n, d}
+		elseif k == "x" then
+			velocity = n / d
+		elseif k == "e" then
+			expand = n / d
+		end
+
+		info = info:sub(length + 1)
 	end
 
-	local fraction
-	local _notes, n, d = notes:match("^(.+)%+(.+)/(.+)$")
-	if _notes then
-		notes = _notes
-		fraction = {tonumber(n), tonumber(d)}
+	if not fraction then
+		self.beatOffset = self.beatOffset + 1
 	end
 
 	local interval
@@ -57,8 +82,15 @@ function SPH:processLine(s)
 		}
 		table.insert(self.intervals, interval)
 	end
+	if velocity then
+		interval = {
+			offset = intervalOffset,
+			intervals = 1,
+			beatOffset = self.beatOffset,
+		}
+	end
 
-	_notes = {}
+	local _notes = {}
 	for i = 1, #notes do
 		local note = notes:sub(i, i)
 		_notes[i] = note
@@ -70,11 +102,9 @@ function SPH:processLine(s)
 		beatOffset = self.beatOffset,
 		fraction = fraction,
 		notes = _notes,
+		velocity = velocity,
+		expand = expand,
 	})
-
-	if not fraction then
-		self.beatOffset = self.beatOffset + 1
-	end
 end
 
 function SPH:updateTime()

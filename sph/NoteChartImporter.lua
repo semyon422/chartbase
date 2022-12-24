@@ -32,18 +32,46 @@ NoteChartImporter.import = function(self)
 		layerData:insertIntervalData(interval.offset, interval.intervals)
 	end
 
+	local inputMap = sph.inputMap
+
 	local minTimePoint, maxTimePoint
 	local noteCount = 0
+	local longNotes = {}
 	for _, line in ipairs(sph.lines) do
 		local intervalData = layerData:getIntervalData(line.intervalIndex)
-		local timePoint = layerData:getTimePoint(IntervalTime:new(intervalData, line.time))
+		local time = IntervalTime:new(intervalData, line.time)
+		local timePoint = layerData:getTimePoint(time)
 		for i, note in ipairs(line.notes) do
+			local noteData
 			if note ~= "0" then
-				local noteData = NoteData:new(timePoint, "key", i)
-				noteData.noteType = "ShortNote"
-				layerData:addNoteData(noteData)
-				noteCount = noteCount + 1
+				noteData = NoteData:new(timePoint, inputMap[i][1], inputMap[i][2])
+
+				if note == "1" then
+					noteData.noteType = "ShortNote"
+					noteCount = noteCount + 1
+					layerData:addNoteData(noteData)
+				elseif note == "2" then
+					noteData.noteType = "ShortNote"
+					noteCount = noteCount + 1
+					longNotes[i] = noteData
+					layerData:addNoteData(noteData)
+				elseif note == "3" and longNotes[i] then
+					noteData.noteType = "LongNoteEnd"
+					noteData.startNoteData = longNotes[i]
+					longNotes[i].endNoteData = noteData
+					longNotes[i].noteType = "LongNoteStart"
+					longNotes[i] = nil
+				elseif note == "4" then
+					noteData.noteType = "SoundNote"
+					layerData:addNoteData(noteData)
+				end
 			end
+		end
+		if line.velocity then
+			layerData:insertVelocityData(time, nil, line.velocity)
+		end
+		if line.expand then
+			layerData:insertExpandData(time, nil, line.expand)
 		end
 
 		if not minTimePoint or timePoint < minTimePoint then
