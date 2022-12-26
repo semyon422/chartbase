@@ -1,6 +1,5 @@
 local SPH = require("sph.SPH")
 local NoteChart = require("ncdk.NoteChart")
-local IntervalTime = require("ncdk.IntervalTime")
 local NoteData = require("ncdk.NoteData")
 
 local NoteChartImporter = {}
@@ -39,8 +38,7 @@ NoteChartImporter.import = function(self)
 	local longNotes = {}
 	for _, line in ipairs(sph.lines) do
 		local intervalData = layerData:getIntervalData(line.intervalIndex)
-		local time = IntervalTime:new(intervalData, line.time)
-		local timePoint = layerData:getTimePoint(time)
+		local timePoint = layerData:getTimePoint(intervalData, line.time)
 		for i, note in ipairs(line.notes) do
 			local noteData
 			if note ~= "0" then
@@ -68,10 +66,10 @@ NoteChartImporter.import = function(self)
 			end
 		end
 		if line.velocity then
-			layerData:insertVelocityData(time, nil, line.velocity)
+			layerData:insertVelocityData(intervalData, line.time, line.velocity)
 		end
 		if line.expand then
-			layerData:insertExpandData(time, nil, line.expand)
+			layerData:insertExpandData(intervalData, line.time, line.expand)
 		end
 
 		if not minTimePoint or timePoint < minTimePoint then
