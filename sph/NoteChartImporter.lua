@@ -66,10 +66,10 @@ NoteChartImporter.import = function(self)
 			end
 		end
 		if line.velocity then
-			layerData:insertVelocityData(intervalData, line.time, line.velocity)
+			layerData:insertVelocityData(layerData:getTimePoint(intervalData, line.time), line.velocity)
 		end
 		if line.expand then
-			layerData:insertExpandData(intervalData, line.time, line.expand)
+			layerData:insertExpandData(layerData:getTimePoint(intervalData, line.time, 1), line.expand)
 		end
 
 		if not minTimePoint or timePoint < minTimePoint then

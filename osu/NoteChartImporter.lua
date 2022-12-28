@@ -179,7 +179,7 @@ NoteChartImporter.processAudio = function(self)
 	local audioFileName = self.audioFileName
 
 	if audioFileName and audioFileName ~= "virtual" then
-		local timePoint = self.foregroundLayerData:getTimePoint(0, -1)
+		local timePoint = self.foregroundLayerData:getTimePoint(0)
 
 		local noteData = ncdk.NoteData:new(timePoint)
 		noteData.inputType = "auto"
@@ -215,12 +215,12 @@ NoteChartImporter.processTimingPoints = function(self)
 		local time = offset / 1000
 
 		if data.velocity then
-			ld:insertVelocityData(time, 1, data.velocity)
+			ld:insertVelocityData(ld:getTimePoint(time), data.velocity)
 		end
 		if data.beatLength then
 			ld:insertTempoData(time, 60000 / data.beatLength)
 			if not data.velocity then
-				ld:insertVelocityData(time, 1, 1)
+				ld:insertVelocityData(ld:getTimePoint(time), 1)
 			end
 		end
 	end
@@ -302,7 +302,7 @@ NoteChartImporter.processMeasureLines = function(self)
 	end
 
 	for _, startTime in ipairs(lines) do
-		local timePoint = self.foregroundLayerData:getTimePoint(startTime / 1000, 1)
+		local timePoint = self.foregroundLayerData:getTimePoint(startTime / 1000)
 
 		local startNoteData = ncdk.NoteData:new(timePoint)
 		startNoteData.inputType = "measure"

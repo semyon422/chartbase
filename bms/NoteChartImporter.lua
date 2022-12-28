@@ -171,7 +171,7 @@ NoteChartImporter.processData = function(self)
 			)
 			then
 				for _, value in ipairs(indexDataValues) do
-					local timePoint = self.foregroundLayerData:getTimePoint(timeData.measureTime, -1)
+					local timePoint = self.foregroundLayerData:getTimePoint(timeData.measureTime)
 
 					local noteData = ncdk.NoteData:new(timePoint)
 					noteData.inputType = channelInfo.inputType
@@ -252,7 +252,7 @@ end
 NoteChartImporter.processMeasureLines = function(self)
 	for measureIndex = 0, self.bms.measureCount do
 		local measureTime = ncdk.Fraction:new(measureIndex)
-		local timePoint = self.foregroundLayerData:getTimePoint(measureTime, -1)
+		local timePoint = self.foregroundLayerData:getTimePoint(measureTime)
 
 		local startNoteData = ncdk.NoteData:new(timePoint)
 		startNoteData.inputType = "measure"

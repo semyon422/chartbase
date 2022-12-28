@@ -76,7 +76,7 @@ NoteChartImporter.processAudio = function(self)
 
 	if audioFileName then
 		local startTime = -(tonumber(self.ksh.options.o) or 0) / 1000
-		local timePoint = self.backgroundLayerData:getTimePoint(startTime, -1)
+		local timePoint = self.backgroundLayerData:getTimePoint(startTime)
 
 		local noteData = ncdk.NoteData:new(timePoint)
 		noteData.inputType = "auto"
@@ -119,7 +119,7 @@ NoteChartImporter.processData = function(self)
 
 	for _, _noteData in ipairs(allNotes) do
 		local startMeasureTime = ncdk.Fraction:new(_noteData.startLineOffset, _noteData.startLineCount) + _noteData.startMeasureOffset
-		local startTimePoint = ld:getTimePoint(startMeasureTime, -1)
+		local startTimePoint = ld:getTimePoint(startMeasureTime)
 
 		local startNoteData = ncdk.NoteData:new(startTimePoint)
 		startNoteData.inputType = _noteData.input
@@ -164,7 +164,7 @@ NoteChartImporter.processData = function(self)
 				startNoteData.noteType = "LaserNoteStart"
 			end
 
-			local endTimePoint = ld:getTimePoint(endMeasureTime, -1)
+			local endTimePoint = ld:getTimePoint(endMeasureTime)
 
 			local endNoteData = ncdk.NoteData:new(endTimePoint)
 			endNoteData.inputType = startNoteData.inputType
@@ -200,7 +200,7 @@ end
 NoteChartImporter.processMeasureLines = function(self)
 	for measureIndex = 0, self.measureCount do
 		local measureTime = ncdk.Fraction:new(measureIndex)
-		local timePoint = self.foregroundLayerData:getTimePoint(measureTime, -1)
+		local timePoint = self.foregroundLayerData:getTimePoint(measureTime)
 
 		local startNoteData = ncdk.NoteData:new(timePoint)
 		startNoteData.inputType = "measure"

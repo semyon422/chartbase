@@ -77,8 +77,7 @@ NoteChartImporter.updateLength = bmsNoteChartImporter.updateLength
 NoteChartImporter.addFirstTempo = function(self)
 	local ld = self.foregroundLayerData
 	local measureTime = ncdk.Fraction:new(0)
-	self.currentTempoData = ld:insertTempoData(measureTime, self.ojn.bpm)
-	self.currentVelocityData = ld:insertVelocityData(measureTime, -1, self.ojn.bpm / self.primaryTempo)
+	ld:insertTempoData(measureTime, self.ojn.bpm)
 end
 
 NoteChartImporter.processData = function(self)
@@ -103,15 +102,14 @@ NoteChartImporter.processData = function(self)
 				self.tempoAtStart = true
 			end
 
-			self.currentTempoData = ld:insertTempoData(measureTime, event.value)
-			self.currentVelocityData = ld:insertVelocityData(measureTime, -1, event.value / self.primaryTempo)
+			ld:insertTempoData(measureTime, event.value)
 		elseif event.channel == "TIME_SIGNATURE" then
 			ld:setSignature(
 				event.measure,
 				ncdk.Fraction:new(event.value * 4, 32768, true)
 			)
 		elseif event.channel:find("NOTE") or event.channel:find("AUTO") then
-			local timePoint = ld:getTimePoint(measureTime, -1)
+			local timePoint = ld:getTimePoint(measureTime)
 
 			local noteData = ncdk.NoteData:new(timePoint)
 			noteData.inputType = event.channel:find("NOTE") and "key" or "auto"
@@ -160,7 +158,7 @@ end
 NoteChartImporter.processMeasureLines = function(self)
 	for measureIndex = 0, self.measureCount do
 		local measureTime = ncdk.Fraction:new(measureIndex)
-		local timePoint = self.foregroundLayerData:getTimePoint(measureTime, -1)
+		local timePoint = self.foregroundLayerData:getTimePoint(measureTime)
 
 		local startNoteData = ncdk.NoteData:new(timePoint)
 		startNoteData.inputType = "measure"

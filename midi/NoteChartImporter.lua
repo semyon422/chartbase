@@ -116,11 +116,7 @@ NoteChartImporter.processData = function(self, trackIndex, LayerData, addedNotes
 				hitsoundPath = hitsoundPath .. hitsoundType
 				noteChart:addResource("sound", hitsoundPath, {hitsoundPath})
 
-				startNoteData = ncdk.NoteData:new(LayerData:getTimePoint(
-						Fraction:new(startEvent[2], 1000, true),
-						-1
-					)
-				)
+				startNoteData = ncdk.NoteData:new(LayerData:getTimePoint(Fraction:new(startEvent[2], 1000, true)))
 				startNoteData.sounds = {{hitsoundPath, constantVolume and 1 or startEvent[4]}}
 				if addedNotes[eventId] then
 					startNoteData.inputType = "auto"
@@ -134,11 +130,7 @@ NoteChartImporter.processData = function(self, trackIndex, LayerData, addedNotes
 
 				startEvent.used = true
 
-				endNoteData = ncdk.NoteData:new(LayerData:getTimePoint(
-						Fraction:new(event[2], 1000, true),
-						-1
-					)
-				)
+				endNoteData = ncdk.NoteData:new(LayerData:getTimePoint(Fraction:new(event[2], 1000, true)))
 				endNoteData.sounds = {{"none" .. hitsoundType, 0}}
 				if addedNotes[eventId] then
 					endNoteData.inputType = "auto"
@@ -174,11 +166,7 @@ NoteChartImporter.processMeasureLines = function(self)
 
 	local i = 1
 	while time < maxTime do
-		local timePoint = LayerData:getTimePoint(
-			Fraction:new(time, 1000, true),
-			-1
-		)
-
+		local timePoint = LayerData:getTimePoint(Fraction:new(time, 1000, true))
 		local startNoteData = ncdk.NoteData:new(timePoint)
 		startNoteData.inputType = "measure"
 		startNoteData.inputIndex = 1
