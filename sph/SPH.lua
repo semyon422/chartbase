@@ -21,7 +21,7 @@ end
 function SPH:import(s)
 	local headers = true
 	for _, line in ipairs(s:split("\n")) do
-		if line == "" then
+		if line == "" and headers then
 			headers = false
 			self.inputMode = InputMode:new(self.metadata.input)
 			self.columns = self.inputMode:getColumns()
@@ -29,7 +29,7 @@ function SPH:import(s)
 		elseif headers then
 			local k, v = line:match("^(.-)=(.*)$")
 			self.metadata[k] = v
-		else
+		elseif line ~= "" then
 			self:processLine(line)
 		end
 	end
@@ -41,7 +41,7 @@ function SPH:processLine(s)
 	local notes = s:sub(1, columns)
 	local info = s:sub(columns + 1, -1)
 
-	local intervalOffset, fraction, velocity, expand
+	local intervalOffset, fraction, velocity, expand, visual
 
 	local charOffset = 0
 	while charOffset < #info do
@@ -49,8 +49,13 @@ function SPH:processLine(s)
 		local length
 		if not k then
 			k, n = info:match("^(.)(%d+)")
-			d = 1
-			length = #n + 1
+			if k then
+				d = 1
+				length = #n + 1
+			else
+				k = info:match("^(.)")
+				length = 1
+			end
 		else
 			length = #n + #d + 2
 		end
@@ -64,12 +69,14 @@ function SPH:processLine(s)
 			velocity = n / d
 		elseif k == "e" then
 			expand = n / d
+		elseif k == "." then
+			visual = true
 		end
 
 		info = info:sub(length + 1)
 	end
 
-	if not fraction then
+	if not fraction and not visual then
 		self.beatOffset = self.beatOffset + 1
 	end
 
@@ -82,13 +89,6 @@ function SPH:processLine(s)
 		}
 		table.insert(self.intervals, interval)
 	end
-	if velocity then
-		interval = {
-			offset = intervalOffset,
-			intervals = 1,
-			beatOffset = self.beatOffset,
-		}
-	end
 
 	local _notes = {}
 	for i = 1, #notes do
@@ -97,7 +97,6 @@ function SPH:processLine(s)
 	end
 
 	table.insert(self.lines, {
-		interval = interval,
 		intervalIndex = math.max(#self.intervals, 1),
 		beatOffset = self.beatOffset,
 		fraction = fraction,
@@ -111,11 +110,20 @@ function SPH:updateTime()
 	local lines = self.lines
 	local intervals = self.intervals
 
+	local time
+	local visualSide = 0
 	local prevInterval
 	for _, line in ipairs(lines) do
 		local interval = intervals[line.intervalIndex]
 		local beatOffset = line.beatOffset - interval.beatOffset
 		line.time = Fraction(beatOffset) + line.fraction
+		if time ~= line.time then
+			time = line.time
+			visualSide = 0
+		else
+			visualSide = visualSide + 1
+		end
+		line.visualSide = visualSide
 
 		prevInterval = prevInterval or interval
 		if prevInterval ~= interval then
