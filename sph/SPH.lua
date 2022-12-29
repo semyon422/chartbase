@@ -14,6 +14,8 @@ function SPH:new()
 	sph.velocities = {}
 	sph.expands = {}
 	sph.beatOffset = -1
+	sph.expandOffset = 0
+	sph.fraction = {0, 1}
 
 	return setmetatable(sph, mt)
 end
@@ -37,6 +39,16 @@ function SPH:import(s)
 end
 
 function SPH:processLine(s)
+	local expanded
+	if s:sub(1, 1) == "." then
+		expanded = true
+		s = s:sub(2)
+	end
+
+	if not expanded then
+		self.expandOffset = 0
+	end
+
 	local columns = self.columns
 	local notes = s:sub(1, columns)
 	local info = s:sub(columns + 1, -1)
@@ -61,23 +73,39 @@ function SPH:processLine(s)
 		end
 		n, d = tonumber(n), tonumber(d)
 
-		if k == "=" then
-			intervalOffset = n
-		elseif k == "+" then
-			fraction = {n, d}
-		elseif k == "x" then
-			velocity = n / d
-		elseif k == "e" then
-			expand = n / d
-		elseif k == "." then
-			visual = true
+		if not expanded then
+			if k == "=" then
+				intervalOffset = n
+			elseif k == "+" then
+				fraction = {n, d}
+				self.fraction = fraction
+			elseif k == "x" then
+				velocity = n / d
+			elseif k == "e" then
+				expand = n / d
+			elseif k == "." then
+				visual = true
+			end
+		else
+			if k == "+" then
+				expand = n / d - self.expandOffset
+				self.expandOffset = n / d
+			elseif k == "x" then
+				velocity = n / d
+			end
 		end
 
 		info = info:sub(length + 1)
 	end
 
-	if not fraction and not visual then
+	if expanded and not expand then
+		expand = math.floor(self.expandOffset) + 1 - self.expandOffset
+		self.expandOffset = 0
+	end
+
+	if not fraction and not visual and not expanded then
 		self.beatOffset = self.beatOffset + 1
+		self.fraction = nil
 	end
 
 	local interval
@@ -99,7 +127,7 @@ function SPH:processLine(s)
 	table.insert(self.lines, {
 		intervalIndex = math.max(#self.intervals, 1),
 		beatOffset = self.beatOffset,
-		fraction = fraction,
+		fraction = self.fraction,
 		notes = _notes,
 		velocity = velocity,
 		expand = expand,
