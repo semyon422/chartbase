@@ -39,10 +39,14 @@ function SPH:import(s)
 end
 
 function SPH:processLine(s)
-	local expanded
+	local expanded, empty
 	if s:sub(1, 1) == "." then
 		expanded = true
 		s = s:sub(2)
+	elseif s == "-" then
+		self.beatOffset = self.beatOffset + 1
+		self.fraction = nil
+		return
 	end
 
 	if not expanded then
