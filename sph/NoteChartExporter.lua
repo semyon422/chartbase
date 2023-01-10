@@ -116,14 +116,14 @@ NoteChartExporter.export = function(self)
 		if isAtTimePoint then
 			local line = self:getLine(timePoint)
 
-			if timePoint._intervalData then
-				line = line .. "=" .. timePoint._intervalData.timePoint.absoluteTime
-			end
 			if timePoint.visualSide == 0 then
 				expandOffset = 0
 				local dt = timePoint.time - timePoint.time:floor()
 				if dt[1] ~= 0 then
 					line = line .. "+" .. formatNumber(dt)
+				end
+				if timePoint._intervalData then
+					line = line .. "=" .. timePoint._intervalData.timePoint.absoluteTime
 				end
 			else
 				line = "." .. line

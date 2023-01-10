@@ -1,6 +1,7 @@
 local SPH = require("sph.SPH")
 local NoteChart = require("ncdk.NoteChart")
 local NoteData = require("ncdk.NoteData")
+local Fraction = require("ncdk.Fraction")
 
 local NoteChartImporter = {}
 
@@ -28,7 +29,7 @@ NoteChartImporter.import = function(self)
 	sph:import(self.content:gsub("\r[\r\n]?", "\n"))
 
 	for _, interval in ipairs(sph.intervals) do
-		layerData:insertIntervalData(interval.offset, interval.intervals)
+		layerData:insertIntervalData(interval.offset, interval.beats, interval.start)
 	end
 
 	local inputMap = sph.inputMap

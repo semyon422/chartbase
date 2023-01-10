@@ -13,7 +13,7 @@ function SPH:new()
 	sph.intervals = {}
 	sph.velocities = {}
 	sph.expands = {}
-	sph.beatOffset = -1
+	sph.beatOffset = Fraction(-1)
 	sph.expandOffset = 0
 	sph.fraction = {0, 1}
 
@@ -38,8 +38,42 @@ function SPH:import(s)
 	self:updateTime()
 end
 
+
+function SPH:parseNumber(s)
+	local sign = 1
+	if s:sub(1, 1) == "-" then
+		sign = -1
+	end
+
+	local n, d = s:match("^(%d+)/(%d+)")
+	if n and d then
+		local length = 1 + #n + #d
+		local _d = tonumber(d)
+		if _d == 0 then
+			return nil, math.huge, length
+		end
+		local f = Fraction(sign * tonumber(n), tonumber(d))
+		return f, f:tonumber(), length
+	end
+
+	local i, d = s:match("^(%d+)%.(%d+)")
+	if i and d then
+		local length = 1 + #i + #d
+		local _n = sign * tonumber(s:sub(1, length))
+		return Fraction(_n, 1000, true), _n, length
+	end
+
+	local i = s:match("^(%d+)")
+	if i then
+		local _n = sign * tonumber(i)
+		return Fraction(_n), _n, #i
+	end
+
+	return 0, Fraction(0), 0
+end
+
 function SPH:processLine(s)
-	local expanded, empty
+	local expanded
 	if s:sub(1, 1) == "." then
 		expanded = true
 		s = s:sub(2)
@@ -61,45 +95,32 @@ function SPH:processLine(s)
 
 	local charOffset = 0
 	while charOffset < #info do
-		local k, n, d = info:match("^(.)(%d+)/(%d+)")
-		local length
-		if not k then
-			k, n = info:match("^(.)(%d+)")
-			if k then
-				d = 1
-				length = #n + 1
-			else
-				k = info:match("^(.)")
-				length = 1
-			end
-		else
-			length = #n + #d + 2
-		end
-		n, d = tonumber(n), tonumber(d)
+		local k = info:sub(1, 1)
+		local f, n, length = self:parseNumber(info:sub(2))
 
 		if not expanded then
 			if k == "=" then
 				intervalOffset = n
 			elseif k == "+" then
-				fraction = {n, d}
+				fraction = f
 				self.fraction = fraction
 			elseif k == "x" then
-				velocity = n / d
+				velocity = n
 			elseif k == "e" then
-				expand = n / d
+				expand = n
 			elseif k == "." then
 				visual = true
 			end
 		else
 			if k == "+" then
-				expand = n / d - self.expandOffset
-				self.expandOffset = n / d
+				expand = n - self.expandOffset
+				self.expandOffset = n
 			elseif k == "x" then
-				velocity = n / d
+				velocity = n
 			end
 		end
 
-		info = info:sub(length + 1)
+		info = info:sub(length + 2)
 	end
 
 	if expanded and not expand then
@@ -116,9 +137,10 @@ function SPH:processLine(s)
 	if intervalOffset then
 		interval = {
 			offset = intervalOffset,
-			intervals = 1,
-			beatOffset = self.beatOffset,
+			beats = Fraction(1),
+			time = Fraction(self.beatOffset) + self.fraction
 		}
+		interval.start = Fraction(interval.time[1] % interval.time[2], interval.time[2])
 		table.insert(self.intervals, interval)
 	end
 
@@ -128,27 +150,33 @@ function SPH:processLine(s)
 		_notes[i] = note
 	end
 
-	table.insert(self.lines, {
+	local line = {
 		intervalIndex = math.max(#self.intervals, 1),
-		beatOffset = self.beatOffset,
-		fraction = self.fraction,
+		time = Fraction(self.beatOffset) + self.fraction,
 		notes = _notes,
 		velocity = velocity,
 		expand = expand,
-	})
+	}
+	if interval then
+		interval.line = line
+	end
+	table.insert(self.lines, line)
 end
 
 function SPH:updateTime()
 	local lines = self.lines
 	local intervals = self.intervals
 
+	for i = 1, #intervals - 1 do
+		local interval, nextInterval = intervals[i], intervals[i + 1]
+		interval.beats = nextInterval.time - interval.time
+	end
+
 	local time
 	local visualSide = 0
-	local prevInterval
 	for _, line in ipairs(lines) do
 		local interval = intervals[line.intervalIndex]
-		local beatOffset = line.beatOffset - interval.beatOffset
-		line.time = Fraction(beatOffset) + line.fraction
+		line.time = line.time - interval.time + interval.start
 		if time ~= line.time then
 			time = line.time
 			visualSide = 0
@@ -156,12 +184,6 @@ function SPH:updateTime()
 			visualSide = visualSide + 1
 		end
 		line.visualSide = visualSide
-
-		prevInterval = prevInterval or interval
-		if prevInterval ~= interval then
-			prevInterval.intervals = interval.beatOffset - prevInterval.beatOffset
-			prevInterval = interval
-		end
 	end
 end
 
