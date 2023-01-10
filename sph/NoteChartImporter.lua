@@ -1,7 +1,6 @@
 local SPH = require("sph.SPH")
 local NoteChart = require("ncdk.NoteChart")
 local NoteData = require("ncdk.NoteData")
-local NoteChartExporter = require("sph.NoteChartExporter")
 
 local NoteChartImporter = {}
 
@@ -118,10 +117,6 @@ NoteChartImporter.import = function(self)
 	noteChart.inputMode:set(sph.metadata.input)
 
 	self.noteCharts = {noteChart}
-
-	local exp = NoteChartExporter:new()
-	exp.noteChart = noteChart
-	exp:export()
 end
 
 return NoteChartImporter

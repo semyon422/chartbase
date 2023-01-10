@@ -147,9 +147,7 @@ NoteChartExporter.export = function(self)
 		currentTime = targetTime
 	end
 
-	lines = table.concat(lines, "\n")
-	print(lines)
-	return lines
+	return table.concat(lines, "\n")
 end
 
 return NoteChartExporter
