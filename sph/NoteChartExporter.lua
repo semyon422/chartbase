@@ -45,7 +45,7 @@ end
 
 NoteChartExporter.getLine = function(self, timePoint)
 	if self:checkEmpty(timePoint) then
-		return "-"
+		return
 	end
 	local notes = {}
 	for i = 1, self.columns do
@@ -97,54 +97,77 @@ NoteChartExporter.export = function(self)
 	local timePointIndex = 1
 	local timePoint = timePointList[1]
 
+	local beatOffset = Fraction(0)
+	local prevIntervalData
+	for _, t in ipairs(timePointList) do
+		if t._intervalData then
+			if not prevIntervalData then
+				prevIntervalData = t._intervalData
+			else
+				beatOffset = beatOffset + Fraction(prevIntervalData:_end():floor())
+				prevIntervalData = t._intervalData
+			end
+			prevIntervalData.globalTime = t.time + beatOffset
+		end
+		t.globalTime = t.time + beatOffset
+	end
+
 	local expandOffset = 0
+	local dataStarted = false
 
-	local currentTime = timePoint.time
+	local currentTime = timePoint.globalTime
 	while timePoint do
-		if timePoint._intervalData then
-			currentTime = timePoint.time
+		local targetTime = Fraction:new(currentTime:floor() + 1)
+		if timePoint.globalTime < targetTime then
+			targetTime = timePoint.globalTime
 		end
-
-		local beatOffset = currentTime:floor()
-
-		local targetTime = Fraction:new(beatOffset + 1)
-		if timePoint.time < targetTime then
-			targetTime = timePoint.time
-		end
-		local isAtTimePoint = timePoint.time == targetTime
+		local isAtTimePoint = timePoint.globalTime == targetTime
 
 		if isAtTimePoint then
 			local line = self:getLine(timePoint)
 
-			if timePoint.visualSide == 0 then
-				expandOffset = 0
-				local dt = timePoint.time - timePoint.time:floor()
-				if dt[1] ~= 0 then
-					line = line .. "+" .. formatNumber(dt)
-				end
-				if timePoint._intervalData then
-					line = line .. "=" .. timePoint._intervalData.timePoint.absoluteTime
-				end
-			else
-				line = "." .. line
-				if timePoint._expandData then
-					expandOffset = expandOffset + timePoint._expandData.duration
-					if expandOffset % 1 ~= 0 or expandOffset == 0 then
-						line = line .. "+" .. formatNumber(expandOffset)
+			if line then
+				dataStarted = true
+				if timePoint.visualSide == 0 then
+					expandOffset = 0
+					local dt = timePoint.globalTime - timePoint.globalTime:floor()
+					if dt[1] ~= 0 then
+						line = line .. "+" .. formatNumber(dt)
+					end
+					if timePoint._intervalData then
+						line = line .. "=" .. timePoint._intervalData.timePoint.absoluteTime
+					end
+				else
+					line = "." .. line
+					if timePoint._expandData then
+						expandOffset = expandOffset + timePoint._expandData.duration
+						if expandOffset % 1 ~= 0 or expandOffset == 0 then
+							line = line .. "+" .. formatNumber(expandOffset)
+						end
 					end
 				end
+				if timePoint._velocityData then
+					line = line .. "x" .. formatNumber(timePoint._velocityData.currentSpeed)
+				end
 			end
-			if timePoint._velocityData then
-				line = line .. "x" .. formatNumber(timePoint._velocityData.currentSpeed)
+			if dataStarted and (line or timePoint.globalTime:tonumber() % 1 == 0) then
+				table.insert(lines, line or "-")
 			end
-			table.insert(lines, line)
 
 			timePointIndex = timePointIndex + 1
 			timePoint = timePointList[timePointIndex]
-		else
+		elseif dataStarted then
 			table.insert(lines, "-")
 		end
 		currentTime = targetTime
+	end
+
+	for i = #lines, 1, -1 do
+		if lines[i] == "-" then
+			lines[i] = nil
+		else
+			break
+		end
 	end
 
 	return table.concat(lines, "\n")
