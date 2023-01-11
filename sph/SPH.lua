@@ -143,7 +143,7 @@ function SPH:processLine(s)
 			beats = Fraction(1),
 			time = Fraction(self.beatOffset) + self.fraction
 		}
-		interval.start = interval.time:fractional()
+		interval.start = interval.time % 1
 		table.insert(self.intervals, interval)
 	end
 
