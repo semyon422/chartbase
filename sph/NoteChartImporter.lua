@@ -22,8 +22,6 @@ NoteChartImporter.import = function(self)
 
 	local layerData = noteChart:getLayerData(1)
 	layerData:setTimeMode("interval")
-	layerData:setSignatureMode("short")
-	self.foregroundLayerData = layerData
 
 	local sph = SPH:new()
 	sph:import(self.content:gsub("\r[\r\n]?", "\n"))
@@ -81,6 +79,20 @@ NoteChartImporter.import = function(self)
 			maxTimePoint = timePoint
 		end
 	end
+
+	local backgroundLayerData = noteChart:getLayerData(2)
+	backgroundLayerData:setTimeMode("absolute")
+	local timePoint = backgroundLayerData:getTimePoint(0)
+
+	local noteData = NoteData:new(timePoint)
+	noteData.inputType = "auto"
+	noteData.inputIndex = 0
+	noteData.sounds = {{sph.metadata.audio, 1}}
+	noteData.stream = true
+	self.noteChart:addResource("sound", sph.metadata.audio, {sph.metadata.audio})
+
+	noteData.noteType = "SoundNote"
+	backgroundLayerData:addNoteData(noteData)
 
 	noteChart.type = "bms"
 	noteChart:compute()
