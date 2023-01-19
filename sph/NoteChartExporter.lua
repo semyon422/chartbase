@@ -97,18 +97,13 @@ NoteChartExporter.export = function(self)
 	local timePointIndex = 1
 	local timePoint = timePointList[1]
 
-	local beatOffset = Fraction(0)
+	local beatOffset = 0
 	local prevIntervalData
 	for _, t in ipairs(timePointList) do
-		if t._intervalData then
-			if not prevIntervalData then
-				prevIntervalData = t._intervalData
-			else
-				beatOffset = beatOffset + Fraction(prevIntervalData:_end():floor())
-				prevIntervalData = t._intervalData
-			end
-			prevIntervalData.globalTime = t.time + beatOffset
+		if t._intervalData and prevIntervalData then
+			beatOffset = beatOffset + prevIntervalData.beats
 		end
+		prevIntervalData = t._intervalData or prevIntervalData
 		t.globalTime = t.time + beatOffset
 	end
 
@@ -126,11 +121,11 @@ NoteChartExporter.export = function(self)
 		if isAtTimePoint then
 			local line = self:getLine(timePoint)
 
+			local dt = timePoint.globalTime % 1
 			if line then
 				dataStarted = true
 				if timePoint.visualSide == 0 then
 					expandOffset = 0
-					local dt = timePoint.globalTime - timePoint.globalTime:floor()
 					if dt[1] ~= 0 then
 						line = line .. "+" .. formatNumber(dt)
 					end
@@ -150,7 +145,7 @@ NoteChartExporter.export = function(self)
 					line = line .. "x" .. formatNumber(timePoint._velocityData.currentSpeed)
 				end
 			end
-			if dataStarted and (line or timePoint.globalTime:tonumber() % 1 == 0) then
+			if dataStarted and (line or dt[0] == 0) then
 				table.insert(lines, line or "-")
 			end
 

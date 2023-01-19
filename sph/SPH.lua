@@ -13,7 +13,7 @@ function SPH:new()
 	sph.intervals = {}
 	sph.velocities = {}
 	sph.expands = {}
-	sph.beatOffset = Fraction(-1)
+	sph.beatOffset = -1
 	sph.expandOffset = 0
 	sph.fraction = {0, 1}
 
@@ -136,15 +136,20 @@ function SPH:processLine(s)
 		self.fraction = nil
 	end
 
+	local intervals = self.intervals
 	local interval
 	if intervalOffset then
 		interval = {
 			offset = intervalOffset,
-			beats = Fraction(1),
-			time = Fraction(self.beatOffset) + self.fraction
+			beats = 1,
+			beatOffset = self.beatOffset,
+			start = self.fraction
 		}
-		interval.start = interval.time % 1
-		table.insert(self.intervals, interval)
+		local prev = intervals[#intervals]
+		if prev then
+			prev.beats = self.beatOffset - prev.beatOffset
+		end
+		table.insert(intervals, interval)
 	end
 
 	local _notes = {}
@@ -154,7 +159,7 @@ function SPH:processLine(s)
 	end
 
 	local line = {
-		intervalIndex = math.max(#self.intervals, 1),
+		intervalIndex = math.max(#intervals, 1),
 		time = Fraction(self.beatOffset) + self.fraction,
 		notes = _notes,
 		velocity = velocity,
@@ -170,16 +175,11 @@ function SPH:updateTime()
 	local lines = self.lines
 	local intervals = self.intervals
 
-	for i = 1, #intervals - 1 do
-		local interval, nextInterval = intervals[i], intervals[i + 1]
-		interval.beats = nextInterval.time - interval.time
-	end
-
 	local time
 	local visualSide = 0
 	for _, line in ipairs(lines) do
 		local interval = intervals[line.intervalIndex]
-		line.time = line.time - interval.time + interval.start
+		line.time = line.time - interval.beatOffset
 		if time ~= line.time then
 			time = line.time
 			visualSide = 0
