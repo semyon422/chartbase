@@ -46,6 +46,7 @@ NoteChartImporter.importSingle = function(self)
 
 	self.foregroundLayerData = noteChart:getLayerData(1)
 	self.foregroundLayerData:setTimeMode("measure")
+	self.foregroundLayerData:setSignatureMode("short")
 	self.foregroundLayerData:setPrimaryTempo(self.sm.primaryTempo)
 
 	self.backgroundLayerData = noteChart:getLayerData(2)
