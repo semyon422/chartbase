@@ -55,7 +55,7 @@ NoteChartImporter.addNoteDatas = function(self, ...)
 	for i = 1, select("#", ...) do
 		local noteData = select(i, ...)
 		if noteData then
-			self.foregroundLayerData:addNoteData(noteData)
+			self.foregroundLayerData:addNoteData(noteData, noteData.inputType, noteData.inputIndex)
 		end
 	end
 end
@@ -182,14 +182,12 @@ NoteChartImporter.processAudio = function(self)
 		local timePoint = self.foregroundLayerData:getTimePoint(0)
 
 		local noteData = ncdk.NoteData:new(timePoint)
-		noteData.inputType = "auto"
-		noteData.inputIndex = 0
 		noteData.sounds = {{audioFileName, 1}}
 		noteData.stream = true
 		self.noteChart:addResource("sound", audioFileName, {audioFileName})
 
 		noteData.noteType = "SoundNote"
-		self.foregroundLayerData:addNoteData(noteData)
+		self.foregroundLayerData:addNoteData(noteData, "auto", 0)
 	end
 end
 
@@ -305,16 +303,12 @@ NoteChartImporter.processMeasureLines = function(self)
 		local timePoint = self.foregroundLayerData:getTimePoint(startTime / 1000)
 
 		local startNoteData = ncdk.NoteData:new(timePoint)
-		startNoteData.inputType = "measure"
-		startNoteData.inputIndex = 1
 		startNoteData.noteType = "LineNoteStart"
-		self.foregroundLayerData:addNoteData(startNoteData)
+		self.foregroundLayerData:addNoteData(startNoteData, "measure", 1)
 
 		local endNoteData = ncdk.NoteData:new(timePoint)
-		endNoteData.inputType = "measure"
-		endNoteData.inputIndex = 1
 		endNoteData.noteType = "LineNoteEnd"
-		self.foregroundLayerData:addNoteData(endNoteData)
+		self.foregroundLayerData:addNoteData(endNoteData, "measure", 1)
 
 		startNoteData.endNoteData = endNoteData
 		endNoteData.startNoteData = startNoteData

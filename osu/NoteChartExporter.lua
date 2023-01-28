@@ -49,24 +49,42 @@ NoteChartExporter.loadNotes = function(self)
 	local events = self.events
 	local hitObjects = self.hitObjects
 
+	local _noteDatas = {}
+	local samples = {}
+
 	for _, layerData in self.noteChart:getLayerDataIterator() do
-		for noteDataIndex = 1, layerData:getNoteDataCount() do
-			local noteData = layerData:getNoteData(noteDataIndex)
-			if noteData.noteType == "ShortNote" or noteData.noteType == "LongNoteStart" then
-				local nde = NoteDataExporter:new()
-				nde.mappings = self.mappings
-				nde.noteData = noteData
-				hitObjects[#hitObjects + 1] = nde:getHitObject()
-			elseif noteData.noteType == "SoundNote" then
-				if noteData.stream then
-					self.audioPath = noteData.sounds[1][1]
-				else
-					local nde = NoteDataExporter:new()
-					nde.noteData = noteData
-					events[#events + 1] = nde:getEventSample()
+		for inputType, r in pairs(layerData.noteDatas) do
+			for inputIndex, noteDatas in pairs(r) do
+				for _, noteData in ipairs(noteDatas) do
+					noteData.inputType = inputType
+					noteData.inputIndex = inputIndex
+					if noteData.noteType == "ShortNote" or noteData.noteType == "LongNoteStart" then
+						table.insert(_noteDatas, noteData)
+					elseif noteData.noteType == "SoundNote" then
+						if noteData.stream then
+							self.audioPath = noteData.sounds[1][1]
+						else
+							table.insert(samples, noteData)
+						end
+					end
 				end
 			end
 		end
+	end
+
+	table.sort(_noteDatas)
+	table.sort(samples)
+
+	local nde = NoteDataExporter:new()
+	nde.mappings = self.mappings
+	for _, noteData in ipairs(_noteDatas) do
+		nde.noteData = noteData
+		hitObjects[#hitObjects + 1] = nde:getHitObject()
+	end
+
+	for _, noteData in ipairs(samples) do
+		nde.noteData = noteData
+		events[#events + 1] = nde:getEventSample()
 	end
 end
 

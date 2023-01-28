@@ -83,7 +83,7 @@ NoteChartImporter.createLayerData = function(self, index)
 	return layerData
 end
 
-NoteChartImporter.processData = function(self, trackIndex, LayerData, addedNotes)
+NoteChartImporter.processData = function(self, trackIndex, layerData, addedNotes)
 	local notes = self.mid.notes
 	local noteChart = self.noteCharts[1]
 	local constantVolume = self.settings and self.settings["midiConstantVolume"] or false
@@ -116,37 +116,40 @@ NoteChartImporter.processData = function(self, trackIndex, LayerData, addedNotes
 				hitsoundPath = hitsoundPath .. hitsoundType
 				noteChart:addResource("sound", hitsoundPath, {hitsoundPath})
 
-				startNoteData = ncdk.NoteData:new(LayerData:getTimePoint(Fraction:new(startEvent[2], 1000, true)))
+				local inputType, inputIndex
+
+				startNoteData = ncdk.NoteData:new(layerData:getTimePoint(Fraction:new(startEvent[2], 1000, true)))
 				startNoteData.sounds = {{hitsoundPath, constantVolume and 1 or startEvent[4]}}
 				if addedNotes[eventId] then
-					startNoteData.inputType = "auto"
+					inputType = "auto"
+					inputIndex = 0
 					startNoteData.noteType = "SoundNote"
-					startNoteData.inputIndex = 0
 				else
-					startNoteData.inputType = "key"
+					inputType = "key"
+					inputIndex = startEvent[3]
 					startNoteData.noteType = "LongNoteStart"
-					startNoteData.inputIndex = startEvent[3]
 				end
+
+				layerData:addNoteData(startNoteData, inputType, inputIndex)
 
 				startEvent.used = true
 
-				endNoteData = ncdk.NoteData:new(LayerData:getTimePoint(Fraction:new(event[2], 1000, true)))
+				endNoteData = ncdk.NoteData:new(layerData:getTimePoint(Fraction:new(event[2], 1000, true)))
 				endNoteData.sounds = {{"none" .. hitsoundType, 0}}
 				if addedNotes[eventId] then
-					endNoteData.inputType = "auto"
+					inputType = "auto"
+					inputIndex = 0
 					endNoteData.noteType = "SoundNote"
-					endNoteData.inputIndex = 0
 				else
-					endNoteData.inputType = "key"
+					inputType = "key"
+					inputIndex = event[3]
 					endNoteData.noteType = "LongNoteEnd"
-					endNoteData.inputIndex = event[3]
 				end
 
 				startNoteData.endNoteData = endNoteData
 				endNoteData.startNoteData = startNoteData
 
-				LayerData:addNoteData(startNoteData)
-				LayerData:addNoteData(endNoteData)
+				layerData:addNoteData(endNoteData, inputType, inputIndex)
 
 				noteCount = noteCount + 1
 				addedNotes[eventId] = true
@@ -168,20 +171,16 @@ NoteChartImporter.processMeasureLines = function(self)
 	while time < maxTime do
 		local timePoint = LayerData:getTimePoint(Fraction:new(time, 1000, true))
 		local startNoteData = ncdk.NoteData:new(timePoint)
-		startNoteData.inputType = "measure"
-		startNoteData.inputIndex = 1
 		startNoteData.noteType = "LineNoteStart"
 
 		local endNoteData = ncdk.NoteData:new(timePoint)
-		endNoteData.inputType = "measure"
-		endNoteData.inputIndex = 1
 		endNoteData.noteType = "LineNoteEnd"
 
 		startNoteData.endNoteData = endNoteData
 		endNoteData.startNoteData = startNoteData
 
-		LayerData:addNoteData(startNoteData)
-		LayerData:addNoteData(endNoteData)
+		LayerData:addNoteData(startNoteData, "measure", 1)
+		LayerData:addNoteData(endNoteData, "measure", 1)
 
 		time = (i * 0.5) + minTime
 		i = i + 1

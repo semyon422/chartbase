@@ -79,13 +79,11 @@ NoteChartImporter.processAudio = function(self)
 		local timePoint = self.backgroundLayerData:getTimePoint(startTime)
 
 		local noteData = ncdk.NoteData:new(timePoint)
-		noteData.inputType = "auto"
-		noteData.inputIndex = 0
 		noteData.sounds = {{audioFileName, 1}}
 		self.noteChart:addResource("sound", audioFileName, {audioFileName})
 
 		noteData.noteType = "SoundNote"
-		self.backgroundLayerData:addNoteData(noteData)
+		self.backgroundLayerData:addNoteData(noteData, "auto", 0)
 	end
 end
 
@@ -122,35 +120,35 @@ NoteChartImporter.processData = function(self)
 		local startTimePoint = ld:getTimePoint(startMeasureTime)
 
 		local startNoteData = ncdk.NoteData:new(startTimePoint)
-		startNoteData.inputType = _noteData.input
-		startNoteData.inputIndex = _noteData.lane
-		if startNoteData.inputType == "fx" then
-			startNoteData.inputIndex = _noteData.lane - 4
+		local inputType = _noteData.input
+		local inputIndex = _noteData.lane
+		if inputType == "fx" then
+			inputIndex = _noteData.lane - 4
 		end
 
 		if _noteData.input == "laser" then
 			if _noteData.lane == 1 then
 				if _noteData.posStart < _noteData.posEnd then
-					startNoteData.inputType = "laserright"
-					startNoteData.inputIndex = 1
+					inputType = "laserright"
+					inputIndex = 1
 				elseif _noteData.posStart > _noteData.posEnd then
-					startNoteData.inputType = "laserleft"
-					startNoteData.inputIndex = 1
+					inputType = "laserleft"
+					inputIndex = 1
 				end
 			elseif _noteData.lane == 2 then
 				if _noteData.posStart < _noteData.posEnd then
-					startNoteData.inputType = "laserright"
-					startNoteData.inputIndex = 2
+					inputType = "laserright"
+					inputIndex = 2
 				elseif _noteData.posStart > _noteData.posEnd then
-					startNoteData.inputType = "laserleft"
-					startNoteData.inputIndex = 2
+					inputType = "laserleft"
+					inputIndex = 2
 				end
 			end
 		end
 
 		startNoteData.sounds = {}
 
-		ld:addNoteData(startNoteData)
+		ld:addNoteData(startNoteData, inputType, inputIndex)
 
 		local lastTimePoint = startTimePoint
 		local endMeasureTime = ncdk.Fraction:new(_noteData.endLineOffset, _noteData.endLineCount) + _noteData.endMeasureOffset
@@ -167,8 +165,6 @@ NoteChartImporter.processData = function(self)
 			local endTimePoint = ld:getTimePoint(endMeasureTime)
 
 			local endNoteData = ncdk.NoteData:new(endTimePoint)
-			endNoteData.inputType = startNoteData.inputType
-			endNoteData.inputIndex = startNoteData.inputIndex
 			endNoteData.sounds = {}
 
 			if _noteData.input ~= "laser" then
@@ -180,7 +176,7 @@ NoteChartImporter.processData = function(self)
 			endNoteData.startNoteData = startNoteData
 			startNoteData.endNoteData = endNoteData
 
-			ld:addNoteData(endNoteData)
+			ld:addNoteData(endNoteData, inputType, inputIndex)
 
 			lastTimePoint = endTimePoint
 		end
@@ -203,16 +199,12 @@ NoteChartImporter.processMeasureLines = function(self)
 		local timePoint = self.foregroundLayerData:getTimePoint(measureTime)
 
 		local startNoteData = ncdk.NoteData:new(timePoint)
-		startNoteData.inputType = "measure"
-		startNoteData.inputIndex = 1
 		startNoteData.noteType = "LineNoteStart"
-		self.foregroundLayerData:addNoteData(startNoteData)
+		self.foregroundLayerData:addNoteData(startNoteData, "measure", 1)
 
 		local endNoteData = ncdk.NoteData:new(timePoint)
-		endNoteData.inputType = "measure"
-		endNoteData.inputIndex = 1
 		endNoteData.noteType = "LineNoteEnd"
-		self.foregroundLayerData:addNoteData(endNoteData)
+		self.foregroundLayerData:addNoteData(endNoteData, "measure", 1)
 
 		startNoteData.endNoteData = endNoteData
 		endNoteData.startNoteData = startNoteData

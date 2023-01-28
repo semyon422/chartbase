@@ -107,8 +107,6 @@ NoteChartImporter.processNotes = function(self)
 		local timePoint = self.foregroundLayerData:getTimePoint(measureTime)
 
 		local noteData = ncdk.NoteData:new(timePoint)
-		noteData.inputType = "key"
-		noteData.inputIndex = note.inputIndex
 
 		noteData.sounds = {}
 		noteData.images = {}
@@ -120,17 +118,17 @@ NoteChartImporter.processNotes = function(self)
 			noteData.noteType = "SoundNote"
 		elseif note.noteType == "2" or note.noteType == "4" then
 			noteData.noteType = "ShortNote"
-			longNotes[noteData.inputIndex] = noteData
+			longNotes[note.inputIndex] = noteData
 			self.noteCount = self.noteCount + 1
 		elseif note.noteType == "3" then
 			noteData.noteType = "LongNoteEnd"
-			noteData.startNoteData = longNotes[noteData.inputIndex]
-			longNotes[noteData.inputIndex].endNoteData = noteData
-			longNotes[noteData.inputIndex].noteType = "LongNoteStart"
-			longNotes[noteData.inputIndex] = nil
+			noteData.startNoteData = longNotes[note.inputIndex]
+			longNotes[note.inputIndex].endNoteData = noteData
+			longNotes[note.inputIndex].noteType = "LongNoteStart"
+			longNotes[note.inputIndex] = nil
 		end
 
-		self.foregroundLayerData:addNoteData(noteData)
+		self.foregroundLayerData:addNoteData(noteData, "key", note.inputIndex)
 
 		if not self.minTimePoint or timePoint < self.minTimePoint then
 			self.minTimePoint = timePoint
@@ -147,14 +145,12 @@ NoteChartImporter.processAudio = function(self)
 	local timePoint = self.backgroundLayerData:getTimePoint(startTime)
 
 	local noteData = ncdk.NoteData:new(timePoint)
-	noteData.inputType = "auto"
-	noteData.inputIndex = 0
 	noteData.sounds = {{self.sm.header["MUSIC"], 1}}
 	noteData.stream = true
 	self.noteChart:addResource("sound", self.sm.header["MUSIC"], {self.sm.header["MUSIC"]})
 
 	noteData.noteType = "SoundNote"
-	self.backgroundLayerData:addNoteData(noteData)
+	self.backgroundLayerData:addNoteData(noteData, "auto", 0)
 end
 
 NoteChartImporter.processMeasureLines = function(self)
@@ -163,16 +159,12 @@ NoteChartImporter.processMeasureLines = function(self)
 		local timePoint = self.foregroundLayerData:getTimePoint(measureTime)
 
 		local startNoteData = ncdk.NoteData:new(timePoint)
-		startNoteData.inputType = "measure"
-		startNoteData.inputIndex = 1
 		startNoteData.noteType = "LineNoteStart"
-		self.foregroundLayerData:addNoteData(startNoteData)
+		self.foregroundLayerData:addNoteData(startNoteData, "measure", 1)
 
 		local endNoteData = ncdk.NoteData:new(timePoint)
-		endNoteData.inputType = "measure"
-		endNoteData.inputIndex = 1
 		endNoteData.noteType = "LineNoteEnd"
-		self.foregroundLayerData:addNoteData(endNoteData)
+		self.foregroundLayerData:addNoteData(endNoteData, "measure", 1)
 
 		startNoteData.endNoteData = endNoteData
 		endNoteData.startNoteData = startNoteData

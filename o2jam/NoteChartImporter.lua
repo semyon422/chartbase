@@ -112,28 +112,28 @@ NoteChartImporter.processData = function(self)
 			local timePoint = ld:getTimePoint(measureTime)
 
 			local noteData = ncdk.NoteData:new(timePoint)
-			noteData.inputType = event.channel:find("NOTE") and "key" or "auto"
-			noteData.inputIndex = event.channel:find("NOTE") and tonumber(event.channel:sub(-1, -1)) or 0
+			local inputType = event.channel:find("NOTE") and "key" or "auto"
+			local inputIndex = event.channel:find("NOTE") and tonumber(event.channel:sub(-1, -1)) or 0
 
 			if noteData.inputType == "auto" then
 				noteData.noteType = "SoundNote"
 				noteData.sounds = {{event.value, event.volume}}
-				ld:addNoteData(noteData)
+				ld:addNoteData(noteData, inputType, inputIndex)
 			else
 				if event.measure > self.measureCount then
 					self.measureCount = event.measure
 				end
-				if longNoteData[noteData.inputIndex] and event.type == "RELEASE" then
-					longNoteData[noteData.inputIndex].noteType = "LongNoteStart"
-					longNoteData[noteData.inputIndex].endNoteData = noteData
-					noteData.startNoteData = longNoteData[noteData.inputIndex]
+				if longNoteData[inputIndex] and event.type == "RELEASE" then
+					longNoteData[inputIndex].noteType = "LongNoteStart"
+					longNoteData[inputIndex].endNoteData = noteData
+					noteData.startNoteData = longNoteData[inputIndex]
 					noteData.noteType = "LongNoteEnd"
-					longNoteData[noteData.inputIndex] = nil
+					longNoteData[inputIndex] = nil
 					noteData.sounds = {}
 				else
 					noteData.noteType = "ShortNote"
 					if event.type == "HOLD" then
-						longNoteData[noteData.inputIndex] = noteData
+						longNoteData[inputIndex] = noteData
 					end
 
 					self.noteCount = self.noteCount + 1
@@ -145,7 +145,7 @@ NoteChartImporter.processData = function(self)
 				if not self.maxTimePoint or timePoint > self.maxTimePoint then
 					self.maxTimePoint = timePoint
 				end
-				ld:addNoteData(noteData)
+				ld:addNoteData(noteData, inputType, inputIndex)
 			end
 		end
 	end
@@ -161,16 +161,12 @@ NoteChartImporter.processMeasureLines = function(self)
 		local timePoint = self.foregroundLayerData:getTimePoint(measureTime)
 
 		local startNoteData = ncdk.NoteData:new(timePoint)
-		startNoteData.inputType = "measure"
-		startNoteData.inputIndex = 1
 		startNoteData.noteType = "LineNoteStart"
-		self.foregroundLayerData:addNoteData(startNoteData)
+		self.foregroundLayerData:addNoteData(startNoteData, "measure", 1)
 
 		local endNoteData = ncdk.NoteData:new(timePoint)
-		endNoteData.inputType = "measure"
-		endNoteData.inputIndex = 1
 		endNoteData.noteType = "LineNoteEnd"
-		self.foregroundLayerData:addNoteData(endNoteData)
+		self.foregroundLayerData:addNoteData(endNoteData, "measure", 1)
 
 		startNoteData.endNoteData = endNoteData
 		endNoteData.startNoteData = startNoteData

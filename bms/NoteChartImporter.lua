@@ -174,8 +174,6 @@ NoteChartImporter.processData = function(self)
 					local timePoint = self.foregroundLayerData:getTimePoint(timeData.measureTime)
 
 					local noteData = ncdk.NoteData:new(timePoint)
-					noteData.inputType = channelInfo.inputType
-					noteData.inputIndex = channelInfo.inputIndex
 
 					noteData.sounds = {}
 					noteData.images = {}
@@ -221,7 +219,7 @@ NoteChartImporter.processData = function(self)
 							longNoteData[channelIndex] = noteData
 						end
 					end
-					self.foregroundLayerData:addNoteData(noteData)
+					self.foregroundLayerData:addNoteData(noteData, channelInfo.inputType, channelInfo.inputIndex)
 
 					if
 						channelInfo.inputType ~= "auto" and
@@ -255,16 +253,12 @@ NoteChartImporter.processMeasureLines = function(self)
 		local timePoint = self.foregroundLayerData:getTimePoint(measureTime)
 
 		local startNoteData = ncdk.NoteData:new(timePoint)
-		startNoteData.inputType = "measure"
-		startNoteData.inputIndex = 1
 		startNoteData.noteType = "LineNoteStart"
-		self.foregroundLayerData:addNoteData(startNoteData)
+		self.foregroundLayerData:addNoteData(startNoteData, "measure", 1)
 
 		local endNoteData = ncdk.NoteData:new(timePoint)
-		endNoteData.inputType = "measure"
-		endNoteData.inputIndex = 1
 		endNoteData.noteType = "LineNoteEnd"
-		self.foregroundLayerData:addNoteData(endNoteData)
+		self.foregroundLayerData:addNoteData(endNoteData, "measure", 1)
 
 		startNoteData.endNoteData = endNoteData
 		endNoteData.startNoteData = startNoteData

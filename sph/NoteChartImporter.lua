@@ -41,27 +41,28 @@ NoteChartImporter.import = function(self)
 		for i, note in ipairs(line.notes) do
 			local noteData
 			if note ~= "0" then
-				noteData = NoteData:new(timePoint, inputMap[i][1], inputMap[i][2])
+				noteData = NoteData:new(timePoint)
+				local inputType, inputIndex = inputMap[i][1], inputMap[i][2]
 
 				if note == "1" then
 					noteData.noteType = "ShortNote"
 					noteCount = noteCount + 1
-					layerData:addNoteData(noteData)
+					layerData:addNoteData(noteData, inputType, inputIndex)
 				elseif note == "2" then
 					noteData.noteType = "ShortNote"
 					noteCount = noteCount + 1
 					longNotes[i] = noteData
-					layerData:addNoteData(noteData)
+					layerData:addNoteData(noteData, inputType, inputIndex)
 				elseif note == "3" and longNotes[i] then
 					noteData.noteType = "LongNoteEnd"
 					noteData.startNoteData = longNotes[i]
 					longNotes[i].endNoteData = noteData
 					longNotes[i].noteType = "LongNoteStart"
 					longNotes[i] = nil
-					layerData:addNoteData(noteData)
+					layerData:addNoteData(noteData, inputType, inputIndex)
 				elseif note == "4" then
 					noteData.noteType = "SoundNote"
-					layerData:addNoteData(noteData)
+					layerData:addNoteData(noteData, inputType, inputIndex)
 				end
 			end
 		end
@@ -85,14 +86,12 @@ NoteChartImporter.import = function(self)
 	local timePoint = backgroundLayerData:getTimePoint(0)
 
 	local noteData = NoteData:new(timePoint)
-	noteData.inputType = "auto"
-	noteData.inputIndex = 0
 	noteData.sounds = {{sph.metadata.audio, 1}}
 	noteData.stream = true
 	self.noteChart:addResource("sound", sph.metadata.audio, {sph.metadata.audio})
 
 	noteData.noteType = "SoundNote"
-	backgroundLayerData:addNoteData(noteData)
+	backgroundLayerData:addNoteData(noteData, "auto", 0)
 
 	noteChart.type = "bms"
 	noteChart:compute()

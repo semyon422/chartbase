@@ -86,10 +86,11 @@ NoteChartImporter.process = function(self)
 	self:processTimingPoints()
 
 	for _, noteParser in ipairs(self.noteDataImporters) do
-		self.foregroundLayerData:addNoteData(noteParser:getNoteData())
+		self:addNoteDatas(noteParser:getNoteData())
 	end
 end
 
+NoteChartImporter.addNoteDatas = osuNoteChartImporter.addNoteDatas
 NoteChartImporter.updateLength = osuNoteChartImporter.updateLength
 NoteChartImporter.processTimingDataImporters = osuNoteChartImporter.processTimingDataImporters
 NoteChartImporter.updatePrimaryBPM = osuNoteChartImporter.updatePrimaryBPM
