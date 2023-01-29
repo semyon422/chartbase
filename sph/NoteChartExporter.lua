@@ -40,7 +40,7 @@ NoteChartExporter.checkEmpty = function(self, t)
 		not t._intervalData and
 		not t._velocityData and
 		not t._expandData and
-		not (t.noteDatas and #t.noteDatas > 0)
+		not (t.noteDatas and next(t.noteDatas))
 end
 
 NoteChartExporter.getLine = function(self, timePoint)
@@ -54,8 +54,8 @@ NoteChartExporter.getLine = function(self, timePoint)
 	if not timePoint.noteDatas then
 		return table.concat(notes)
 	end
-	for _, noteData in ipairs(timePoint.noteDatas) do
-		local column = self.inputMap[noteData.inputType .. noteData.inputIndex]
+	for input, noteData in pairs(timePoint.noteDatas) do
+		local column = self.inputMap[input]
 		local t = noteTypeMap[noteData.noteType]
 		if column and t then
 			notes[column] = t
@@ -92,6 +92,7 @@ NoteChartExporter.export = function(self)
 	self.inputMap = inputMode:getInputMap()
 
 	local ld = noteChart:getLayerData(1)
+	ld:assignNoteDatas()
 
 	local timePointList = ld.timePointList
 	local timePointIndex = 1
