@@ -40,6 +40,7 @@ NoteChartExporter.checkEmpty = function(self, t)
 		not t._intervalData and
 		not t._velocityData and
 		not t._expandData and
+		not t._measureData and
 		not (t.noteDatas and next(t.noteDatas))
 end
 
@@ -132,6 +133,10 @@ NoteChartExporter.export = function(self)
 					end
 					if timePoint._intervalData then
 						line = line .. "=" .. timePoint._intervalData.timePoint.absoluteTime
+					end
+					if timePoint._measureData then
+						local n = timePoint._measureData.start
+						line = line .. "#" .. (n[1] ~= 0 and formatNumber(n) or "")
 					end
 				else
 					line = "." .. line

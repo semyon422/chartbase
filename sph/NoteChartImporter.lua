@@ -72,6 +72,9 @@ NoteChartImporter.import = function(self)
 		if line.expand then
 			layerData:insertExpandData(timePoint, line.expand)
 		end
+		if line.measure then
+			layerData:insertMeasureData(timePoint, line.measure)
+		end
 
 		if not minTimePoint or timePoint < minTimePoint then
 			minTimePoint = timePoint

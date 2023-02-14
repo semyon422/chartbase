@@ -94,7 +94,7 @@ function SPH:processLine(s)
 	local notes = s:sub(1, columns)
 	local info = s:sub(columns + 1, -1)
 
-	local intervalOffset, fraction, velocity, expand, visual
+	local intervalOffset, fraction, velocity, expand, visual, measure
 
 	local charOffset = 0
 	while charOffset < #info do
@@ -113,6 +113,8 @@ function SPH:processLine(s)
 				expand = n
 			elseif k == "." then
 				visual = true
+			elseif k == "#" then
+				measure = f
 			end
 		else
 			if k == "+" then
@@ -164,6 +166,7 @@ function SPH:processLine(s)
 		notes = _notes,
 		velocity = velocity,
 		expand = expand,
+		measure = measure,
 	}
 	if interval then
 		interval.line = line
