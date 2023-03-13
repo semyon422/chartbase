@@ -69,7 +69,7 @@ NoteChartImporter.import = function(self)
 		if line.velocity then
 			layerData:insertVelocityData(timePoint, line.velocity)
 		end
-		if line.expand then
+		if line.expand and line.expand ~= 0 then
 			layerData:insertExpandData(timePoint, line.expand)
 		end
 		if line.measure then

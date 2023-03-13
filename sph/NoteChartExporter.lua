@@ -110,6 +110,7 @@ NoteChartExporter.export = function(self)
 	end
 
 	local expandOffset = 0
+	local visualSideStarted = false
 	local dataStarted = false
 
 	local currentTime = timePoint.globalTime
@@ -126,7 +127,13 @@ NoteChartExporter.export = function(self)
 			local dt = timePoint.globalTime % 1
 			if line then
 				dataStarted = true
-				if timePoint.visualSide == 0 then
+
+				if currentTime ~= timePoint.globalTime then
+					visualSideStarted = nil
+				end
+
+				if not visualSideStarted then
+					visualSideStarted = true
 					expandOffset = 0
 					if dt[1] ~= 0 then
 						line = line .. "+" .. formatNumber(dt)
@@ -145,6 +152,8 @@ NoteChartExporter.export = function(self)
 						if expandOffset % 1 ~= 0 or expandOffset == 0 then
 							line = line .. "+" .. formatNumber(expandOffset)
 						end
+					else
+						line = line .. "+" .. formatNumber(0)
 					end
 				end
 				if timePoint._velocityData then
