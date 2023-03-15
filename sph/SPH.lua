@@ -101,27 +101,26 @@ function SPH:processLine(s)
 		local k = info:sub(1, 1)
 		local f, n, length = self:parseNumber(info:sub(2))
 
+		if k == "=" then
+			intervalOffset = n
+		elseif k == "x" then
+			velocity = n
+		elseif k == "#" then
+			measure = f
+		end
 		if not expanded then
-			if k == "=" then
-				intervalOffset = n
-			elseif k == "+" then
+			if k == "+" then
 				fraction = f
 				self.fraction = fraction
-			elseif k == "x" then
-				velocity = n
 			elseif k == "e" then
 				expand = n
 			elseif k == "." then
 				visual = true
-			elseif k == "#" then
-				measure = f
 			end
 		else
 			if k == "+" then
 				expand = n - self.expandOffset
 				self.expandOffset = n
-			elseif k == "x" then
-				velocity = n
 			end
 		end
 

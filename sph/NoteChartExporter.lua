@@ -114,6 +114,7 @@ NoteChartExporter.export = function(self)
 	local dataStarted = false
 
 	local currentTime = timePoint.globalTime
+	local prevTime = nil
 	while timePoint do
 		local targetTime = Fraction:new(currentTime:floor() + 1)
 		if timePoint.globalTime < targetTime then
@@ -128,7 +129,7 @@ NoteChartExporter.export = function(self)
 			if line then
 				dataStarted = true
 
-				if currentTime ~= timePoint.globalTime then
+				if timePoint.globalTime ~= prevTime then
 					visualSideStarted = nil
 				end
 
@@ -137,13 +138,6 @@ NoteChartExporter.export = function(self)
 					expandOffset = 0
 					if dt[1] ~= 0 then
 						line = line .. "+" .. formatNumber(dt)
-					end
-					if timePoint._intervalData then
-						line = line .. "=" .. timePoint._intervalData.timePoint.absoluteTime
-					end
-					if timePoint._measureData then
-						local n = timePoint._measureData.start
-						line = line .. "#" .. (n[1] ~= 0 and formatNumber(n) or "")
 					end
 				else
 					line = "." .. line
@@ -156,9 +150,18 @@ NoteChartExporter.export = function(self)
 						line = line .. "+" .. formatNumber(0)
 					end
 				end
+				if timePoint._intervalData then
+					line = line .. "=" .. timePoint._intervalData.timePoint.absoluteTime
+				end
+				if timePoint._measureData then
+					local n = timePoint._measureData.start
+					line = line .. "#" .. (n[1] ~= 0 and formatNumber(n) or "")
+				end
 				if timePoint._velocityData then
 					line = line .. "x" .. formatNumber(timePoint._velocityData.currentSpeed)
 				end
+
+				prevTime = timePoint.globalTime
 			end
 			if dataStarted and (line or dt[0] == 0) then
 				table.insert(lines, line or "-")
