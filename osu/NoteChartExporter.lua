@@ -193,6 +193,14 @@ NoteChartExporter.addTimingPoints = function(self)
 		timingStates[time] = timingStates[time] or {}
 		timingStates[time].velocity = tde
 	end
+	for intervalDataIndex = 1, layerData:getIntervalDataCount() - 1 do
+		local tde = TimingDataExporter:new()
+		tde.intervalData = layerData:getIntervalData(intervalDataIndex)
+
+		local time = tde.intervalData.timePoint.absoluteTime
+		timingStates[time] = timingStates[time] or {}
+		timingStates[time].interval = tde
+	end
 
 	local timingStatesList = {}
 	for time, timingState in pairs(timingStates) do
@@ -214,6 +222,9 @@ NoteChartExporter.addTimingPoints = function(self)
 		end
 		if timingState.velocity and (not timingState.tempo or timingState.velocity.velocityData.currentSpeed ~= 1) then
 			lines[#lines + 1] = timingState.velocity:getVelocity()
+		end
+		if timingState.interval then
+			lines[#lines + 1] = timingState.interval:getInterval()
 		end
 	end
 

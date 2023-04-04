@@ -42,4 +42,12 @@ TimingDataExporter.getVelocity = function(self)
 	)
 end
 
+TimingDataExporter.getInterval = function(self)
+	return timingPointString:format(
+		self.intervalData.timePoint.absoluteTime * 1000,
+		self.intervalData:getBeatDuration() * 1000,
+		1
+	)
+end
+
 return TimingDataExporter
