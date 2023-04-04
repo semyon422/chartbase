@@ -178,11 +178,12 @@ function SPH:updateTime()
 	local intervals = self.intervals
 
 	local time
+	local intervalIndex
 	local visualSide = 0
 	for _, line in ipairs(lines) do
 		local interval = intervals[line.intervalIndex]
 		line.time = line.time - interval.beatOffset
-		if time ~= line.time then
+		if time ~= line.time or intervalIndex ~= line.intervalIndex then
 			time = line.time
 			visualSide = 0
 		else
