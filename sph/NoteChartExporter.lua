@@ -125,13 +125,14 @@ NoteChartExporter.export = function(self)
 		if isAtTimePoint then
 			local line = self:getLine(timePoint)
 
+			if timePoint.globalTime ~= prevTime then
+				visualSideStarted = nil
+				prevTime = timePoint.globalTime
+			end
+
 			local dt = timePoint.globalTime % 1
 			if line then
 				dataStarted = true
-
-				if timePoint.globalTime ~= prevTime then
-					visualSideStarted = nil
-				end
 
 				if not visualSideStarted then
 					visualSideStarted = true
@@ -160,11 +161,14 @@ NoteChartExporter.export = function(self)
 				if timePoint._velocityData then
 					line = line .. "x" .. formatNumber(timePoint._velocityData.currentSpeed)
 				end
-
-				prevTime = timePoint.globalTime
 			end
-			if dataStarted and (line or dt[0] == 0) then
-				table.insert(lines, line or "-")
+			if dataStarted then
+				if line then
+					table.insert(lines, line)
+				elseif dt[1] == 0 and not visualSideStarted then
+					table.insert(lines, "-")
+					visualSideStarted = true
+				end
 			end
 
 			timePointIndex = timePointIndex + 1
