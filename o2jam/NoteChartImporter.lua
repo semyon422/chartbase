@@ -115,7 +115,7 @@ NoteChartImporter.processData = function(self)
 			local inputType = event.channel:find("NOTE") and "key" or "auto"
 			local inputIndex = event.channel:find("NOTE") and tonumber(event.channel:sub(-1, -1)) or 0
 
-			if noteData.inputType == "auto" then
+			if inputType == "auto" then
 				noteData.noteType = "SoundNote"
 				noteData.sounds = {{event.value, event.volume}}
 				ld:addNoteData(noteData, inputType, inputIndex)
