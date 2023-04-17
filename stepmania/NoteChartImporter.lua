@@ -147,6 +147,7 @@ NoteChartImporter.processAudio = function(self)
 	local noteData = ncdk.NoteData:new(timePoint)
 	noteData.sounds = {{self.sm.header["MUSIC"], 1}}
 	noteData.stream = true
+	noteData.streamOffset = startTime
 	self.noteChart:addResource("sound", self.sm.header["MUSIC"], {self.sm.header["MUSIC"]})
 
 	noteData.noteType = "SoundNote"
