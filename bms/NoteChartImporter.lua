@@ -129,15 +129,10 @@ NoteChartImporter.setStop = function(self, timeData)
 
 	local ld = self.foregroundLayerData
 
-	duration = duration * 4
-	local measureDuration
-	if duration % 1 == 0 then
-		measureDuration = ncdk.Fraction:new(duration, 192)
-	else
-		measureDuration = ncdk.Fraction:new(duration, 1e6, true) / 192
-	end
+	-- beatDuration = STOP * 4 / 192
+	local beatDuration = ncdk.Fraction:new(duration * 4, 16, false) / 192
 
-	ld:insertStopData(timeData.measureTime, measureDuration)
+	ld:insertStopData(timeData.measureTime, beatDuration)
 end
 
 NoteChartImporter.processData = function(self)
