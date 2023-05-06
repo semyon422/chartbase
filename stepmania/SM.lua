@@ -104,7 +104,6 @@ SM.processBPM = function(self, line)
 	for _, tempoValue in ipairs(tempoValues) do
 		local beat, tempo = tempoValue:match("^(.+)=(.+)$")
 		if beat and tempo then
-			-- print(beat, tempo, tonumber(beat), tonumber(tempo))
 			table.insert(
 				self.bpm,
 				{
@@ -112,9 +111,6 @@ SM.processBPM = function(self, line)
 					tempo = tonumber(tempo)
 				}
 			)
-			if not self.primaryTempo then
-				self.primaryTempo = tonumber(tempo)
-			end
 		end
 	end
 end
