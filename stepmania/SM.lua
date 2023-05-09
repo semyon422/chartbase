@@ -111,6 +111,9 @@ SM.processBPM = function(self, line)
 					tempo = tonumber(tempo)
 				}
 			)
+			if not self.displayTempo then
+				self.displayTempo = tonumber(tempo)
+			end
 		end
 	end
 end

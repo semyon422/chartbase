@@ -170,7 +170,7 @@ return function(noteChart, importer)
 			previewTime		= header["SAMPLESTART"],
 			noteCount		= importer.noteCount,
 			length			= importer.totalLength,
-			bpm				= sm.primaryTempo,
+			bpm				= sm.displayTempo or 0,
 			inputMode		= tostring(noteChart.inputMode),
 			minTime         = importer.minTime,
 			maxTime         = importer.maxTime,
