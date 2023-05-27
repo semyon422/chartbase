@@ -4,6 +4,7 @@ local utf8validate = require("utf8validate")
 local EncodingConverter = {}
 
 local Encodings = {
+	{"UTF-8", "ISO-8859-1"},
 	{"UTF-8", "SHIFT-JIS"},
 	{"UTF-8", "CP932"},
 	{"UTF-8", "EUC-KR"},
