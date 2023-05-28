@@ -29,7 +29,9 @@ SM.newChart = function(self)
 	table.insert(self.charts, chart)
 end
 
-SM.import = function(self, noteChartString)
+SM.import = function(self, noteChartString, path)
+	self.path = path
+
 	for _, line in ipairs(noteChartString:split("\n")) do
 		self:processLine(line:trim())
 	end
@@ -94,9 +96,24 @@ SM.processHeaderLine = function(self, line)
 		end
 	elseif key == "BACKGROUND" then
 		if value == "" then
-			self.header[key] = "bg"
+			self.header[key] = self:findBackgroundFile()
 		end
 	end
+end
+
+SM.findBackgroundFile = function(self)
+	local directory = self.path:match("(.*".."/"..")")
+	local files = love.filesystem.getDirectoryItems(directory)
+	
+	for _, value in ipairs(files) do 
+		local fileName = value:match("(.+)%..+"):lower()
+		
+		if fileName:find("bg") or fileName:find("background") then
+			return value
+		end
+	end
+
+	return ""
 end
 
 SM.processBPM = function(self, line)
