@@ -21,7 +21,7 @@ NoteChartImporter.import = function(self)
 
 	if not self.sm then
 		self.sm = SM:new()
-		self.sm:import(self.content:gsub("\r[\r\n]?", "\n"))
+		self.sm:import(self.content:gsub("\r[\r\n]?", "\n"), self.path)
 	end
 
 	local i0, i1 = 1, #self.sm.charts
