@@ -193,4 +193,29 @@ function SPH:updateTime()
 	end
 end
 
+local defaultChart = [[title=title
+artist=artist
+name=name
+creator=creator
+source=
+level=0
+tags=
+audio=audio.mp3
+background=background.jpg
+bpm=100
+preview=0
+input=4key
+
+0000=0
+0000=1
+]]
+
+function SPH:getDefault(info)
+	local chart = defaultChart
+	for k, v in pairs(info) do
+		chart = chart:gsub(k .. "=[^\n]*\n", k .. "=" .. v .. "\n")
+	end
+	return chart
+end
+
 return SPH
