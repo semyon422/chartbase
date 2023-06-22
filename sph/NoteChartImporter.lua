@@ -38,6 +38,8 @@ NoteChartImporter.import = function(self)
 	for _, line in ipairs(sph.lines) do
 		local intervalData = layerData:getIntervalData(line.intervalIndex)
 		local timePoint = layerData:getTimePoint(intervalData, line.time, line.visualSide)
+
+		local hasNote = false
 		for i, note in ipairs(line.notes) do
 			local noteData
 			if note ~= "0" then
@@ -64,6 +66,7 @@ NoteChartImporter.import = function(self)
 					noteData.noteType = "SoundNote"
 					layerData:addNoteData(noteData, inputType, inputIndex)
 				end
+				hasNote = true
 			end
 		end
 		if line.velocity then
@@ -76,11 +79,13 @@ NoteChartImporter.import = function(self)
 			layerData:insertMeasureData(timePoint, line.measure)
 		end
 
-		if not minTimePoint or timePoint < minTimePoint then
-			minTimePoint = timePoint
-		end
-		if not maxTimePoint or timePoint > maxTimePoint then
-			maxTimePoint = timePoint
+		if hasNote then
+			if not minTimePoint or timePoint < minTimePoint then
+				minTimePoint = timePoint
+			end
+			if not maxTimePoint or timePoint > maxTimePoint then
+				maxTimePoint = timePoint
+			end
 		end
 	end
 
