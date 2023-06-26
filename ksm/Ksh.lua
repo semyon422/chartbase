@@ -20,6 +20,9 @@ Ksh.new = function(self)
 	ksh.measureLineCounts = {}
 	ksh.preparedNotes = {}
 	ksh.preparedLasers = {}
+	ksh.preparedLasersEnd = {}
+	ksh.lastPos = {}
+	ksh.direction = {}
 	
 	setmetatable(ksh, Ksh_metatable)
 	
@@ -140,29 +143,86 @@ Ksh.import = function(self, noteChartString)
 				for i = 1, 2 do
 					local c = chars[i + 8]
 					local laser = self.preparedLasers[i]
+					local laserEnd = self.preparedLasersEnd[i]
 					
 					if c == ":" then
 						-- skip
 					elseif self.laserPosTable[c] then
 						if laser then
-							laser.posEnd = self.laserPosTable[c]
-							laser.endMeasureOffset = measureIndex - 1
-							laser.endLineOffset = lineOffset
-							laser.endLineCount = self.measureLineCounts[measureIndex]
+							if ((self.laserPosTable[c]>self.laserPosTable[self.lastPos[i]]) and self.direction[i] == "left") 
+							or ((self.laserPosTable[c]<self.laserPosTable[self.lastPos[i]]) and self.direction[i] == "right") then
+								laser.posEnd = laserEnd.posEnd	
+								laser.endMeasureOffset = laserEnd.endMeasureOffset
+								laser.endLineOffset = laserEnd.endLineOffset
+								laser.endLineCount = laserEnd.endLineCount
+								laser.input = "laser" .. self.direction[i]
+								
+								self.lasers[#self.lasers + 1] = laser
+								
+								self.preparedLasers[i] = {
+									startMeasureOffset = laserEnd.endMeasureOffset,
+									startLineOffset = laserEnd.endLineOffset,
+									startLineCount = laserEnd.endLineCount,
+									lane = i,
+									posStart = laserEnd.posEnd,
+									input = "laser"
+								}
+								
+								if self.laserPosTable[c]>self.laserPosTable[self.lastPos[i]] then
+									self.direction[i] = "right"
+								elseif self.laserPosTable[c]<self.laserPosTable[self.lastPos[i]] then
+									self.direction[i] = "left"
+								end
+								
+								self.lastPos[i] = c
+								self.preparedLasersEnd[i] = {
+									posEnd = self.laserPosTable[c],
+									endMeasureOffset = measureIndex - 1,
+									endLineOffset = lineOffset,
+									endLineCount = self.measureLineCounts[measureIndex],
+								}
+					
+							else
+								if self.laserPosTable[c]>self.laserPosTable[self.lastPos[i]] then
+									self.direction[i] = "right"
+								elseif self.laserPosTable[c]<self.laserPosTable[self.lastPos[i]] then
+									self.direction[i] = "left"
+								end
+								
+								self.lastPos[i] = c
+								self.preparedLasersEnd[i] = {
+									posEnd = self.laserPosTable[c],
+									endMeasureOffset = measureIndex - 1,
+									endLineOffset = lineOffset,
+									endLineCount = self.measureLineCounts[measureIndex],
+								}
+							end
+						else
+							self.lastPos[i] = c
+							self.preparedLasers[i] = {
+								startMeasureOffset = measureIndex - 1,
+								startLineOffset = lineOffset,
+								startLineCount = self.measureLineCounts[measureIndex],
+								lane = i,
+								posStart = self.laserPosTable[c],
+								input = "laser"
+							}
+						end
+					else
+						if self.preparedLasers[i] and self.preparedLasersEnd[i] then
+							laser.posEnd = laserEnd.posEnd
+							laser.endMeasureOffset = laserEnd.endMeasureOffset
+							laser.endLineOffset = laserEnd.endLineOffset
+							laser.endLineCount = laserEnd.endLineCount
+							laser.input = "laser" .. (self.direction[i] or (i == 1 and "right" or i == 2 and "left"))
 							
 							self.lasers[#self.lasers + 1] = laser
+								
+							self.lastPos[i] = nil
+							self.preparedLasers[i] = nil
+							self.preparedLasersEnd[i] = nil
+							self.direction[i] = nil
 						end
-						
-						self.preparedLasers[i] = {
-							startMeasureOffset = measureIndex - 1,
-							startLineOffset = lineOffset,
-							startLineCount = self.measureLineCounts[measureIndex],
-							lane = i,
-							posStart = self.laserPosTable[c],
-							input = "laser"
-						}
-					else
-						self.preparedLasers[i] = nil
 					end
 				end
 				
