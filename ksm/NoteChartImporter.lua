@@ -126,26 +126,6 @@ NoteChartImporter.processData = function(self)
 			inputIndex = _noteData.lane - 4
 		end
 
-		if _noteData.input == "laser" then
-			if _noteData.lane == 1 then
-				if _noteData.posStart < _noteData.posEnd then
-					inputType = "laserright"
-					inputIndex = 1
-				elseif _noteData.posStart > _noteData.posEnd then
-					inputType = "laserleft"
-					inputIndex = 1
-				end
-			elseif _noteData.lane == 2 then
-				if _noteData.posStart < _noteData.posEnd then
-					inputType = "laserright"
-					inputIndex = 2
-				elseif _noteData.posStart > _noteData.posEnd then
-					inputType = "laserleft"
-					inputIndex = 2
-				end
-			end
-		end
-
 		startNoteData.sounds = {}
 
 		ld:addNoteData(startNoteData, inputType, inputIndex)
