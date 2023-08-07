@@ -18,12 +18,13 @@ local RelatedContainerExtensions = {
 	qua = true,
 	ksh = true,
 	sph = true,
-	sm = true
+	sm = true,
 }
 
 local UnrelatedContainerExtensions = {
 	ojn = true,
-	mid = true
+	mid = true,
+	midi = true,
 }
 
 local NoteChartImporters = {
@@ -37,6 +38,7 @@ local NoteChartImporters = {
 	ojn = o2jam.NoteChartImporter,
 	sph = sph.NoteChartImporter,
 	mid = midi.NoteChartImporter,
+	midi = midi.NoteChartImporter,
 	sm = stepmania.NoteChartImporter
 }
 
