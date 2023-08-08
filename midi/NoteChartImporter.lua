@@ -25,7 +25,8 @@ NoteChartImporter.import = function(self)
 	noteChart.type = "midi"
 	self.noteCharts = {noteChart}
 
-	self.title = self.path:match("^.*/(.*).mid$")
+	local fileName = self.path:match("^.+/(.-)$")
+	self.title = fileName:match("^(.+)%..-$")
 
 	local hitsounds = love.filesystem.getDirectoryItems("userdata/hitsounds/midi")
 	self.hitsoundType = hitsounds[1]:match("^.+(%..+)$")
