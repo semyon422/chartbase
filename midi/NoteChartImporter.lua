@@ -1,26 +1,18 @@
+local class = require("class")
 local ncdk = require("ncdk")
 local Fraction = require("ncdk.Fraction")
 local NoteChart = require("ncdk.NoteChart")
 local MetaData = require("notechart.MetaData")
 local MID = require("midi.MID")
 
-local NoteChartImporter = {}
+local NoteChartImporter = class()
 
-local NoteChartImporter_metatable = {}
-NoteChartImporter_metatable.__index = NoteChartImporter
-
-NoteChartImporter.new = function(self)
-	local noteChartImporter = {}
-
+function NoteChartImporter:new()
 	self.layerDatas = {}
-
-	setmetatable(noteChartImporter, NoteChartImporter_metatable)
-
-	return noteChartImporter
 end
 
-NoteChartImporter.import = function(self)
-	local noteChart = NoteChart:new()
+function NoteChartImporter:import()
+	local noteChart = NoteChart()
 	noteChart.inputMode.key = 88
 	noteChart.type = "midi"
 	self.noteCharts = {noteChart}
@@ -36,7 +28,7 @@ NoteChartImporter.import = function(self)
 	end
 
 	if not self.mid then
-		self.mid = MID:new(self.content)
+		self.mid = MID(self.content)
 	end
 
 	local addedNotes = {}
@@ -52,7 +44,7 @@ NoteChartImporter.import = function(self)
 	noteChart.metaData = MetaData(noteChart, self)
 end
 
-NoteChartImporter.fillKeys = function(self)
+function NoteChartImporter:fillKeys()
 	local keyLabels = {"C","C#","D","D#","E","F","F#","G","G#","A","A#","B"}
 
 	local keys = {"A1","A#1","B1"}
@@ -65,7 +57,7 @@ NoteChartImporter.fillKeys = function(self)
 	self.keys = keys
 end
 
-NoteChartImporter.createLayerData = function(self, index)
+function NoteChartImporter:createLayerData(index)
 	index = index or #self.layerDatas + 1
 
 	local layerData = self.noteCharts[1]:getLayerData(index)
@@ -84,7 +76,7 @@ NoteChartImporter.createLayerData = function(self, index)
 	return layerData
 end
 
-NoteChartImporter.processData = function(self, trackIndex, layerData, addedNotes)
+function NoteChartImporter:processData(trackIndex, layerData, addedNotes)
 	local notes = self.mid.notes
 	local noteChart = self.noteCharts[1]
 	local constantVolume = self.settings and self.settings["midiConstantVolume"] or false
@@ -119,7 +111,7 @@ NoteChartImporter.processData = function(self, trackIndex, layerData, addedNotes
 
 				local inputType, inputIndex
 
-				startNoteData = ncdk.NoteData:new(layerData:getTimePoint(Fraction:new(startEvent[2], 1000, true)))
+				startNoteData = ncdk.NoteData(layerData:getTimePoint(Fraction:new(startEvent[2], 1000, true)))
 				startNoteData.sounds = {{hitsoundPath, constantVolume and 1 or startEvent[4]}}
 				if addedNotes[eventId] then
 					inputType = "auto"
@@ -135,7 +127,7 @@ NoteChartImporter.processData = function(self, trackIndex, layerData, addedNotes
 
 				startEvent.used = true
 
-				endNoteData = ncdk.NoteData:new(layerData:getTimePoint(Fraction:new(event[2], 1000, true)))
+				endNoteData = ncdk.NoteData(layerData:getTimePoint(Fraction:new(event[2], 1000, true)))
 				endNoteData.sounds = {{"none" .. hitsoundType, 0}}
 				if addedNotes[eventId] then
 					inputType = "auto"
@@ -161,7 +153,7 @@ NoteChartImporter.processData = function(self, trackIndex, layerData, addedNotes
 	self.noteCount = noteCount
 end
 
-NoteChartImporter.processMeasureLines = function(self)
+function NoteChartImporter:processMeasureLines()
 	local LayerData = self.layerDatas[1]
 	local minTime = self.mid.minTime
 	local maxTime = self.mid.maxTime
@@ -171,10 +163,10 @@ NoteChartImporter.processMeasureLines = function(self)
 	local i = 1
 	while time < maxTime do
 		local timePoint = LayerData:getTimePoint(Fraction:new(time, 1000, true))
-		local startNoteData = ncdk.NoteData:new(timePoint)
+		local startNoteData = ncdk.NoteData(timePoint)
 		startNoteData.noteType = "LineNoteStart"
 
-		local endNoteData = ncdk.NoteData:new(timePoint)
+		local endNoteData = ncdk.NoteData(timePoint)
 		endNoteData.noteType = "LineNoteEnd"
 
 		startNoteData.endNoteData = endNoteData

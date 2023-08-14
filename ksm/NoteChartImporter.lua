@@ -1,31 +1,21 @@
+local class = require("class")
 local ncdk = require("ncdk")
 local NoteChart = require("ncdk.NoteChart")
 local MetaData = require("notechart.MetaData")
 local Ksh = require("ksm.Ksh")
 local bmsNoteChartImporter = require("bms.NoteChartImporter")
 
-local NoteChartImporter = {}
+local NoteChartImporter = class()
 
-local NoteChartImporter_metatable = {}
-NoteChartImporter_metatable.__index = NoteChartImporter
+NoteChartImporter.primaryTempo = 120
+NoteChartImporter.measureCount = 0
 
-NoteChartImporter.new = function(self)
-	local noteChartImporter = {}
-
-	noteChartImporter.primaryTempo = 120
-	noteChartImporter.measureCount = 0
-
-	setmetatable(noteChartImporter, NoteChartImporter_metatable)
-
-	return noteChartImporter
-end
-
-NoteChartImporter.import = function(self, noteChartString)
-	self.noteChart = NoteChart:new()
+function NoteChartImporter:import(noteChartString)
+	self.noteChart = NoteChart()
 	local noteChart = self.noteChart
 
 	if not self.ksh then
-		self.ksh = Ksh:new()
+		self.ksh = Ksh()
 		self.ksh:import(self.content:gsub("\r\n", "\n"))
 	end
 
@@ -71,14 +61,14 @@ end
 
 NoteChartImporter.updateLength = bmsNoteChartImporter.updateLength
 
-NoteChartImporter.processAudio = function(self)
+function NoteChartImporter:processAudio()
 	local audioFileName = self.audioFileName
 
 	if audioFileName then
 		local startTime = -(tonumber(self.ksh.options.o) or 0) / 1000
 		local timePoint = self.backgroundLayerData:getTimePoint(startTime)
 
-		local noteData = ncdk.NoteData:new(timePoint)
+		local noteData = ncdk.NoteData(timePoint)
 		noteData.sounds = {{audioFileName, 1}}
 		self.noteChart:addResource("sound", audioFileName, {audioFileName})
 
@@ -87,7 +77,7 @@ NoteChartImporter.processAudio = function(self)
 	end
 end
 
-NoteChartImporter.processData = function(self)
+function NoteChartImporter:processData()
 	self.noteCount = 0
 
 	self.minTimePoint = nil
@@ -96,7 +86,7 @@ NoteChartImporter.processData = function(self)
 	local ld = self.foregroundLayerData
 
 	for _, tempoData in ipairs(self.ksh.tempos) do
-		local measureTime = ncdk.Fraction:new(tempoData.lineOffset, tempoData.lineCount) + tempoData.measureOffset
+		local measureTime = ncdk.Fraction(tempoData.lineOffset, tempoData.lineCount) + tempoData.measureOffset
 		ld:insertTempoData(measureTime, tempoData.tempo)
 	end
 
@@ -116,10 +106,10 @@ NoteChartImporter.processData = function(self)
 	end
 
 	for _, _noteData in ipairs(allNotes) do
-		local startMeasureTime = ncdk.Fraction:new(_noteData.startLineOffset, _noteData.startLineCount) + _noteData.startMeasureOffset
+		local startMeasureTime = ncdk.Fraction(_noteData.startLineOffset, _noteData.startLineCount) + _noteData.startMeasureOffset
 		local startTimePoint = ld:getTimePoint(startMeasureTime)
 
-		local startNoteData = ncdk.NoteData:new(startTimePoint)
+		local startNoteData = ncdk.NoteData(startTimePoint)
 		local inputType = _noteData.input
 		local inputIndex = _noteData.lane
 		if inputType == "fx" then
@@ -131,7 +121,7 @@ NoteChartImporter.processData = function(self)
 		ld:addNoteData(startNoteData, inputType, inputIndex)
 
 		local lastTimePoint = startTimePoint
-		local endMeasureTime = ncdk.Fraction:new(_noteData.endLineOffset, _noteData.endLineCount) + _noteData.endMeasureOffset
+		local endMeasureTime = ncdk.Fraction(_noteData.endLineOffset, _noteData.endLineCount) + _noteData.endMeasureOffset
 
 		if startMeasureTime == endMeasureTime then
 			startNoteData.noteType = "ShortNote"
@@ -144,7 +134,7 @@ NoteChartImporter.processData = function(self)
 
 			local endTimePoint = ld:getTimePoint(endMeasureTime)
 
-			local endNoteData = ncdk.NoteData:new(endTimePoint)
+			local endNoteData = ncdk.NoteData(endTimePoint)
 			endNoteData.sounds = {}
 
 			if _noteData.input ~= "laser" then
@@ -173,16 +163,16 @@ NoteChartImporter.processData = function(self)
 	end
 end
 
-NoteChartImporter.processMeasureLines = function(self)
+function NoteChartImporter:processMeasureLines()
 	for measureIndex = 0, self.measureCount do
-		local measureTime = ncdk.Fraction:new(measureIndex)
+		local measureTime = ncdk.Fraction(measureIndex)
 		local timePoint = self.foregroundLayerData:getTimePoint(measureTime)
 
-		local startNoteData = ncdk.NoteData:new(timePoint)
+		local startNoteData = ncdk.NoteData(timePoint)
 		startNoteData.noteType = "LineNoteStart"
 		self.foregroundLayerData:addNoteData(startNoteData, "measure", 1)
 
-		local endNoteData = ncdk.NoteData:new(timePoint)
+		local endNoteData = ncdk.NoteData(timePoint)
 		endNoteData.noteType = "LineNoteEnd"
 		self.foregroundLayerData:addNoteData(endNoteData, "measure", 1)
 

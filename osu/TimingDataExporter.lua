@@ -1,18 +1,9 @@
-local TimingDataExporter = {}
+local class = require("class")
 
-local TimingDataExporter_metatable = {}
-TimingDataExporter_metatable.__index = TimingDataExporter
-
-TimingDataExporter.new = function(self)
-	local timingDataExporter = {}
-
-	setmetatable(timingDataExporter, TimingDataExporter_metatable)
-
-	return timingDataExporter
-end
+local TimingDataExporter = class()
 
 local timingPointString = "%s,%s,4,2,0,100,%s,0"
-TimingDataExporter.getTempo = function(self)
+function TimingDataExporter:getTempo()
 	return timingPointString:format(
 		self.tempoData.timePoint.absoluteTime * 1000,
 		self.tempoData:getBeatDuration() * 1000,
@@ -20,7 +11,7 @@ TimingDataExporter.getTempo = function(self)
 	)
 end
 
-TimingDataExporter.getStop = function(self)
+function TimingDataExporter:getStop()
 	return
 	timingPointString:format(
 		self.stopData.leftTimePoint.absoluteTime * 1000,
@@ -34,7 +25,7 @@ TimingDataExporter.getStop = function(self)
 	)
 end
 
-TimingDataExporter.getVelocity = function(self)
+function TimingDataExporter:getVelocity()
 	return timingPointString:format(
 		self.velocityData.timePoint.absoluteTime * 1000,
 		-100 / self.velocityData.currentSpeed,
@@ -42,7 +33,7 @@ TimingDataExporter.getVelocity = function(self)
 	)
 end
 
-TimingDataExporter.getInterval = function(self)
+function TimingDataExporter:getInterval()
 	return timingPointString:format(
 		self.intervalData.timePoint.absoluteTime * 1000,
 		self.intervalData:getBeatDuration() * 1000,

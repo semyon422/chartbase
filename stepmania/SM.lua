@@ -1,22 +1,15 @@
-local SM = {}
+local class = require("class")
 
-local SM_metatable = {}
-SM_metatable.__index = SM
+local SM = class()
 
-SM.new = function(self)
-	local sm = {}
-
-	sm.header = {}
-	sm.bpm = {}
-	sm.stop = {}
-	sm.charts = {}
-
-	setmetatable(sm, SM_metatable)
-
-	return sm
+function SM:new()
+	self.header = {}
+	self.bpm = {}
+	self.stop = {}
+	self.charts = {}
 end
 
-SM.newChart = function(self)
+function SM:newChart()
 	local chart = {
 		measure = 0,
 		offset = 0,
@@ -29,7 +22,7 @@ SM.newChart = function(self)
 	table.insert(self.charts, chart)
 end
 
-SM.import = function(self, noteChartString, path)
+function SM:import(noteChartString, path)
 	self.path = path
 
 	for _, line in ipairs(noteChartString:split("\n")) do
@@ -37,7 +30,7 @@ SM.import = function(self, noteChartString, path)
 	end
 end
 
-SM.processLine = function(self, line)
+function SM:processLine(line)
 	local chart = self.chart
 	if self.parsingBpm then
 		self:processBPM(line)
@@ -76,7 +69,7 @@ SM.processLine = function(self, line)
 	end
 end
 
-SM.processHeaderLine = function(self, line)
+function SM:processHeaderLine(line)
 	local key, value = line:match("^#(%S+):(.*);$")
 	if not key then
 		key, value = line:match("^#(%S+):(.*)$")
@@ -101,13 +94,13 @@ SM.processHeaderLine = function(self, line)
 	end
 end
 
-SM.findBackgroundFile = function(self)
+function SM:findBackgroundFile()
 	local directory = self.path:match("(.*".."/"..")")
 	local files = love.filesystem.getDirectoryItems(directory)
-	
-	for _, value in ipairs(files) do 
+
+	for _, value in ipairs(files) do
 		local fileName = value:match("(.+)%..+"):lower()
-		
+
 		if fileName:find("bg") or fileName:find("background") then
 			return value
 		end
@@ -116,7 +109,7 @@ SM.findBackgroundFile = function(self)
 	return ""
 end
 
-SM.processBPM = function(self, line)
+function SM:processBPM(line)
 	local tempoValues = line:split(",")
 	for _, tempoValue in ipairs(tempoValues) do
 		local beat, tempo = tempoValue:match("^(.+)=(.+)$")
@@ -135,7 +128,7 @@ SM.processBPM = function(self, line)
 	end
 end
 
-SM.processSTOP = function(self, line)
+function SM:processSTOP(line)
 	local stopValues = line:split(",")
 	for _, stopValue in ipairs(stopValues) do
 		local beat, duration = stopValue:match("^(.+)=(.+)$")
@@ -151,13 +144,13 @@ SM.processSTOP = function(self, line)
 	end
 end
 
-SM.processCommaLine = function(self)
+function SM:processCommaLine()
 	local chart = self.chart
 	chart.measure = chart.measure + 1
 	chart.offset = 0
 end
 
-SM.processNotesLine = function(self, line)
+function SM:processNotesLine(line)
 	local chart = self.chart
 	if tonumber(line) then
 		chart.mode = math.max(chart.mode, #line)

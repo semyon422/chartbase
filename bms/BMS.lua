@@ -1,40 +1,32 @@
+local class = require("class")
 local ncdk = require("ncdk")
 local enums = require("bms.enums")
 
-local BMS = {}
+local BMS = class()
 
-local BMS_metatable = {}
-BMS_metatable.__index = BMS
+function BMS:new()
+	self.header = {}
+	self.wav = {}
+	self.bpm = {}
+	self.bmp = {}
+	self.stop = {}
+	self.signature = {}
 
-BMS.new = function(self)
-	local bms = {}
-	
-	bms.header = {}
-	bms.wav = {}
-	bms.bpm = {}
-	bms.bmp = {}
-	bms.stop = {}
-	bms.signature = {}
+	self.inputExisting = {}
+	self.channelExisting = {}
 
-	bms.inputExisting = {}
-	bms.channelExisting = {}
-	
-	bms.timePointLimit = 25000
-	bms.timePointCount = 0
+	self.timePointLimit = 25000
+	self.timePointCount = 0
 
-	bms.primaryTempo = 130
-	bms.measureCount = 0
-	bms.hasTempo = false
-	
-	bms.timePoints = {}
-	bms.timeList = {}
-	
-	setmetatable(bms, BMS_metatable)
-	
-	return bms
+	self.primaryTempo = 130
+	self.measureCount = 0
+	self.hasTempo = false
+
+	self.timePoints = {}
+	self.timeList = {}
 end
 
-BMS.import = function(self, noteChartString)
+function BMS:import(noteChartString)
 	for _, line in ipairs(noteChartString:split("\n")) do
 		self:processLine(line:trim())
 	end
@@ -42,11 +34,11 @@ BMS.import = function(self, noteChartString)
 	if not self.hasTempo then
 		self.baseTempo = self.primaryTempo
 	end
-	
+
 	for _, timeData in pairs(self.timePoints) do
 		table.insert(self.timeList, timeData)
 	end
-	
+
 	table.sort(self.timeList, function(a, b)
 		return a.measureTime < b.measureTime
 	end)
@@ -54,7 +46,7 @@ BMS.import = function(self, noteChartString)
 	self:detectKeymode()
 end
 
-BMS.processLine = function(self, line)
+function BMS:processLine(line)
 	if line:upper():find("^#WAV%S%S%s+.+$") then
 		local index, fileName = line:match("^#...(..)%s+(.+)$")
 		self.wav[index:upper()] = fileName
@@ -74,11 +66,11 @@ BMS.processLine = function(self, line)
 	end
 end
 
-BMS.processHeaderLine = function(self, line)
+function BMS:processHeaderLine(line)
 	local key, value = line:match("^#(%S+)%s+(.+)$")
 	key = key:upper()
 	self.header[key] = value
-	
+
 	if key == "BPM" then
 		self.baseTempo = tonumber(value)
 		self.hasTempo = true
@@ -87,7 +79,7 @@ BMS.processHeaderLine = function(self, line)
 	end
 end
 
-BMS.detectKeymode = function(self)
+function BMS:detectKeymode()
 	local ce = self.channelExisting
 
 	if not self.pms then
@@ -139,7 +131,7 @@ BMS.detectKeymode = function(self)
 	end
 end
 
-BMS.updateMode = function(self, channel)
+function BMS:updateMode(channel)
 	local channelExisting = self.channelExisting
 
     local channelInfo = enums.ChannelEnum[channel]
@@ -148,29 +140,29 @@ BMS.updateMode = function(self, channel)
 	end
 end
 
-BMS.processLineData = function(self, line)
+function BMS:processLineData(line)
 	if self.timePointCount >= self.timePointLimit then
 		return
 	end
 
 	local measure, channel, message = line:match("^#(...)(..):(.+)$")
 	measure = tonumber(measure)
-	
+
 	if measure > self.measureCount then
 		self.measureCount = measure
 	end
-	
+
 	if not enums.ChannelEnum[channel] then
 		return
 	end
-	
+
 	self:updateMode(channel)
-	
+
 	if enums.ChannelEnum[channel].name == "Signature" then
 		self.signature[measure] = tonumber((message:gsub(",", ".")))
 		return
 	end
-	
+
 	if
 		(enums.ChannelEnum[channel].name == "Tempo" or
 		enums.ChannelEnum[channel].name == "ExtendedTempo") and
@@ -180,15 +172,15 @@ BMS.processLineData = function(self, line)
 		self.tempoAtStart = true
 		self.hasTempo = true
 	end
-	
+
 	local compound = enums.ChannelEnum[channel].name ~= "BGM"
 	local messageLength = math.floor(#message / 2)
 	for i = 1, messageLength do
 		local value = message:sub(2 * i - 1, 2 * i)
 		if value ~= "00" then
-			local measureTime = ncdk.Fraction:new(i - 1, messageLength) + measure
+			local measureTime = ncdk.Fraction(i - 1, messageLength) + measure
 			local measureTimeString = tostring(measureTime)
-			
+
 			local timeData
 			if self.timePoints[measureTimeString] then
 				timeData = self.timePoints[measureTimeString]
@@ -199,7 +191,7 @@ BMS.processLineData = function(self, line)
 
 				self.timePointCount = self.timePointCount + 1
 			end
-			
+
 			local settedNoteChannel
 			for currentChannel, values in pairs(timeData) do
 				if
@@ -212,7 +204,7 @@ BMS.processLineData = function(self, line)
 					break
 				end
 			end
-			
+
 			timeData[channel] = timeData[channel] or {}
 			if compound then
 				if enums.ChannelEnum[channel].name == "Note" then

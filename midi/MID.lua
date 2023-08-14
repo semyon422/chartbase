@@ -1,20 +1,9 @@
+local class = require("class")
 local MidiLua = require("MIDI")
 
-local MID = {}
+local MID = class()
 
-local MID_metatable = {}
-MID_metatable.__index = MID
-
-MID.new = function(self, midString)
-	local mid = {}
-
-	setmetatable(mid, MID_metatable)
-	mid:process(midString)
-
-	return mid
-end
-
-MID.process = function(self, midString)
+function MID:new(midString)
     local opus = MidiLua.midi2opus(midString)
 
     local ticks = opus[1]

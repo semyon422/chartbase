@@ -1,7 +1,6 @@
-local Ksh = {}
+local class = require("class")
 
-local Ksh_metatable = {}
-Ksh_metatable.__index = Ksh
+local Ksh = class()
 
 Ksh.laserPosString = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmno"
 Ksh.laserPosTable = {}
@@ -9,32 +8,26 @@ for i = 1, 51 do
 	Ksh.laserPosTable[Ksh.laserPosString:sub(i, i)] = i - 1
 end
 
-Ksh.new = function(self)
-	local ksh = {}
-	
-	ksh.notes = {}
-	ksh.lasers = {}
-	ksh.tempos = {}
-	ksh.timeSignatures = {}
-	ksh.options = {}
-	ksh.measureLineCounts = {}
-	ksh.preparedNotes = {}
-	ksh.preparedLasers = {}
-	ksh.preparedLasersEnd = {}
-	ksh.lastPos = {}
-	ksh.direction = {}
-	
-	setmetatable(ksh, Ksh_metatable)
-	
-	return ksh
+function Ksh:new()
+	self.notes = {}
+	self.lasers = {}
+	self.tempos = {}
+	self.timeSignatures = {}
+	self.options = {}
+	self.measureLineCounts = {}
+	self.preparedNotes = {}
+	self.preparedLasers = {}
+	self.preparedLasersEnd = {}
+	self.lastPos = {}
+	self.direction = {}
 end
 
-Ksh.import = function(self, noteChartString)
+function Ksh:import(noteChartString)
 	self.noteChartString = noteChartString
-	
+
 	self.measureStrings = noteChartString:split("\n--\n", true)
 	self.measureStrings[#self.measureStrings + 1] = "0000|00|--"
-	
+
 	for measureIndex = 1, #self.measureStrings - 1 do
 		local measureString = self.measureStrings[measureIndex + 1]
 		self.measureLineCounts[measureIndex] = 0
@@ -47,19 +40,19 @@ Ksh.import = function(self, noteChartString)
 			end
 		end
 	end
-	
+
 	for measureIndex = 0, #self.measureStrings - 1 do
 		local measureString = self.measureStrings[measureIndex + 1]
 		local lineOffset = 0
-		
+
 		for _, line in ipairs(measureString:split("\n")) do
 			local key, value = line:match("^(.-)=(.*)$")
-			
+
 			if key then
 				if not self.options[key] then
 					self.options[key] = value
 				end
-				
+
 				if key == "t" then
 					if not value:find("-") then
 						local lastTempo = self.tempos[#self.tempos]
@@ -91,10 +84,10 @@ Ksh.import = function(self, noteChartString)
 			elseif line:sub(1, 1) ~= "#" and line:sub(1, 2) ~= '//' and line:sub(8, 8) == "|" then
 				local chars = {}
 				for i = 1, #line do chars[i] = line:sub(i, i) end
-				
+
 				for i = 1, 6 do
 					local c, chipChar, input
-					
+
 					if i <= 4 then
 						c = chars[i]
 						chipChar = "1"
@@ -104,14 +97,14 @@ Ksh.import = function(self, noteChartString)
 						chipChar = "2"
 						input = "fx"
 					end
-					
+
 					if c == "0" then
 						local note = self.preparedNotes[i]
 						if note then
 							note.endMeasureOffset = measureIndex - 1
 							note.endLineOffset = lineOffset
 							note.endLineCount = self.measureLineCounts[measureIndex]
-							
+
 							self.notes[#self.notes + 1] = note
 							self.preparedNotes[i] = nil
 						end
@@ -139,26 +132,26 @@ Ksh.import = function(self, noteChartString)
 						end
 					end
 				end
-				
+
 				for i = 1, 2 do
 					local c = chars[i + 8]
 					local laser = self.preparedLasers[i]
 					local laserEnd = self.preparedLasersEnd[i]
-					
+
 					if c == ":" then
 						-- skip
 					elseif self.laserPosTable[c] then
 						if laser then
-							if ((self.laserPosTable[c]>self.laserPosTable[self.lastPos[i]]) and self.direction[i] == "left") 
+							if ((self.laserPosTable[c]>self.laserPosTable[self.lastPos[i]]) and self.direction[i] == "left")
 							or ((self.laserPosTable[c]<self.laserPosTable[self.lastPos[i]]) and self.direction[i] == "right") then
-								laser.posEnd = laserEnd.posEnd	
+								laser.posEnd = laserEnd.posEnd
 								laser.endMeasureOffset = laserEnd.endMeasureOffset
 								laser.endLineOffset = laserEnd.endLineOffset
 								laser.endLineCount = laserEnd.endLineCount
 								laser.input = "laser" .. self.direction[i]
-								
+
 								self.lasers[#self.lasers + 1] = laser
-								
+
 								self.preparedLasers[i] = {
 									startMeasureOffset = laserEnd.endMeasureOffset,
 									startLineOffset = laserEnd.endLineOffset,
@@ -167,13 +160,13 @@ Ksh.import = function(self, noteChartString)
 									posStart = laserEnd.posEnd,
 									input = "laser"
 								}
-								
+
 								if self.laserPosTable[c]>self.laserPosTable[self.lastPos[i]] then
 									self.direction[i] = "right"
 								elseif self.laserPosTable[c]<self.laserPosTable[self.lastPos[i]] then
 									self.direction[i] = "left"
 								end
-								
+
 								self.lastPos[i] = c
 								self.preparedLasersEnd[i] = {
 									posEnd = self.laserPosTable[c],
@@ -181,14 +174,14 @@ Ksh.import = function(self, noteChartString)
 									endLineOffset = lineOffset,
 									endLineCount = self.measureLineCounts[measureIndex],
 								}
-					
+
 							else
 								if self.laserPosTable[c]>self.laserPosTable[self.lastPos[i]] then
 									self.direction[i] = "right"
 								elseif self.laserPosTable[c]<self.laserPosTable[self.lastPos[i]] then
 									self.direction[i] = "left"
 								end
-								
+
 								self.lastPos[i] = c
 								self.preparedLasersEnd[i] = {
 									posEnd = self.laserPosTable[c],
@@ -215,9 +208,9 @@ Ksh.import = function(self, noteChartString)
 							laser.endLineOffset = laserEnd.endLineOffset
 							laser.endLineCount = laserEnd.endLineCount
 							laser.input = "laser" .. (self.direction[i] or (i == 1 and "right" or i == 2 and "left"))
-							
+
 							self.lasers[#self.lasers + 1] = laser
-								
+
 							self.lastPos[i] = nil
 							self.preparedLasers[i] = nil
 							self.preparedLasersEnd[i] = nil
@@ -225,7 +218,7 @@ Ksh.import = function(self, noteChartString)
 						end
 					end
 				end
-				
+
 				lineOffset = lineOffset + 1
 			end
 		end

@@ -1,25 +1,18 @@
-local Osu = {}
+local class = require("class")
 
-local Osu_metatable = {}
-Osu_metatable.__index = Osu
+local Osu = class()
 
 Osu.keymode = 4
 Osu.mode = 0
 
-Osu.new = function(self)
-	local osu = {}
-	
-	osu.metadata = {}
-	osu.events = {}
-	osu.timingPoints = {}
-	osu.hitObjects = {}
-	
-	setmetatable(osu, Osu_metatable)
-	
-	return osu
+function Osu:new()
+	self.metadata = {}
+	self.events = {}
+	self.timingPoints = {}
+	self.hitObjects = {}
 end
 
-Osu.import = function(self, noteChartString)
+function Osu:import(noteChartString)
 	self.noteChartString = noteChartString
 	self:setDefaultMetadata()
 	self:process()
@@ -27,13 +20,13 @@ Osu.import = function(self, noteChartString)
 	self:postProcess()
 end
 
-Osu.process = function(self)
+function Osu:process()
 	for _, line in ipairs(self.noteChartString:split("\n")) do
 		self:processLine(line)
 	end
 end
 
-Osu.postProcess = function(self)
+function Osu:postProcess()
 	local currentTimingPointIndex = 1
 	local currentTimingPoint = self.timingPoints[1]
 	local nextTimingPoint = self.timingPoints[2]
@@ -43,13 +36,13 @@ Osu.postProcess = function(self)
 			currentTimingPointIndex = currentTimingPointIndex + 1
 			nextTimingPoint = self.timingPoints[currentTimingPointIndex + 1]
 		end
-		
+
 		note.timingPoint = currentTimingPoint
 		self:setSounds(note)
 	end
 end
 
-Osu.processLine = function(self, line)
+function Osu:processLine(line)
 	if line:find("^%[") then
 		local currentBlockName, lineEnd = line:match("^%[(.+)%](.*)$")
 		self.currentBlockName = currentBlockName
@@ -69,7 +62,7 @@ Osu.processLine = function(self, line)
 	end
 end
 
-Osu.addMetadata = function(self, line)
+function Osu:addMetadata(line)
 	local key, value = line:match("^(%a+):%s?(.*)")
 	self.metadata[key] = value
 	if key == "Mode" then
@@ -80,27 +73,27 @@ Osu.addMetadata = function(self, line)
 	end
 end
 
-Osu.addEvent = function(self, line)
+function Osu:addEvent(line)
 	local split = line:split(",")
-	
+
 	if split[1] == "5" or split[1] == "Sample" then
 		local event = {}
-		
+
 		event.type = "sample"
 		event.startTime = tonumber(split[2])
 		event.sound = split[4]:match("\"(.+)\"")
 		event.volume = tonumber(split[5]) or 100
-		
+
 		self.events[#self.events + 1] = event
 	elseif split[1] == "0" then
 		self.background = line:match("^0,.+,\"(.+)\".*$")
 	end
 end
 
-Osu.addTimingPoint = function(self, line)
+function Osu:addTimingPoint(line)
 	local split = line:split(",")
 	local tp = {}
-	
+
 	tp.offset = tonumber(split[1])
 	tp.beatLength = tonumber(split[2])
 	tp.timingSignature = math.max(0, tonumber(split[3]) or 4)
@@ -109,11 +102,11 @@ Osu.addTimingPoint = function(self, line)
 	tp.sampleVolume = math.max(0, tonumber(split[6]) or 100)
 	tp.timingChange = tonumber(split[7]) or 1
 	tp.kiaiTimeActive = tonumber(split[8]) or 0
-	
+
 	if tp.timingSignature == 0 then
 		tp.timingSignature = 4
 	end
-	
+
 	if tp.beatLength >= 0 then
 		tp.beatLength = math.abs(tp.beatLength)
 		tp.measureLength = math.abs(tp.beatLength * tp.timingSignature)
@@ -137,19 +130,19 @@ Osu.addTimingPoint = function(self, line)
 	then
 		return
 	end
-	
+
 	self.timingPoints[#self.timingPoints + 1] = tp
 end
 
-Osu.addHitObject = function(self, line)
+function Osu:addHitObject(line)
 	local split = line:split(",")
 	local note = {}
 	local addition
-	
+
 	note.x = tonumber(split[1])
 	note.y = tonumber(split[2])
 	note.startTime = tonumber(split[3])
-	
+
 	note.type = tonumber(split[4])
 	if bit.band(note.type, 2) == 2 then
 		note.repeatCount = tonumber(split[7])
@@ -166,21 +159,21 @@ Osu.addHitObject = function(self, line)
 	else
 		addition = split[6] and split[6]:split(":") or {}
 	end
-	
+
 	note.hitSoundBitmap = tonumber(split[5])
 	note.sampleSetId = tonumber(addition[1]) or 0
 	note.additionalSampleSetId = tonumber(addition[2]) or 0
 	note.customSampleSetIndex = tonumber(addition[3]) or 0
 	note.hitSoundVolume = tonumber(addition[4]) or 0
 	note.customHitSound = addition[5] or ""
-	
+
 	local keymode = self.keymode
 	note.key = math.max(1, math.min(keymode, math.floor(note.x / 512 * keymode + 1)))
-	
+
 	self.hitObjects[#self.hitObjects + 1] = note
 end
 
-Osu.setDefaultMetadata = function(self)
+function Osu:setDefaultMetadata()
 	self.metadata = {
 		AudioFilename = "",
 		PreviewTime = "0",
@@ -197,7 +190,7 @@ Osu.setDefaultMetadata = function(self)
 	}
 end
 
-Osu.checkMissing = function(self)
+function Osu:checkMissing()
 	if #self.timingPoints == 0 then
 		self:addTimingPoint("0,1000,4,2,0,100,1,0")
 	end
@@ -210,10 +203,10 @@ local soundBits = {
 	{0, "normal"}
 }
 
-Osu.setSounds = function(self, note)
+function Osu:setSounds(note)
 	note.sounds = {}
 	note.fallbackSounds = {}
-	
+
 	if note.hitSoundVolume > 0 then
 		note.volume = note.hitSoundVolume
 	elseif note.timingPoint.sampleVolume > 0 then
@@ -223,14 +216,14 @@ Osu.setSounds = function(self, note)
 	else
 		note.volume = 5
 	end
-	
+
 	if note.customHitSound and note.customHitSound ~= "" then
 		note.sounds[1] = {note.customHitSound, note.volume}
 		note.fallbackSounds[#note.fallbackSounds + 1] = {note.customHitSound, note.volume}
 		note.keysound = true
 		return
 	end
-	
+
 	local sampleSetId
 	if note.hitSoundBitmap > 0 and note.additionalSampleSetId ~= 0 then
 		sampleSetId = note.additionalSampleSetId
@@ -240,7 +233,7 @@ Osu.setSounds = function(self, note)
 		sampleSetId = note.timingPoint.sampleSetId
 	end
 	note.sampleSetName = self:getSampleSetName(sampleSetId)
-	
+
 	if note.customSampleSetIndex ~= 0 then
 		note.customSampleIndex = note.customSampleSetIndex
 	elseif note.timingPoint.customSampleIndex ~= 0 then
@@ -248,7 +241,7 @@ Osu.setSounds = function(self, note)
 	else
 		note.customSampleIndex = ""
 	end
-	
+
 	for i = 1, 4 do
 		local mask = soundBits[i][1]
 		local name = soundBits[i][2]
@@ -264,7 +257,7 @@ Osu.setSounds = function(self, note)
 	end
 end
 
-Osu.getSampleSetName = function(self, id)
+function Osu:getSampleSetName(id)
 	if id == 0 then
 		return "none"
 	elseif id == 1 then

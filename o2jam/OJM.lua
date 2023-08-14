@@ -1,29 +1,21 @@
+local class = require("class")
 local byte = require("byte")
 local bit = require("bit")
 
-local OJM = {}
+local OJM = class()
 
-local OJM_metatable = {}
-OJM_metatable.__index = OJM
-
-OJM.new = function(self, pointer, size)
-	local ojm = {}
-
+function OJM:new(pointer, size)
 	if type(pointer) == "string" then
-		ojm.buffer = byte.buffer(#pointer):fill(pointer):seek(0)
+		self.buffer = byte.buffer(#pointer):fill(pointer):seek(0)
 	else
-		ojm.buffer = byte.buffer_t(pointer, size)
+		self.buffer = byte.buffer_t(pointer, size)
 	end
 
-	ojm.samples = {}
-	ojm.acc_keybyte = 0xFF
-	ojm.acc_counter = 0
+	self.samples = {}
+	self.acc_keybyte = 0xFF
+	self.acc_counter = 0
 
-	setmetatable(ojm, OJM_metatable)
-
-	ojm:process()
-
-	return ojm
+	self:process()
 end
 
 OJM.mask_nami = {0x6E, 0x61, 0x6D, 0x69}
@@ -73,7 +65,7 @@ OJM.REARRANGE_TABLE = {
 	0x04, 0x00
 }
 
-OJM.process = function(self)
+function OJM:process()
 	self.signature = self.buffer:uint32_le()
 
 	if self.signature == self.M30_SIGNATURE then
@@ -85,7 +77,7 @@ OJM.process = function(self)
 	end
 end
 
-OJM.parseM30 = function(self)
+function OJM:parseM30()
 	local buffer = self.buffer
 
 	local file_format_version = buffer:int32_le()
@@ -133,7 +125,7 @@ OJM.parseM30 = function(self)
 	end
 end
 
-OJM.M30_xor = function(self, mask, length)
+function OJM:M30_xor(mask, length)
 	local buffer = self.buffer
 	local pointer = buffer.pointer + buffer.offset
 	for i = 0, length - 4, 4 do
@@ -144,7 +136,7 @@ OJM.M30_xor = function(self, mask, length)
 	end
 end
 
-OJM.parseOMC = function(self, decrypt)
+function OJM:parseOMC(decrypt)
 	local buffer = self.buffer
 
 	buffer:seek(4)
@@ -239,7 +231,7 @@ OJM.parseOMC = function(self, decrypt)
 	end
 end
 
-OJM.rearrange = function(self, buf, buffer)
+function OJM:rearrange(buf, buffer)
 	local length = tonumber(buf.size)
 	local key = bit.lshift((length % 17), 4) + (length % 17)
 
@@ -257,7 +249,7 @@ OJM.rearrange = function(self, buf, buffer)
 	end
 end
 
-OJM.OMC_xor = function(self, buf)
+function OJM:OMC_xor(buf)
 	local temp
 	local this_byte
 	for i = 0, tonumber(buf.size) - 1 do

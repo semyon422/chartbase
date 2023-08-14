@@ -1,18 +1,7 @@
-local ncdk = require("ncdk")
+local class = require("class")
 local osuNoteDataImporter = require("osu.NoteDataImporter")
 
-local NoteDataImporter = {}
-
-local NoteDataImporter_metatable = {}
-NoteDataImporter_metatable.__index = NoteDataImporter
-
-NoteDataImporter.new = function(self)
-	local noteDataImporter = {}
-	
-	setmetatable(noteDataImporter, NoteDataImporter_metatable)
-	
-	return noteDataImporter
-end
+local NoteDataImporter = class()
 
 NoteDataImporter.inputType = "key"
 
@@ -23,11 +12,11 @@ NoteDataImporter.HitSounds = {
 	Clap = "sound-hitclap.wav"
 }
 
-NoteDataImporter.init = function(self)
+function NoteDataImporter:init()
 	self.inputIndex = self.hitObject.Lane
 	self.startTime = self.hitObject.StartTime or 0
 	self.endTime = self.hitObject.EndTime
-	
+
 	self.sounds = {}
 	self.hitSound = tostring(self.hitObject.HitSound)
 	if not self.hitSound then
@@ -39,16 +28,16 @@ NoteDataImporter.init = function(self)
 			self.sounds[#self.sounds + 1] = {sound, 1}
 		end
 	end
-	
+
 	for _, sound in ipairs(self.sounds) do
 		self.noteChart:addResource("sound", sound[1], {sound[1]})
 	end
-	
+
 	local firstTime = math.min(self.endTime or self.startTime, self.startTime)
 	if not self.noteChartImporter.minTime or firstTime < self.noteChartImporter.minTime then
 		self.noteChartImporter.minTime = firstTime
 	end
-	
+
 	local lastTime = math.max(self.endTime or self.startTime, self.startTime)
 	if not self.noteChartImporter.maxTime or lastTime > self.noteChartImporter.maxTime then
 		self.noteChartImporter.maxTime = lastTime

@@ -3,27 +3,14 @@ local NoteChart = require("ncdk.NoteChart")
 local MetaData = require("notechart.MetaData")
 local osuNoteChartImporter = require("osu.NoteChartImporter")
 
-local ncdk = require("ncdk")
+local class = require("class")
 local NoteDataImporter = require("quaver.NoteDataImporter")
 local TimingDataImporter = require("quaver.TimingDataImporter")
 
-local NoteChartImporter = {}
+local NoteChartImporter = class()
 
-local NoteChartImporter_metatable = {}
-NoteChartImporter_metatable.__index = NoteChartImporter
-
-NoteChartImporter.new = function(self)
-	local noteChartImporter = {}
-
-	noteChartImporter.metaData = {}
-
-	setmetatable(noteChartImporter, NoteChartImporter_metatable)
-
-	return noteChartImporter
-end
-
-NoteChartImporter.import = function(self)
-	self.noteChart = NoteChart:new()
+function NoteChartImporter:import()
+	self.noteChart = NoteChart()
 	local noteChart = self.noteChart
 
 	if not self.qua then
@@ -45,7 +32,7 @@ NoteChartImporter.import = function(self)
 	self.noteCharts = {noteChart}
 end
 
-NoteChartImporter.process = function(self)
+function NoteChartImporter:process()
 	self.metaData = {}
 	self.eventParsers = {}
 	self.tempTimingDataImporters = {}
@@ -98,8 +85,8 @@ NoteChartImporter.processAudio = osuNoteChartImporter.processAudio
 NoteChartImporter.processTimingPoints = osuNoteChartImporter.processTimingPoints
 NoteChartImporter.processMeasureLines = osuNoteChartImporter.processMeasureLines
 
-NoteChartImporter.addTimingPointParser = function(self, timingPoint)
-	local timingDataImporter = TimingDataImporter:new()
+function NoteChartImporter:addTimingPointParser(timingPoint)
+	local timingDataImporter = TimingDataImporter()
 	timingDataImporter.timingPoint = timingPoint
 	timingDataImporter.noteChartImporter = self
 	timingDataImporter:init()
@@ -107,8 +94,8 @@ NoteChartImporter.addTimingPointParser = function(self, timingPoint)
 	table.insert(self.tempTimingDataImporters, timingDataImporter)
 end
 
-NoteChartImporter.addNoteParser = function(self, hitObject)
-	local noteDataImporter = NoteDataImporter:new()
+function NoteChartImporter:addNoteParser(hitObject)
+	local noteDataImporter = NoteDataImporter()
 	noteDataImporter.hitObject = hitObject
 	noteDataImporter.noteChartImporter = self
 	noteDataImporter.noteChart = self.noteChart

@@ -13,7 +13,7 @@ local Encodings = {
 	{"UTF-8//IGNORE", "SHIFT-JIS"},
 }
 
-EncodingConverter.init = function(self)
+function EncodingConverter:init()
     if self.inited then
         return
     end
@@ -28,7 +28,7 @@ EncodingConverter.init = function(self)
     self.inited = true
 end
 
-EncodingConverter.fix = function(self, line)
+function EncodingConverter:fix(line)
     self:init()
 
 	if not line then

@@ -1,29 +1,18 @@
+local class = require("class")
 local SPH = require("sph.SPH")
 local NoteChart = require("ncdk.NoteChart")
 local NoteData = require("ncdk.NoteData")
-local Fraction = require("ncdk.Fraction")
 
-local NoteChartImporter = {}
+local NoteChartImporter = class()
 
-local NoteChartImporter_metatable = {}
-NoteChartImporter_metatable.__index = NoteChartImporter
-
-NoteChartImporter.new = function(self)
-	local noteChartImporter = {}
-
-	setmetatable(noteChartImporter, NoteChartImporter_metatable)
-
-	return noteChartImporter
-end
-
-NoteChartImporter.import = function(self)
-	self.noteChart = NoteChart:new()
+function NoteChartImporter:import()
+	self.noteChart = NoteChart()
 	local noteChart = self.noteChart
 
 	local layerData = noteChart:getLayerData(1)
 	layerData:setTimeMode("interval")
 
-	local sph = SPH:new()
+	local sph = SPH()
 	sph:import(self.content:gsub("\r[\r\n]?", "\n"))
 
 	for _, interval in ipairs(sph.intervals) do
@@ -43,7 +32,7 @@ NoteChartImporter.import = function(self)
 		for i, note in ipairs(line.notes) do
 			local noteData
 			if note ~= "0" then
-				noteData = NoteData:new(timePoint)
+				noteData = NoteData(timePoint)
 				local inputType, inputIndex = inputMap[i][1], inputMap[i][2]
 
 				if note == "1" then
@@ -93,7 +82,7 @@ NoteChartImporter.import = function(self)
 	backgroundLayerData:setTimeMode("absolute")
 	local timePoint = backgroundLayerData:getTimePoint(0)
 
-	local noteData = NoteData:new(timePoint)
+	local noteData = NoteData(timePoint)
 	noteData.sounds = {{sph.metadata.audio, 1}}
 	noteData.stream = true
 	self.noteChart:addResource("sound", sph.metadata.audio, {sph.metadata.audio})

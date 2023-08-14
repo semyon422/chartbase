@@ -1,3 +1,4 @@
+local class = require("class")
 local ncdk = require("ncdk")
 local NoteChart = require("ncdk.NoteChart")
 local MetaData = require("notechart.MetaData")
@@ -5,25 +6,14 @@ local Osu = require("osu.Osu")
 local NoteDataImporter = require("osu.NoteDataImporter")
 local TimingDataImporter = require("osu.TimingDataImporter")
 
-local NoteChartImporter = {}
+local NoteChartImporter = class()
 
-local NoteChartImporter_metatable = {}
-NoteChartImporter_metatable.__index = NoteChartImporter
-
-NoteChartImporter.new = function(self)
-	local noteChartImporter = {}
-
-	setmetatable(noteChartImporter, NoteChartImporter_metatable)
-
-	return noteChartImporter
-end
-
-NoteChartImporter.import = function(self)
-	self.noteChart = NoteChart:new()
+function NoteChartImporter:import()
+	self.noteChart = NoteChart()
 	local noteChart = self.noteChart
 
 	if not self.osu then
-		self.osu = Osu:new()
+		self.osu = Osu()
 		self.osu:import(self.content:gsub("\r\n", "\n"))
 	end
 
@@ -51,7 +41,7 @@ NoteChartImporter.import = function(self)
 	self.noteCharts = {noteChart}
 end
 
-NoteChartImporter.addNoteDatas = function(self, ...)
+function NoteChartImporter:addNoteDatas(...)
 	for i = 1, select("#", ...) do
 		local noteData = select(i, ...)
 		if noteData then
@@ -60,7 +50,7 @@ NoteChartImporter.addNoteDatas = function(self, ...)
 	end
 end
 
-NoteChartImporter.process = function(self)
+function NoteChartImporter:process()
 	self.eventParsers = {}
 	self.tempTimingDataImporters = {}
 	self.timingDataImporters = {}
@@ -98,7 +88,7 @@ NoteChartImporter.process = function(self)
 	end
 end
 
-NoteChartImporter.updateLength = function(self)
+function NoteChartImporter:updateLength()
 	self.minTime = self.minTime or 0
 	self.maxTime = self.maxTime or 0
 	self.totalLength = self.maxTime - self.minTime
@@ -111,7 +101,7 @@ local compareTdi = function(a, b)
 		return a.startTime < b.startTime
 	end
 end
-NoteChartImporter.processTimingDataImporters = function(self)
+function NoteChartImporter:processTimingDataImporters()
 	local redTimingData = {}
 	local greenTimingData = {}
 
@@ -135,7 +125,7 @@ NoteChartImporter.processTimingDataImporters = function(self)
 	table.sort(self.timingDataImporters, compareTdi)
 end
 
-NoteChartImporter.updatePrimaryBPM = function(self)
+function NoteChartImporter:updatePrimaryBPM()
 	local lastTime = self.maxTime
 	local currentBeatLength = 0
 	local bpmDurations = {}
@@ -175,13 +165,13 @@ NoteChartImporter.updatePrimaryBPM = function(self)
 	self.primaryBPM = 60000 / average
 end
 
-NoteChartImporter.processAudio = function(self)
+function NoteChartImporter:processAudio()
 	local audioFileName = self.audioFileName
 
 	if audioFileName and audioFileName ~= "virtual" then
 		local timePoint = self.foregroundLayerData:getTimePoint(0)
 
-		local noteData = ncdk.NoteData:new(timePoint)
+		local noteData = ncdk.NoteData(timePoint)
 		noteData.sounds = {{audioFileName, 1}}
 		noteData.stream = true
 		self.noteChart:addResource("sound", audioFileName, {audioFileName})
@@ -191,7 +181,7 @@ NoteChartImporter.processAudio = function(self)
 	end
 end
 
-NoteChartImporter.processTimingPoints = function(self)
+function NoteChartImporter:processTimingPoints()
 	local ld = self.foregroundLayerData
 	ld:setPrimaryTempo(self.primaryBPM)
 
@@ -224,16 +214,16 @@ NoteChartImporter.processTimingPoints = function(self)
 	end
 end
 
-NoteChartImporter.addTimingPointParser = function(self, tp)
-	local timingDataImporter = TimingDataImporter:new(tp)
+function NoteChartImporter:addTimingPointParser(tp)
+	local timingDataImporter = TimingDataImporter(tp)
 	timingDataImporter.noteChartImporter = self
 	timingDataImporter:init()
 
 	table.insert(self.tempTimingDataImporters, timingDataImporter)
 end
 
-NoteChartImporter.addNoteParser = function(self, note, event)
-	local noteDataImporter = NoteDataImporter:new(note)
+function NoteChartImporter:addNoteParser(note, event)
+	local noteDataImporter = NoteDataImporter(note)
 	noteDataImporter.noteChartImporter = self
 	noteDataImporter.noteChart = self.noteChart
 	if not event then
@@ -246,7 +236,7 @@ NoteChartImporter.addNoteParser = function(self, note, event)
 	table.insert(self.noteDataImporters, noteDataImporter)
 end
 
-NoteChartImporter.processMeasureLines = function(self)
+function NoteChartImporter:processMeasureLines()
 	local currentTime = 0
 	local offset
 	local firstTdi
@@ -302,11 +292,11 @@ NoteChartImporter.processMeasureLines = function(self)
 	for _, startTime in ipairs(lines) do
 		local timePoint = self.foregroundLayerData:getTimePoint(startTime / 1000)
 
-		local startNoteData = ncdk.NoteData:new(timePoint)
+		local startNoteData = ncdk.NoteData(timePoint)
 		startNoteData.noteType = "LineNoteStart"
 		self.foregroundLayerData:addNoteData(startNoteData, "measure", 1)
 
-		local endNoteData = ncdk.NoteData:new(timePoint)
+		local endNoteData = ncdk.NoteData(timePoint)
 		endNoteData.noteType = "LineNoteEnd"
 		self.foregroundLayerData:addNoteData(endNoteData, "measure", 1)
 

@@ -1,23 +1,18 @@
+local class = require("class")
 local Fraction = require("ncdk.Fraction")
 local InputMode = require("ncdk.InputMode")
 
-local SPH = {}
-
-local mt = {__index = SPH}
+local SPH = class()
 
 function SPH:new()
-	local sph = {}
-
-	sph.metadata = {}
-	sph.lines = {}
-	sph.intervals = {}
-	sph.velocities = {}
-	sph.expands = {}
-	sph.beatOffset = -1
-	sph.expandOffset = 0
-	sph.fraction = {0, 1}
-
-	return setmetatable(sph, mt)
+	self.metadata = {}
+	self.lines = {}
+	self.intervals = {}
+	self.velocities = {}
+	self.expands = {}
+	self.beatOffset = -1
+	self.expandOffset = 0
+	self.fraction = {0, 1}
 end
 
 function SPH:import(s)
@@ -25,7 +20,7 @@ function SPH:import(s)
 	for _, line in ipairs(s:split("\n")) do
 		if line == "" and headers then
 			headers = false
-			self.inputMode = InputMode:new(self.metadata.input)
+			self.inputMode = InputMode(self.metadata.input)
 			self.columns = self.inputMode:getColumns()
 			self.inputMap = self.inputMode:getInputMap()
 		elseif headers then

@@ -1,3 +1,4 @@
+local class = require("class")
 local ncdk = require("ncdk")
 local NoteChart = require("ncdk.NoteChart")
 local MetaData = require("notechart.MetaData")
@@ -5,26 +6,15 @@ local OJM = require("o2jam.OJM")
 local OJN = require("o2jam.OJN")
 local bmsNoteChartImporter = require("bms.NoteChartImporter")
 
-local NoteChartImporter = {}
+local NoteChartImporter = class()
 
-local NoteChartImporter_metatable = {}
-NoteChartImporter_metatable.__index = NoteChartImporter
+NoteChartImporter.primaryTempo = 120
+NoteChartImporter.measureCount = 0
 
-NoteChartImporter.new = function(self)
-	local noteChartImporter = {}
-
-	noteChartImporter.primaryTempo = 120
-	noteChartImporter.measureCount = 0
-
-	setmetatable(noteChartImporter, NoteChartImporter_metatable)
-
-	return noteChartImporter
-end
-
-NoteChartImporter.import = function(self)
+function NoteChartImporter:import()
 	local noteCharts = {}
 
-	local ojn = OJN:new(self.content)
+	local ojn = OJN(self.content)
 
 	local i0, i1 = 1, 3
 	if self.index then
@@ -32,7 +22,7 @@ NoteChartImporter.import = function(self)
 	end
 
 	for i = i0, i1 do
-		local importer = NoteChartImporter:new()
+		local importer = NoteChartImporter()
 		importer.ojn = ojn
 		noteCharts[#noteCharts + 1] = importer:importSingle(i)
 	end
@@ -40,14 +30,14 @@ NoteChartImporter.import = function(self)
 	self.noteCharts = noteCharts
 end
 
-NoteChartImporter.importSingle = function(self, index)
+function NoteChartImporter:importSingle(index)
 	self.chartIndex = index
 
-	self.noteChart = NoteChart:new()
+	self.noteChart = NoteChart()
 	local noteChart = self.noteChart
 
 	if not self.ojn then
-		self.ojn = OJN:new(self.content)
+		self.ojn = OJN(self.content)
 	end
 
 	self.foregroundLayerData = noteChart:getLayerData(1)
@@ -74,13 +64,13 @@ end
 
 NoteChartImporter.updateLength = bmsNoteChartImporter.updateLength
 
-NoteChartImporter.addFirstTempo = function(self)
+function NoteChartImporter:addFirstTempo()
 	local ld = self.foregroundLayerData
-	local measureTime = ncdk.Fraction:new(0)
+	local measureTime = ncdk.Fraction(0)
 	ld:insertTempoData(measureTime, self.ojn.bpm)
 end
 
-NoteChartImporter.processData = function(self)
+function NoteChartImporter:processData()
 	local longNoteData = {}
 
 	self.noteCount = 0
@@ -94,7 +84,7 @@ NoteChartImporter.processData = function(self)
 	local measureCount = self.ojn.charts[self.chartIndex].measure_count
 
 	for _, event in ipairs(self.ojn.charts[self.chartIndex].event_list) do
-		local measureTime = ncdk.Fraction:new(event.measure + event.position, 1000, true)
+		local measureTime = ncdk.Fraction(event.measure + event.position, 1000, true)
 		if event.measure < 0 or event.measure > measureCount * 2 then
 			-- ignore
 		elseif event.channel == "BPM_CHANGE" then
@@ -111,7 +101,7 @@ NoteChartImporter.processData = function(self)
 		elseif event.channel:find("NOTE") or event.channel:find("AUTO") then
 			local timePoint = ld:getTimePoint(measureTime)
 
-			local noteData = ncdk.NoteData:new(timePoint)
+			local noteData = ncdk.NoteData(timePoint)
 			local inputType = event.channel:find("NOTE") and "key" or "auto"
 			local inputIndex = event.channel:find("NOTE") and tonumber(event.channel:sub(-1, -1)) or 0
 
@@ -155,16 +145,16 @@ NoteChartImporter.processData = function(self)
 	end
 end
 
-NoteChartImporter.processMeasureLines = function(self)
+function NoteChartImporter:processMeasureLines()
 	for measureIndex = 0, self.measureCount do
-		local measureTime = ncdk.Fraction:new(measureIndex)
+		local measureTime = ncdk.Fraction(measureIndex)
 		local timePoint = self.foregroundLayerData:getTimePoint(measureTime)
 
-		local startNoteData = ncdk.NoteData:new(timePoint)
+		local startNoteData = ncdk.NoteData(timePoint)
 		startNoteData.noteType = "LineNoteStart"
 		self.foregroundLayerData:addNoteData(startNoteData, "measure", 1)
 
-		local endNoteData = ncdk.NoteData:new(timePoint)
+		local endNoteData = ncdk.NoteData(timePoint)
 		endNoteData.noteType = "LineNoteEnd"
 		self.foregroundLayerData:addNoteData(endNoteData, "measure", 1)
 

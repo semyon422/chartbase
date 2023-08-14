@@ -1,24 +1,15 @@
+local class = require("class")
 local ffi = require("ffi")
 local bit = require("bit")
 local byte = require("byte")
 
-local OJN = {}
+local OJN = class()
 
-local OJN_metatable = {}
-OJN_metatable.__index = OJN
-
-OJN.new = function(self, ojnString)
-	local ojn = {}
-
-	ojn.buffer = byte.buffer_t(ffi.cast("unsigned char *", ojnString), #ojnString)
-	ojn.charts = {{}, {}, {}}
-
-	setmetatable(ojn, OJN_metatable)
-	ojn:process()
-
-	ojn.buffer = nil
-
-	return ojn
+function OJN:new(ojnString)
+	self.buffer = byte.buffer_t(ffi.cast("unsigned char *", ojnString), #ojnString)
+	self.charts = {{}, {}, {}}
+	self:process()
+	self.buffer = nil
 end
 
 OJN.genre_map = {
@@ -35,7 +26,7 @@ OJN.genre_map = {
 	"Etc"
 }
 
-OJN.process = function(self)
+function OJN:process()
 	local buffer = self.buffer
 	local encrypt = buffer:seek(0):string(3)
 	if encrypt == "new" then
@@ -50,7 +41,7 @@ OJN.process = function(self)
 end
 
 -- https://github.com/SirusDoma/O2MusicList/blob/master/Source/Decoders/OJNDecoder.cs
-OJN.decrypt = function(self)
+function OJN:decrypt()
 	local buffer = self.buffer
 	buffer:seek(0)
 	local input = buffer.pointer
@@ -81,7 +72,7 @@ OJN.decrypt = function(self)
 	return outputBuffer
 end
 
-OJN.readHeader = function(self)
+function OJN:readHeader()
 	local buffer = self.buffer
 	buffer:seek(0)
 
@@ -157,7 +148,7 @@ local channel_names = {
 	[8] = "NOTE_7",
 }
 
-OJN.readChart = function(self, chart)
+function OJN:readChart(chart)
 	local buffer = self.buffer:seek(chart.note_offset)
 	chart.event_list = {}
 

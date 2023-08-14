@@ -1,26 +1,15 @@
-local ncdk = require("ncdk")
-local NoteChart = require("ncdk.NoteChart")
-local Osu = require("osu.Osu")
+local class = require("class")
 local NoteDataExporter = require("osu.NoteDataExporter")
 local TimingDataExporter = require("osu.TimingDataExporter")
 local mappings = require("osu.exportKeyMappings")
 
-local NoteChartExporter = {}
+local NoteChartExporter = class()
 
-local NoteChartExporter_metatable = {}
-NoteChartExporter_metatable.__index = NoteChartExporter
-
-NoteChartExporter.new = function(self)
-	local noteChartExporter = {}
-
-	noteChartExporter.metaData = {}
-
-	setmetatable(noteChartExporter, NoteChartExporter_metatable)
-
-	return noteChartExporter
+function NoteChartExporter:new()
+	self.metaData = {}
 end
 
-NoteChartExporter.export = function(self)
+function NoteChartExporter:export()
 	local inputMode = self.noteChart.inputMode
 	self.mappings = mappings[tostring(inputMode)]
 	if not self.mappings then
@@ -45,7 +34,7 @@ NoteChartExporter.export = function(self)
 	return table.concat(self.lines, "\n")
 end
 
-NoteChartExporter.loadNotes = function(self)
+function NoteChartExporter:loadNotes()
 	local events = self.events
 	local hitObjects = self.hitObjects
 
@@ -75,7 +64,7 @@ NoteChartExporter.loadNotes = function(self)
 	table.sort(_noteDatas)
 	table.sort(samples)
 
-	local nde = NoteDataExporter:new()
+	local nde = NoteDataExporter()
 	nde.mappings = self.mappings
 	for _, noteData in ipairs(_noteDatas) do
 		nde.noteData = noteData
@@ -88,7 +77,7 @@ NoteChartExporter.loadNotes = function(self)
 	end
 end
 
-NoteChartExporter.addHeader = function(self)
+function NoteChartExporter:addHeader()
 	local lines = self.lines
 	local noteChartDataEntry = self.noteChartDataEntry
 
@@ -135,7 +124,7 @@ NoteChartExporter.addHeader = function(self)
 	lines[#lines + 1] = ""
 end
 
-NoteChartExporter.addEvents = function(self)
+function NoteChartExporter:addEvents()
 	local lines = self.lines
 	local events = self.events
 	local noteChartDataEntry = self.noteChartDataEntry
@@ -165,12 +154,12 @@ end
 local sortTimingStates = function(a, b)
 	return a.time < b.time
 end
-NoteChartExporter.addTimingPoints = function(self)
+function NoteChartExporter:addTimingPoints()
 	local timingStates = {}
 
 	local layerData = self.noteChart:getLayerData(1)
 	for tempoDataIndex = 1, layerData:getTempoDataCount() do
-		local tde = TimingDataExporter:new()
+		local tde = TimingDataExporter()
 		tde.tempoData = layerData:getTempoData(tempoDataIndex)
 
 		local time = tde.tempoData.timePoint.absoluteTime
@@ -178,7 +167,7 @@ NoteChartExporter.addTimingPoints = function(self)
 		timingStates[time].tempo = tde
 	end
 	for stopDataIndex = 1, layerData:getStopDataCount() do
-		local tde = TimingDataExporter:new()
+		local tde = TimingDataExporter()
 		tde.stopData = layerData:getStopData(stopDataIndex)
 
 		local time = tde.stopData.leftTimePoint.absoluteTime
@@ -186,7 +175,7 @@ NoteChartExporter.addTimingPoints = function(self)
 		timingStates[time].stop = tde
 	end
 	for velocityDataIndex = 1, layerData:getVelocityDataCount() do
-		local tde = TimingDataExporter:new()
+		local tde = TimingDataExporter()
 		tde.velocityData = layerData:getVelocityData(velocityDataIndex)
 
 		local time = tde.velocityData.timePoint.absoluteTime
@@ -194,7 +183,7 @@ NoteChartExporter.addTimingPoints = function(self)
 		timingStates[time].velocity = tde
 	end
 	for intervalDataIndex = 1, layerData:getIntervalDataCount() - 1 do
-		local tde = TimingDataExporter:new()
+		local tde = TimingDataExporter()
 		tde.intervalData = layerData:getIntervalData(intervalDataIndex)
 
 		local time = tde.intervalData.timePoint.absoluteTime
@@ -231,7 +220,7 @@ NoteChartExporter.addTimingPoints = function(self)
 	lines[#lines + 1] = ""
 end
 
-NoteChartExporter.addHitObjects = function(self)
+function NoteChartExporter:addHitObjects()
 	local lines = self.lines
 	local hitObjects = self.hitObjects
 

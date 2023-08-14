@@ -1,17 +1,8 @@
-local TimingDataImporter = {}
+local class = require("class")
 
-local TimingDataImporter_metatable = {}
-TimingDataImporter_metatable.__index = TimingDataImporter
+local TimingDataImporter = class()
 
-TimingDataImporter.new = function(self, tp)
-	local timingDataImporter = tp or {}
-	
-	setmetatable(timingDataImporter, TimingDataImporter_metatable)
-	
-	return timingDataImporter
-end
-
-TimingDataImporter.init = function(self)
+function TimingDataImporter:init()
 	self.startTime = self.offset
 end
 

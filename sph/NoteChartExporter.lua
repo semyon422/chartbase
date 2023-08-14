@@ -1,17 +1,7 @@
+local class = require("class")
 local Fraction = require("ncdk.Fraction")
 
-local NoteChartExporter = {}
-
-local NoteChartExporter_metatable = {}
-NoteChartExporter_metatable.__index = NoteChartExporter
-
-NoteChartExporter.new = function(self)
-	local noteChartExporter = {}
-
-	setmetatable(noteChartExporter, NoteChartExporter_metatable)
-
-	return noteChartExporter
-end
+local NoteChartExporter = class()
 
 local headerLines = {
 	{"title", "title"},
@@ -35,7 +25,7 @@ local noteTypeMap = {
 	SoundNote = 4,
 }
 
-NoteChartExporter.checkEmpty = function(self, t)
+function NoteChartExporter:checkEmpty(t)
 	return
 		not t._intervalData and
 		not t._velocityData and
@@ -44,7 +34,7 @@ NoteChartExporter.checkEmpty = function(self, t)
 		not (t.noteDatas and next(t.noteDatas))
 end
 
-NoteChartExporter.getLine = function(self, timePoint)
+function NoteChartExporter:getLine(timePoint)
 	if self:checkEmpty(timePoint) then
 		return
 	end
@@ -70,7 +60,7 @@ local function formatNumber(n)
 		return "1/0"
 	end
 	if type(n) == "number" then
-		n = Fraction:new(n, 192, false)
+		n = Fraction(n, 192, false)
 	end
 	if n[2] == 1 then
 		return n[1]
@@ -78,7 +68,7 @@ local function formatNumber(n)
 	return n[1] .. "/" .. n[2]
 end
 
-NoteChartExporter.export = function(self)
+function NoteChartExporter:export()
 	local noteChart = self.noteChart
 	local lines = {}
 
@@ -116,7 +106,7 @@ NoteChartExporter.export = function(self)
 	local currentTime = timePoint.globalTime
 	local prevTime = nil
 	while timePoint do
-		local targetTime = Fraction:new(currentTime:floor() + 1)
+		local targetTime = Fraction(currentTime:floor() + 1)
 		if timePoint.globalTime < targetTime then
 			targetTime = timePoint.globalTime
 		end

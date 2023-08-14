@@ -1,11 +1,11 @@
-local bms		= require("bms")
-local ksm		= require("ksm")
-local o2jam		= require("o2jam")
-local osu		= require("osu")
-local quaver	= require("quaver")
-local sph		= require("sph")
-local midi		= require("midi")
-local stepmania	= require("stepmania")
+local bms = require("bms")
+local ksm = require("ksm")
+local o2jam = require("o2jam")
+local osu = require("osu")
+local quaver = require("quaver")
+local sph = require("sph")
+local midi = require("midi")
+local stepmania = require("stepmania")
 
 local NoteChartFactory = {}
 
@@ -42,28 +42,28 @@ local NoteChartImporters = {
 	sm = stepmania.NoteChartImporter
 }
 
-NoteChartFactory.isRelatedContainer = function(self, path)
+function NoteChartFactory:isRelatedContainer(path)
 	return RelatedContainerExtensions[path:lower():match("^.+%.(.-)$")]
 end
 
-NoteChartFactory.isUnrelatedContainer = function(self, path)
+function NoteChartFactory:isUnrelatedContainer(path)
 	return UnrelatedContainerExtensions[path:lower():match("^.+%.(.-)$")]
 end
 
-NoteChartFactory.getNoteChartImporter = function(self, path)
+function NoteChartFactory:getNoteChartImporter(path)
 	return NoteChartImporters[path:lower():match("^.+%.(.-)$")]
 end
 
-NoteChartFactory.deleteBOM = function(self, content)
+function NoteChartFactory:deleteBOM(content)
 	if content:sub(1, 3) == string.char(0xEF, 0xBB, 0xBF) then
 		return content:sub(4, -1)
 	end
 	return content
 end
 
-NoteChartFactory.getNoteCharts = function(self, path, content, index, settings)
+function NoteChartFactory:getNoteCharts(path, content, index, settings)
 	local NoteChartImporter = assert(self:getNoteChartImporter(path), "Importer is not found for " .. path)
-	local importer = NoteChartImporter:new()
+	local importer = NoteChartImporter()
 
 	importer.path = path
 	importer.content = self:deleteBOM(content)
