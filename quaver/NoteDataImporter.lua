@@ -1,6 +1,8 @@
 local class = require("class")
 local osuNoteDataImporter = require("osu.NoteDataImporter")
 
+---@class quaver.NoteDataImporter
+---@operator call: quaver.NoteDataImporter
 local NoteDataImporter = class()
 
 NoteDataImporter.inputType = "key"

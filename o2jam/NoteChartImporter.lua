@@ -2,10 +2,11 @@ local class = require("class")
 local ncdk = require("ncdk")
 local NoteChart = require("ncdk.NoteChart")
 local MetaData = require("notechart.MetaData")
-local OJM = require("o2jam.OJM")
 local OJN = require("o2jam.OJN")
 local bmsNoteChartImporter = require("bms.NoteChartImporter")
 
+---@class o2jam.NoteChartImporter
+---@operator call: o2jam.NoteChartImporter
 local NoteChartImporter = class()
 
 NoteChartImporter.primaryTempo = 120
@@ -30,6 +31,8 @@ function NoteChartImporter:import()
 	self.noteCharts = noteCharts
 end
 
+---@param index number
+---@return ncdk.NoteChart
 function NoteChartImporter:importSingle(index)
 	self.chartIndex = index
 

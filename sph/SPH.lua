@@ -2,6 +2,8 @@ local class = require("class")
 local Fraction = require("ncdk.Fraction")
 local InputMode = require("ncdk.InputMode")
 
+---@class sph.SPH
+---@operator call: sph.SPH
 local SPH = class()
 
 function SPH:new()
@@ -15,6 +17,7 @@ function SPH:new()
 	self.fraction = {0, 1}
 end
 
+---@param s string
 function SPH:import(s)
 	local headers = true
 	for _, line in ipairs(s:split("\n")) do
@@ -33,7 +36,10 @@ function SPH:import(s)
 	self:updateTime()
 end
 
-
+---@param s string
+---@return ncdk.Fraction?
+---@return number
+---@return number
 function SPH:parseNumber(s)
 	local sign = 1
 	local signLength = 0
@@ -70,6 +76,7 @@ function SPH:parseNumber(s)
 	return Fraction(0), 0, 0
 end
 
+---@param s string
 function SPH:processLine(s)
 	local expanded
 	if s:sub(1, 1) == "." then
@@ -205,6 +212,8 @@ input=4key
 0000=1
 ]]
 
+---@param info table
+---@return string
 function SPH:getDefault(info)
 	local chart = defaultChart
 	for k, v in pairs(info) do

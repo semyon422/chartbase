@@ -7,6 +7,8 @@ local class = require("class")
 local NoteDataImporter = require("quaver.NoteDataImporter")
 local TimingDataImporter = require("quaver.TimingDataImporter")
 
+---@class quaver.NoteChartImporter
+---@operator call: quaver.NoteChartImporter
 local NoteChartImporter = class()
 
 function NoteChartImporter:import()
@@ -85,6 +87,7 @@ NoteChartImporter.processAudio = osuNoteChartImporter.processAudio
 NoteChartImporter.processTimingPoints = osuNoteChartImporter.processTimingPoints
 NoteChartImporter.processMeasureLines = osuNoteChartImporter.processMeasureLines
 
+---@param timingPoint table
 function NoteChartImporter:addTimingPointParser(timingPoint)
 	local timingDataImporter = TimingDataImporter()
 	timingDataImporter.timingPoint = timingPoint
@@ -94,6 +97,7 @@ function NoteChartImporter:addTimingPointParser(timingPoint)
 	table.insert(self.tempTimingDataImporters, timingDataImporter)
 end
 
+---@param hitObject table
 function NoteChartImporter:addNoteParser(hitObject)
 	local noteDataImporter = NoteDataImporter()
 	noteDataImporter.hitObject = hitObject

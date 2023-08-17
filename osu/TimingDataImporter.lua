@@ -1,5 +1,7 @@
 local class = require("class")
 
+---@class osu.TimingDataImporter
+---@operator call: osu.TimingDataImporter
 local TimingDataImporter = class()
 
 function TimingDataImporter:init()

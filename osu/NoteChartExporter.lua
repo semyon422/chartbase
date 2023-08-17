@@ -3,12 +3,15 @@ local NoteDataExporter = require("osu.NoteDataExporter")
 local TimingDataExporter = require("osu.TimingDataExporter")
 local mappings = require("osu.exportKeyMappings")
 
+---@class osu.NoteChartExporter
+---@operator call: osu.NoteChartExporter
 local NoteChartExporter = class()
 
 function NoteChartExporter:new()
 	self.metaData = {}
 end
 
+---@return string
 function NoteChartExporter:export()
 	local inputMode = self.noteChart.inputMode
 	self.mappings = mappings[tostring(inputMode)]
@@ -151,9 +154,13 @@ function NoteChartExporter:addEvents()
 	lines[#lines + 1] = ""
 end
 
-local sortTimingStates = function(a, b)
+---@param a table
+---@param b table
+---@return boolean
+local function sortTimingStates(a, b)
 	return a.time < b.time
 end
+
 function NoteChartExporter:addTimingPoints()
 	local timingStates = {}
 

@@ -1,5 +1,7 @@
 local class = require("class")
 
+---@class quaver.TimingDataImporter
+---@operator call: quaver.TimingDataImporter
 local TimingDataImporter = class()
 
 function TimingDataImporter:init()

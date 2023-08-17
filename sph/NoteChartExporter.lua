@@ -1,6 +1,8 @@
 local class = require("class")
 local Fraction = require("ncdk.Fraction")
 
+---@class sph.NoteChartExporter
+---@operator call: sph.NoteChartExporter
 local NoteChartExporter = class()
 
 local headerLines = {
@@ -25,6 +27,8 @@ local noteTypeMap = {
 	SoundNote = 4,
 }
 
+---@param t table
+---@return boolean
 function NoteChartExporter:checkEmpty(t)
 	return
 		not t._intervalData and
@@ -34,6 +38,8 @@ function NoteChartExporter:checkEmpty(t)
 		not (t.noteDatas and next(t.noteDatas))
 end
 
+---@param timePoint table
+---@return string?
 function NoteChartExporter:getLine(timePoint)
 	if self:checkEmpty(timePoint) then
 		return
@@ -55,6 +61,8 @@ function NoteChartExporter:getLine(timePoint)
 	return table.concat(notes)
 end
 
+---@param n number
+---@return string
 local function formatNumber(n)
 	if n == math.huge then
 		return "1/0"
@@ -68,6 +76,7 @@ local function formatNumber(n)
 	return n[1] .. "/" .. n[2]
 end
 
+---@return string
 function NoteChartExporter:export()
 	local noteChart = self.noteChart
 	local lines = {}

@@ -42,18 +42,26 @@ local NoteChartImporters = {
 	sm = stepmania.NoteChartImporter
 }
 
+---@param path string
+---@return boolean?
 function NoteChartFactory:isRelatedContainer(path)
 	return RelatedContainerExtensions[path:lower():match("^.+%.(.-)$")]
 end
 
+---@param path string
+---@return boolean?
 function NoteChartFactory:isUnrelatedContainer(path)
 	return UnrelatedContainerExtensions[path:lower():match("^.+%.(.-)$")]
 end
 
+---@param path string
+---@return table
 function NoteChartFactory:getNoteChartImporter(path)
 	return NoteChartImporters[path:lower():match("^.+%.(.-)$")]
 end
 
+---@param content string
+---@return string
 function NoteChartFactory:deleteBOM(content)
 	if content:sub(1, 3) == string.char(0xEF, 0xBB, 0xBF) then
 		return content:sub(4, -1)
@@ -61,6 +69,12 @@ function NoteChartFactory:deleteBOM(content)
 	return content
 end
 
+---@param path string
+---@param content string
+---@param index number
+---@param settings table?
+---@return boolean
+---@return table|string
 function NoteChartFactory:getNoteCharts(path, content, index, settings)
 	local NoteChartImporter = assert(self:getNoteChartImporter(path), "Importer is not found for " .. path)
 	local importer = NoteChartImporter()

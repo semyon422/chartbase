@@ -2,6 +2,12 @@ local NoteChartFactory = require("notechart.NoteChartFactory")
 
 local NoteChartDataEntryFactory = {}
 
+---@param path string
+---@param content string
+---@param hash string
+---@param noteChartEntry table
+---@return table?
+---@return table?
 function NoteChartDataEntryFactory:getEntries(path, content, hash, noteChartEntry)
 	print(path)
 	local status, noteCharts = NoteChartFactory:getNoteCharts(path, content)

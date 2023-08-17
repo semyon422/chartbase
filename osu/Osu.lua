@@ -1,5 +1,7 @@
 local class = require("class")
 
+---@class osu.Osu
+---@operator call: osu.Osu
 local Osu = class()
 
 Osu.keymode = 4
@@ -12,6 +14,7 @@ function Osu:new()
 	self.hitObjects = {}
 end
 
+---@param noteChartString string
 function Osu:import(noteChartString)
 	self.noteChartString = noteChartString
 	self:setDefaultMetadata()
@@ -42,6 +45,7 @@ function Osu:postProcess()
 	end
 end
 
+---@param line string
 function Osu:processLine(line)
 	if line:find("^%[") then
 		local currentBlockName, lineEnd = line:match("^%[(.+)%](.*)$")
@@ -62,6 +66,7 @@ function Osu:processLine(line)
 	end
 end
 
+---@param line string
 function Osu:addMetadata(line)
 	local key, value = line:match("^(%a+):%s?(.*)")
 	self.metadata[key] = value
@@ -73,6 +78,7 @@ function Osu:addMetadata(line)
 	end
 end
 
+---@param line string
 function Osu:addEvent(line)
 	local split = line:split(",")
 
@@ -90,6 +96,7 @@ function Osu:addEvent(line)
 	end
 end
 
+---@param line string
 function Osu:addTimingPoint(line)
 	local split = line:split(",")
 	local tp = {}
@@ -134,6 +141,7 @@ function Osu:addTimingPoint(line)
 	self.timingPoints[#self.timingPoints + 1] = tp
 end
 
+---@param line string
 function Osu:addHitObject(line)
 	local split = line:split(",")
 	local note = {}
@@ -203,6 +211,7 @@ local soundBits = {
 	{0, "normal"}
 }
 
+---@param note table
 function Osu:setSounds(note)
 	note.sounds = {}
 	note.fallbackSounds = {}
@@ -257,6 +266,8 @@ function Osu:setSounds(note)
 	end
 end
 
+---@param id number
+---@return string
 function Osu:getSampleSetName(id)
 	if id == 0 then
 		return "none"

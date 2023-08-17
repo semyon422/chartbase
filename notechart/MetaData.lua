@@ -1,6 +1,5 @@
 local EncodingConverter = require("notechart.EncodingConverter")
 
-local bracketFind = "%s.+%s$"
 local bracketMatch = "%s(.+)%s$"
 local brackets = {
 	{"%[", "%]"},
@@ -12,16 +11,23 @@ local brackets = {
 	{"~", "~"}
 }
 
+---@param name string
+---@return string
+---@return number
 local function trimName(name)
 	for i = 1, #brackets do
 		local lb, rb = brackets[i][1], brackets[i][2]
-		if name:find(bracketFind:format(lb, rb)) then
-			return name:match(bracketMatch:format(lb, rb)), name:find(bracketFind:format(lb, rb))
+		local start, _, _name = name:find(bracketMatch:format(lb, rb))
+		if start then
+			return _name, start
 		end
 	end
 	return name, #name + 1
 end
 
+---@param title string
+---@return string
+---@return string
 local function splitTitle(title)
 	local name, bracketStart = trimName(title)
 	return title:sub(1, bracketStart - 1), name

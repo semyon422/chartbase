@@ -1,5 +1,7 @@
 local class = require("class")
 
+---@class ksm.Ksh
+---@operator call: ksm.Ksh
 local Ksh = class()
 
 Ksh.laserPosString = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmno"
@@ -22,10 +24,11 @@ function Ksh:new()
 	self.direction = {}
 end
 
+---@param noteChartString string
 function Ksh:import(noteChartString)
 	self.noteChartString = noteChartString
 
-	self.measureStrings = noteChartString:split("\n--\n", true)
+	self.measureStrings = noteChartString:split("\n--\n")
 	self.measureStrings[#self.measureStrings + 1] = "0000|00|--"
 
 	for measureIndex = 1, #self.measureStrings - 1 do

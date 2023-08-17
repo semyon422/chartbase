@@ -6,6 +6,8 @@ local Osu = require("osu.Osu")
 local NoteDataImporter = require("osu.NoteDataImporter")
 local TimingDataImporter = require("osu.TimingDataImporter")
 
+---@class osu.NoteChartImporter
+---@operator call: osu.NoteChartImporter
 local NoteChartImporter = class()
 
 function NoteChartImporter:import()
@@ -41,6 +43,7 @@ function NoteChartImporter:import()
 	self.noteCharts = {noteChart}
 end
 
+---@param ... ncdk.NoteData?
 function NoteChartImporter:addNoteDatas(...)
 	for i = 1, select("#", ...) do
 		local noteData = select(i, ...)
@@ -94,13 +97,16 @@ function NoteChartImporter:updateLength()
 	self.totalLength = self.maxTime - self.minTime
 end
 
-local compareTdi = function(a, b)
+---@param a table
+---@param b table
+---@return boolean
+local function compareTdi(a, b)
 	if a.startTime == b.startTime then
 		return a.timingChange and a.timingChange ~= b.timingChange
-	else
-		return a.startTime < b.startTime
 	end
+	return a.startTime < b.startTime
 end
+
 function NoteChartImporter:processTimingDataImporters()
 	local redTimingData = {}
 	local greenTimingData = {}
@@ -214,6 +220,7 @@ function NoteChartImporter:processTimingPoints()
 	end
 end
 
+---@param tp table
 function NoteChartImporter:addTimingPointParser(tp)
 	local timingDataImporter = TimingDataImporter(tp)
 	timingDataImporter.noteChartImporter = self
@@ -222,6 +229,8 @@ function NoteChartImporter:addTimingPointParser(tp)
 	table.insert(self.tempTimingDataImporters, timingDataImporter)
 end
 
+---@param note table
+---@param event table
 function NoteChartImporter:addNoteParser(note, event)
 	local noteDataImporter = NoteDataImporter(note)
 	noteDataImporter.noteChartImporter = self
@@ -237,7 +246,6 @@ function NoteChartImporter:addNoteParser(note, event)
 end
 
 function NoteChartImporter:processMeasureLines()
-	local currentTime = 0
 	local offset
 	local firstTdi
 	for i = 1, #self.timingDataImporters do

@@ -4,6 +4,8 @@ local NoteChart = require("ncdk.NoteChart")
 local MetaData = require("notechart.MetaData")
 local SM = require("stepmania.SM")
 
+---@class stepmania.NoteChartImporter
+---@operator call: stepmania.NoteChartImporter
 local NoteChartImporter = class()
 
 function NoteChartImporter:import()
@@ -30,6 +32,7 @@ function NoteChartImporter:import()
 	self.noteCharts = noteCharts
 end
 
+---@return ncdk.NoteChart
 function NoteChartImporter:importSingle()
 	self.noteChart = NoteChart()
 	local noteChart = self.noteChart

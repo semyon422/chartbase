@@ -5,6 +5,8 @@ local NoteChart = require("ncdk.NoteChart")
 local MetaData = require("notechart.MetaData")
 local MID = require("midi.MID")
 
+---@class midi.NoteChartImporter
+---@operator call: midi.NoteChartImporter
 local NoteChartImporter = class()
 
 function NoteChartImporter:new()
@@ -57,6 +59,8 @@ function NoteChartImporter:fillKeys()
 	self.keys = keys
 end
 
+---@param index number
+---@return ncdk.LayerData
 function NoteChartImporter:createLayerData(index)
 	index = index or #self.layerDatas + 1
 
@@ -76,6 +80,9 @@ function NoteChartImporter:createLayerData(index)
 	return layerData
 end
 
+---@param trackIndex number
+---@param layerData ncdk.LayerData
+---@param addedNotes table
 function NoteChartImporter:processData(trackIndex, layerData, addedNotes)
 	local notes = self.mid.notes
 	local noteChart = self.noteCharts[1]

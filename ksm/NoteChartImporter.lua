@@ -5,12 +5,14 @@ local MetaData = require("notechart.MetaData")
 local Ksh = require("ksm.Ksh")
 local bmsNoteChartImporter = require("bms.NoteChartImporter")
 
+---@class ksm.NoteChartImporter
+---@operator call: ksm.NoteChartImporter
 local NoteChartImporter = class()
 
 NoteChartImporter.primaryTempo = 120
 NoteChartImporter.measureCount = 0
 
-function NoteChartImporter:import(noteChartString)
+function NoteChartImporter:import()
 	self.noteChart = NoteChart()
 	local noteChart = self.noteChart
 

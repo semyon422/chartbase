@@ -3,6 +3,8 @@ local SPH = require("sph.SPH")
 local NoteChart = require("ncdk.NoteChart")
 local NoteData = require("ncdk.NoteData")
 
+---@class sph.NoteChartImporter
+---@operator call: sph.NoteChartImporter
 local NoteChartImporter = class()
 
 function NoteChartImporter:import()

@@ -7,6 +7,8 @@ local BMS = require("bms.BMS")
 local EncodingConverter = require("notechart.EncodingConverter")
 local dpairs = require("dpairs")
 
+---@class bms.NoteChartImporter
+---@operator call: bms.NoteChartImporter
 local NoteChartImporter = class()
 
 function NoteChartImporter:import()
@@ -82,6 +84,7 @@ function NoteChartImporter:updateLength()
 	end
 end
 
+---@param timeData table
 function NoteChartImporter:setTempo(timeData)
 	if not timeData[enums.BackChannelEnum["Tempo"]] then
 		return
@@ -91,6 +94,8 @@ function NoteChartImporter:setTempo(timeData)
 	ld:insertTempoData(timeData.measureTime, tempo)
 end
 
+---@param timeData table
+---@return boolean?
 function NoteChartImporter:setExtendedTempo(timeData)
 	if not timeData[enums.BackChannelEnum["ExtendedTempo"]] then
 		return
@@ -107,6 +112,7 @@ function NoteChartImporter:setExtendedTempo(timeData)
 	return true
 end
 
+---@param timeData table
 function NoteChartImporter:setStop(timeData)
 	if not timeData[enums.BackChannelEnum["Stop"]] then
 		return

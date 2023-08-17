@@ -1,6 +1,8 @@
 local class = require("class")
 local ncdk = require("ncdk")
 
+---@class osu.NoteDataImporter
+---@operator call: osu.NoteDataImporter
 local NoteDataImporter = class()
 
 NoteDataImporter.inputType = "key"
@@ -40,6 +42,8 @@ function NoteDataImporter:initEvent()
 	self.inputIndex = 0
 end
 
+---@return ncdk.NoteData
+---@return ncdk.NoteData?
 function NoteDataImporter:getNoteData()
 	local startNoteData, endNoteData
 

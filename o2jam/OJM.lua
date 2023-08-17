@@ -2,8 +2,12 @@ local class = require("class")
 local byte = require("byte")
 local bit = require("bit")
 
+---@class o2jam.OJM
+---@operator call: o2jam.OJM
 local OJM = class()
 
+---@param pointer string|ffi.cdata*
+---@param size number?
 function OJM:new(pointer, size)
 	if type(pointer) == "string" then
 		self.buffer = byte.buffer(#pointer):fill(pointer):seek(0)
@@ -267,7 +271,6 @@ function OJM:OMC_xor(buf)
 			self.acc_keybyte = temp
 		end
 	end
-	return buf
 end
 
 return OJM

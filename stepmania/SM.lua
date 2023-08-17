@@ -1,5 +1,7 @@
 local class = require("class")
 
+---@class stepmania.SM
+---@operator call: stepmania.SM
 local SM = class()
 
 function SM:new()
@@ -22,6 +24,8 @@ function SM:newChart()
 	table.insert(self.charts, chart)
 end
 
+---@param noteChartString string
+---@param path string
 function SM:import(noteChartString, path)
 	self.path = path
 
@@ -30,6 +34,7 @@ function SM:import(noteChartString, path)
 	end
 end
 
+---@param line string
 function SM:processLine(line)
 	local chart = self.chart
 	if self.parsingBpm then
@@ -69,6 +74,7 @@ function SM:processLine(line)
 	end
 end
 
+---@param line string
 function SM:processHeaderLine(line)
 	local key, value = line:match("^#(%S+):(.*);$")
 	if not key then
@@ -94,6 +100,7 @@ function SM:processHeaderLine(line)
 	end
 end
 
+---@return string
 function SM:findBackgroundFile()
 	local directory = self.path:match("(.*".."/"..")")
 	local files = love.filesystem.getDirectoryItems(directory)
@@ -109,6 +116,7 @@ function SM:findBackgroundFile()
 	return ""
 end
 
+---@param line string
 function SM:processBPM(line)
 	local tempoValues = line:split(",")
 	for _, tempoValue in ipairs(tempoValues) do
@@ -128,6 +136,7 @@ function SM:processBPM(line)
 	end
 end
 
+---@param line string
 function SM:processSTOP(line)
 	local stopValues = line:split(",")
 	for _, stopValue in ipairs(stopValues) do
@@ -150,6 +159,7 @@ function SM:processCommaLine()
 	chart.offset = 0
 end
 
+---@param line string
 function SM:processNotesLine(line)
 	local chart = self.chart
 	if tonumber(line) then

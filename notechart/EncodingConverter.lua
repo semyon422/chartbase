@@ -28,6 +28,8 @@ function EncodingConverter:init()
     self.inited = true
 end
 
+---@param line string
+---@return string
 function EncodingConverter:fix(line)
     self:init()
 
@@ -35,15 +37,16 @@ function EncodingConverter:fix(line)
 		return ""
 	elseif utf8validate(line) == line then
 		return line
-	else
-		local validLine
-		for i, cd in ipairs(self.conversionDescriptors) do
-			validLine = cd:convert(line)
-			if validLine then break end
-		end
-		validLine = validLine or "<conversion error>"
-		return utf8validate(validLine)
 	end
+
+	local validLine
+	for i, cd in ipairs(self.conversionDescriptors) do
+		validLine = cd:convert(line)
+		if validLine then break end
+	end
+	validLine = validLine or "<conversion error>"
+
+	return utf8validate(validLine)
 end
 
 return EncodingConverter

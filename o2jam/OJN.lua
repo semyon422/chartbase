@@ -3,8 +3,11 @@ local ffi = require("ffi")
 local bit = require("bit")
 local byte = require("byte")
 
+---@class o2jam.OJN
+---@operator call: o2jam.OJN
 local OJN = class()
 
+---@param ojnString string
 function OJN:new(ojnString)
 	self.buffer = byte.buffer_t(ffi.cast("unsigned char *", ojnString), #ojnString)
 	self.charts = {{}, {}, {}}
@@ -41,6 +44,8 @@ function OJN:process()
 end
 
 -- https://github.com/SirusDoma/O2MusicList/blob/master/Source/Decoders/OJNDecoder.cs
+
+---@return ffi.cdata*
 function OJN:decrypt()
 	local buffer = self.buffer
 	buffer:seek(0)

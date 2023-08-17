@@ -1,8 +1,11 @@
 local class = require("class")
 local MidiLua = require("MIDI")
 
+---@class midi.MID
+---@operator call: midi.MID
 local MID = class()
 
+---@param midString string
 function MID:new(midString)
     local opus = MidiLua.midi2opus(midString)
 

@@ -1,10 +1,14 @@
 local class = require("class")
 
+---@class osu.NoteDataExporter
+---@operator call: osu.NoteDataExporter
 local NoteDataExporter = class()
 
 local hitObjectString = "%s,%s,%s,%s,0,%s"
 local shortAddition = "0:0:0:0:%s"
 local longAddition = "%s:0:0:0:0:%s"
+
+---@return string?
 function NoteDataExporter:getHitObject()
 	local noteData = self.noteData
 
@@ -43,6 +47,8 @@ function NoteDataExporter:getHitObject()
 end
 
 local eventSampleString = "5,%s,0,\"%s\",100"
+
+---@return string?
 function NoteDataExporter:getEventSample()
 	local noteData = self.noteData
 

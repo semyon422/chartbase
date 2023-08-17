@@ -1,7 +1,10 @@
 local class = require("class")
 
+---@class osu.TimingDataImporter
+---@operator call: osu.TimingDataImporter
 local TinyParser = class()
 
+---@param noteChartString string
 function TinyParser:import(noteChartString)
 	self.notes = {}
 	local block

@@ -2,6 +2,8 @@ local class = require("class")
 local ncdk = require("ncdk")
 local enums = require("bms.enums")
 
+---@class bms.BMS
+---@operator call: bms.BMS
 local BMS = class()
 
 function BMS:new()
@@ -26,6 +28,7 @@ function BMS:new()
 	self.timeList = {}
 end
 
+---@param noteChartString string
 function BMS:import(noteChartString)
 	for _, line in ipairs(noteChartString:split("\n")) do
 		self:processLine(line:trim())
@@ -46,6 +49,7 @@ function BMS:import(noteChartString)
 	self:detectKeymode()
 end
 
+---@param line string
 function BMS:processLine(line)
 	if line:upper():find("^#WAV%S%S%s+.+$") then
 		local index, fileName = line:match("^#...(..)%s+(.+)$")
@@ -66,6 +70,7 @@ function BMS:processLine(line)
 	end
 end
 
+---@param line string
 function BMS:processHeaderLine(line)
 	local key, value = line:match("^#(%S+)%s+(.+)$")
 	key = key:upper()
@@ -131,6 +136,7 @@ function BMS:detectKeymode()
 	end
 end
 
+---@param channel string
 function BMS:updateMode(channel)
 	local channelExisting = self.channelExisting
 
@@ -140,6 +146,7 @@ function BMS:updateMode(channel)
 	end
 end
 
+---@param line string
 function BMS:processLineData(line)
 	if self.timePointCount >= self.timePointLimit then
 		return
