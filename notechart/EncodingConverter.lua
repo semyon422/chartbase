@@ -28,7 +28,7 @@ function EncodingConverter:init()
     self.inited = true
 end
 
----@param line string
+---@param line string?
 ---@return string
 function EncodingConverter:fix(line)
     self:init()

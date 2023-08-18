@@ -15,7 +15,8 @@ function NoteChartImporter:import()
 	layerData:setTimeMode("interval")
 
 	local sph = SPH()
-	sph:import(self.content:gsub("\r[\r\n]?", "\n"))
+	local content = self.content:gsub("\r[\r\n]?", "\n")
+	sph:import(content)
 
 	for _, interval in ipairs(sph.intervals) do
 		layerData:insertIntervalData(interval.offset, interval.beats, interval.start)

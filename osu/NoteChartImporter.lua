@@ -16,7 +16,8 @@ function NoteChartImporter:import()
 
 	if not self.osu then
 		self.osu = Osu()
-		self.osu:import(self.content:gsub("\r\n", "\n"))
+		local content = self.content:gsub("\r\n", "\n")
+		self.osu:import(content)
 	end
 
 	self.foregroundLayerData = noteChart:getLayerData(1)
@@ -230,7 +231,7 @@ function NoteChartImporter:addTimingPointParser(tp)
 end
 
 ---@param note table
----@param event table
+---@param event boolean?
 function NoteChartImporter:addNoteParser(note, event)
 	local noteDataImporter = NoteDataImporter(note)
 	noteDataImporter.noteChartImporter = self

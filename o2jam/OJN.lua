@@ -153,6 +153,7 @@ local channel_names = {
 	[8] = "NOTE_7",
 }
 
+---@param chart table
 function OJN:readChart(chart)
 	local buffer = self.buffer:seek(chart.note_offset)
 	chart.event_list = {}
