@@ -61,7 +61,7 @@ function NoteChartExporter:getLine(timePoint)
 	return table.concat(notes)
 end
 
----@param n number
+---@param n number|ncdk.Fraction
 ---@return string
 local function formatNumber(n)
 	if n == math.huge then
