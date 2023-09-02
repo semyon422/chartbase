@@ -173,7 +173,7 @@ return function(noteChart, importer)
 			level			= tonumber(chart.metaData[4]),
 			audioPath		= EncodingConverter:fix(header["MUSIC"]),
 			stagePath		= EncodingConverter:fix(header["BACKGROUND"]),
-			previewTime		= EncodingConverter:fix(header["SAMPLESTART"]),
+			previewTime		= tonumber(header["SAMPLESTART"]) or 0,
 			noteCount		= importer.noteCount,
 			length			= importer.totalLength,
 			bpm				= sm.displayTempo or 0,
