@@ -94,26 +94,65 @@ function SM:processHeaderLine(line)
 			self.parsingStop = true
 		end
 	elseif key == "BACKGROUND" then
-		if value == "" then
-			self.header[key] = self:findBackgroundFile()
-		end
+		self:processBackground(value)
 	end
 end
 
----@return string
-function SM:findBackgroundFile()
+function SM:processBackground(fileName)
+	local fs = love.filesystem
+
+	local getComparable = function(fileName)
+		local fileName = fileName:lower()
+		
+		if not fileName:find("%.") then
+			return fileName
+		end
+		
+		return fileName:match("(.+)%..+") 
+	end
+
+	local isImage = function(fileName)
+		local imageFormats = {".jpg", ".jpeg", ".png", ".bmp", ".tga"}
+		local fileExtension = fileName:match("^.+(%..+)$")
+		
+		for _, format in ipairs(imageFormats) do
+			if format == fileExtension then
+				return true
+			end
+		end
+
+		return false
+	end
+
 	local directory = self.path:match("(.*".."/"..")")
-	local files = love.filesystem.getDirectoryItems(directory)
+	local exists = fs.getInfo(directory .. fileName)
+	
+	if fileName ~= "" and exists then
+		self.header["BACKGROUND"] = fileName
+		return
+	end
 
-	for _, value in ipairs(files) do
-		local fileName = value:match("(.+)%..+"):lower()
+	local dirFiles = fs.getDirectoryItems(directory)
+	local possibleNames = {"background", "bg"}
 
-		if fileName:find("bg") or fileName:find("background") then
-			return value
+	if fileName ~= "" then
+		table.insert(possibleNames, 1, getComparable(fileName))
+	end
+
+	for _, itemName in ipairs(dirFiles) do 
+		local comparable = getComparable(itemName)
+		
+		for _, name in ipairs(possibleNames) do
+			if comparable:find(name) then
+				if isImage(itemName) then
+					self.header["BACKGROUND"] = itemName
+					return
+				end
+			end
 		end
 	end
 
-	return ""
+	self.header["BACKGROUND"] = ""
 end
 
 ---@param line string
