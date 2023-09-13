@@ -99,22 +99,25 @@ function SM:processHeaderLine(line)
 end
 
 function SM:processBackground(fileName)
+	if not love then
+		self.header["BACKGROUND"] = ""
+	end
 	local fs = love.filesystem
 
 	local getComparable = function(fileName)
 		local fileName = fileName:lower()
-		
+
 		if not fileName:find("%.") then
 			return fileName
 		end
-		
-		return fileName:match("(.+)%..+") 
+
+		return fileName:match("(.+)%..+")
 	end
 
 	local isImage = function(fileName)
 		local imageFormats = {".jpg", ".jpeg", ".png", ".bmp", ".tga"}
 		local fileExtension = fileName:match("^.+(%..+)$")
-		
+
 		for _, format in ipairs(imageFormats) do
 			if format == fileExtension then
 				return true
@@ -126,7 +129,7 @@ function SM:processBackground(fileName)
 
 	local directory = self.path:match("(.*".."/"..")")
 	local exists = fs.getInfo(directory .. fileName)
-	
+
 	if fileName ~= "" and exists then
 		self.header["BACKGROUND"] = fileName
 		return
@@ -139,9 +142,9 @@ function SM:processBackground(fileName)
 		table.insert(possibleNames, 1, getComparable(fileName))
 	end
 
-	for _, itemName in ipairs(dirFiles) do 
+	for _, itemName in ipairs(dirFiles) do
 		local comparable = getComparable(itemName)
-		
+
 		for _, name in ipairs(possibleNames) do
 			if comparable:find(name) then
 				if isImage(itemName) then
