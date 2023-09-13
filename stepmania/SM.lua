@@ -161,17 +161,15 @@ end
 
 ---@param line string
 function SM:processBPM(line)
-	local tempoValues = line:split(",")
+	local tempoValues = line:gsub(";", ""):split(",")
 	for _, tempoValue in ipairs(tempoValues) do
 		local beat, tempo = tempoValue:match("^(.+)=(.+)$")
 		if beat and tempo then
-			table.insert(
-				self.bpm,
-				{
-					beat = tonumber(beat),
-					tempo = tonumber(tempo)
-				}
-			)
+			print(beat, tempo, tonumber(beat), tonumber(tempo))
+			table.insert(self.bpm, {
+				beat = tonumber(beat),
+				tempo = tonumber(tempo)
+			})
 			if not self.displayTempo then
 				self.displayTempo = tonumber(tempo)
 			end
@@ -181,17 +179,14 @@ end
 
 ---@param line string
 function SM:processSTOP(line)
-	local stopValues = line:split(",")
+	local stopValues = line:gsub(";", ""):split(",")
 	for _, stopValue in ipairs(stopValues) do
 		local beat, duration = stopValue:match("^(.+)=(.+)$")
 		if beat and duration then
-			table.insert(
-				self.stop,
-				{
-					beat = tonumber(beat),
-					duration = tonumber(duration)
-				}
-			)
+			table.insert(self.stop, {
+				beat = tonumber(beat),
+				duration = tonumber(duration)
+			})
 		end
 	end
 end
@@ -211,15 +206,12 @@ function SM:processNotesLine(line)
 	for i = 1, #line do
 		local noteType = line:sub(i, i)
 		if noteType ~= "0" then
-			table.insert(
-				chart.notes,
-				{
-					measure = chart.measure,
-					offset = chart.offset,
-					noteType = noteType,
-					inputIndex = i
-				}
-			)
+			table.insert(chart.notes, {
+				measure = chart.measure,
+				offset = chart.offset,
+				noteType = noteType,
+				inputIndex = i
+			})
 		end
 	end
 	chart.offset = chart.offset + 1
