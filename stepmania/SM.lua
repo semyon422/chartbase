@@ -101,6 +101,7 @@ end
 function SM:processBackground(fileName)
 	if not love then
 		self.header["BACKGROUND"] = ""
+		return
 	end
 	local fs = love.filesystem
 
