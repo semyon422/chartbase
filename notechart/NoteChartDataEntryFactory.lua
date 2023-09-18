@@ -10,11 +10,11 @@ local NoteChartDataEntryFactory = {}
 ---@return table?
 function NoteChartDataEntryFactory:getEntries(path, content, hash, noteChartEntry)
 	print(path)
-	local status, noteCharts = NoteChartFactory:getNoteCharts(path, content)
+	local noteCharts, err = NoteChartFactory:getNoteCharts(path, content)
 
 	local entries = {}
-	if not status then
-		print(noteCharts)
+	if not noteCharts then
+		print(err)
 		return
 	end
 

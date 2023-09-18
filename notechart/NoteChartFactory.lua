@@ -71,10 +71,10 @@ end
 
 ---@param path string
 ---@param content string
----@param index number
+---@param index number?
 ---@param settings table?
----@return boolean
----@return table|string
+---@return table?
+---@return string?
 function NoteChartFactory:getNoteCharts(path, content, index, settings)
 	local NoteChartImporter = assert(self:getNoteChartImporter(path), "Importer is not found for " .. path)
 	local importer = NoteChartImporter()
@@ -87,10 +87,10 @@ function NoteChartFactory:getNoteCharts(path, content, index, settings)
 	local status, err = xpcall(function() return importer:import() end, debug.traceback)
 
 	if not status then
-		return false, err
+		return nil, err
 	end
 
-	return true, importer.noteCharts
+	return importer.noteCharts
 end
 
 return NoteChartFactory
