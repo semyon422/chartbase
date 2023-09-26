@@ -21,6 +21,9 @@ local keys_and_types = {
 		"bpm",
 		"minTime",
 		"maxTime",
+		"avgTempo",
+		"minTempo",
+		"maxTempo",
 	}
 }
 

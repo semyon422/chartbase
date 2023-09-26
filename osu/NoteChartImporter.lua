@@ -59,6 +59,9 @@ function NoteChartImporter:import()
 		inputMode = tostring(noteChart.inputMode),
 		minTime = self.minTime / 1000,
 		maxTime = self.maxTime / 1000,
+		avgTempo = self.primaryBPM,
+		minTempo = self.minTempo,
+		maxTempo = self.maxTempo,
 	})
 
 	self.noteCharts = {noteChart}
@@ -157,11 +160,16 @@ function NoteChartImporter:updatePrimaryBPM()
 	local currentBeatLength = 0
 	local bpmDurations = {}
 
+	local min_bl = math.huge
+	local max_bl = -math.huge
+
 	for i = #self.timingDataImporters, 1, -1 do
 		local tdi = self.timingDataImporters[i]
 
 		if tdi.timingChange then
 			currentBeatLength = tdi.beatLength
+			min_bl = math.min(min_bl, currentBeatLength)
+			max_bl = math.max(max_bl, currentBeatLength)
 		end
 
 		if not (currentBeatLength == 0 or tdi.startTime > lastTime or (not tdi.timingChange and i > 1)) then
@@ -185,11 +193,15 @@ function NoteChartImporter:updatePrimaryBPM()
 	if longestDuration == 0 then
 		self.primaryBeatLength = 0
 		self.primaryBPM = 0
+		self.minTempo = 0
+		self.maxTempo = 0
 		return
 	end
 
 	self.primaryBeatLength = average
 	self.primaryBPM = 60000 / average
+	self.minTempo = 60000 / max_bl
+	self.maxTempo = 60000 / min_bl
 end
 
 function NoteChartImporter:processAudio()
@@ -210,7 +222,8 @@ end
 
 function NoteChartImporter:processTimingPoints()
 	local ld = self.foregroundLayerData
-	ld:setPrimaryTempo(self.primaryBPM)
+	ld:setPrimaryTempo(120)
+	-- ld:setPrimaryTempo(self.primaryBPM)
 
 	local timingState = {}
 	for i = 1, #self.timingDataImporters do
