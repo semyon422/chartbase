@@ -1,7 +1,7 @@
 local class = require("class")
 local ncdk = require("ncdk")
 local NoteChart = require("ncdk.NoteChart")
-local MetaData = require("notechart.MetaData")
+local UnifiedMetaData = require("notechart.UnifiedMetaData")
 local Osu = require("osu.Osu")
 local NoteDataImporter = require("osu.NoteDataImporter")
 local TimingDataImporter = require("osu.TimingDataImporter")
@@ -39,7 +39,27 @@ function NoteChartImporter:import()
 	noteChart.type = "osu"
 	noteChart:compute()
 	noteChart.index = 1
-	noteChart.metaData = MetaData(noteChart, self)
+
+	local metadata = self.osu.metadata
+	noteChart.metaData = UnifiedMetaData({
+		index = noteChart.index,
+		format = "osu",
+		title = metadata.Title,
+		artist = metadata.Artist,
+		source = metadata.Source,
+		tags = metadata.Tags,
+		name = metadata.Version,
+		creator = metadata.Creator,
+		audioPath = metadata.AudioFilename,
+		stagePath = self.osu.background,
+		previewTime = metadata.PreviewTime / 1000,
+		noteCount = self.noteCount,
+		length = self.totalLength / 1000,
+		bpm = self.primaryBPM,
+		inputMode = tostring(noteChart.inputMode),
+		minTime = self.minTime / 1000,
+		maxTime = self.maxTime / 1000,
+	})
 
 	self.noteCharts = {noteChart}
 end

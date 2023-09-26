@@ -1,9 +1,10 @@
 local class = require("class")
 local ncdk = require("ncdk")
 local NoteChart = require("ncdk.NoteChart")
-local MetaData = require("notechart.MetaData")
+local UnifiedMetaData = require("notechart.UnifiedMetaData")
 local Ksh = require("ksm.Ksh")
 local bmsNoteChartImporter = require("bms.NoteChartImporter")
+local EncodingConverter = require("notechart.EncodingConverter")
 
 ---@class ksm.NoteChartImporter
 ---@operator call: ksm.NoteChartImporter
@@ -55,8 +56,27 @@ function NoteChartImporter:import()
 	end
 	self:processAudio()
 
+	local ksh = self.ksh
+	local options = ksh.options
 	noteChart.index = 1
-	noteChart.metaData = MetaData(noteChart, self)
+	noteChart.metaData = UnifiedMetaData({
+		index = noteChart.index,
+		format = "ksh",
+		title = EncodingConverter:fix(options["title"]),
+		artist = EncodingConverter:fix(options["artist"]),
+		name = EncodingConverter:fix(options["difficulty"]),
+		creator = EncodingConverter:fix(options["effect"]),
+		level = tonumber(options["level"]),
+		audioPath = self.audioFileName,
+		stagePath = EncodingConverter:fix(options["jacket"]),
+		previewTime = (options["plength"] or 0) / 1000,
+		noteCount = self.noteCount,
+		length = self.totalLength,
+		bpm = 0,
+		inputMode = tostring(noteChart.inputMode),
+		minTime = self.minTime,
+		maxTime = self.maxTime
+	})
 
 	self.noteCharts = {noteChart}
 end

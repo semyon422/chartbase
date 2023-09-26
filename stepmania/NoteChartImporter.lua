@@ -1,8 +1,9 @@
 local class = require("class")
 local ncdk = require("ncdk")
 local NoteChart = require("ncdk.NoteChart")
-local MetaData = require("notechart.MetaData")
+local UnifiedMetaData = require("notechart.UnifiedMetaData")
 local SM = require("stepmania.SM")
+local EncodingConverter = require("notechart.EncodingConverter")
 
 ---@class stepmania.NoteChartImporter
 ---@operator call: stepmania.NoteChartImporter
@@ -58,8 +59,31 @@ function NoteChartImporter:importSingle()
 
 	self:updateLength()
 
-	noteChart.index = self.chartIndex
-	noteChart.metaData = MetaData(noteChart, self)
+	local sm = self.sm
+	local header = sm.header
+	local index = self.chartIndex
+	local chart = self.chart
+
+	noteChart.index = index
+	noteChart.metaData = UnifiedMetaData({
+		index = index,
+		format = "sm",
+		title = EncodingConverter:fix(header["TITLE"]),
+		artist = EncodingConverter:fix(header["ARTIST"]),
+		source = EncodingConverter:fix(header["SUBTITLE"]),
+		name = chart.metaData[3],
+		creator = EncodingConverter:fix(header["CREDIT"]),
+		level = tonumber(chart.metaData[4]),
+		audioPath = EncodingConverter:fix(header["MUSIC"]),
+		stagePath = EncodingConverter:fix(header["BACKGROUND"]),
+		previewTime = tonumber(header["SAMPLESTART"]) or 0,
+		noteCount = self.noteCount,
+		length = self.totalLength,
+		bpm = sm.displayTempo or 0,
+		inputMode = tostring(noteChart.inputMode),
+		minTime = self.minTime,
+		maxTime = self.maxTime,
+	})
 
 	return noteChart
 end

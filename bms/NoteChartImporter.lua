@@ -1,11 +1,44 @@
 local class = require("class")
 local ncdk = require("ncdk")
 local NoteChart = require("ncdk.NoteChart")
-local MetaData = require("notechart.MetaData")
+local UnifiedMetaData = require("notechart.UnifiedMetaData")
 local enums = require("bms.enums")
 local BMS = require("bms.BMS")
 local EncodingConverter = require("notechart.EncodingConverter")
 local dpairs = require("dpairs")
+
+local bracketMatch = "%s(.+)%s$"
+local brackets = {
+	{"%[", "%]"},
+	{"%(", "%)"},
+	{"%-", "%-"},
+	{"\"", "\""},
+	{"〔", "〕"},
+	{"‾", "‾"},
+	{"~", "~"}
+}
+
+---@param name string
+---@return string
+---@return number
+local function trimName(name)
+	for i = 1, #brackets do
+		local lb, rb = brackets[i][1], brackets[i][2]
+		local start, _, _name = name:find(bracketMatch:format(lb, rb))
+		if start then
+			return _name, start
+		end
+	end
+	return name, #name + 1
+end
+
+---@param title string
+---@return string
+---@return string
+local function splitTitle(title)
+	local name, bracketStart = trimName(title)
+	return title:sub(1, bracketStart - 1), name
+end
 
 ---@class bms.NoteChartImporter
 ---@operator call: bms.NoteChartImporter
@@ -38,7 +71,25 @@ function NoteChartImporter:import()
 	self:updateLength()
 
 	noteChart.index = 1
-	noteChart.metaData = MetaData(noteChart, self)
+
+	local bms = self.bms
+	local header = bms.header
+	local title, name = splitTitle(EncodingConverter:fix(header["TITLE"]))
+	noteChart.metaData = UnifiedMetaData({
+		index = noteChart.index,
+		format = "bms",
+		title = title,
+		artist = EncodingConverter:fix(header["ARTIST"]),
+		name = name,
+		level = tonumber(header["PLAYLEVEL"]),
+		stagePath = EncodingConverter:fix(header["STAGEFILE"]),
+		noteCount = self.noteCount,
+		length = self.totalLength,
+		bpm = bms.baseTempo or 0,
+		inputMode = tostring(noteChart.inputMode),
+		minTime = self.minTime,
+		maxTime = self.maxTime
+	})
 
 	self.noteCharts = {noteChart}
 end

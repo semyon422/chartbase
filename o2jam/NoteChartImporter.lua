@@ -1,9 +1,10 @@
 local class = require("class")
 local ncdk = require("ncdk")
 local NoteChart = require("ncdk.NoteChart")
-local MetaData = require("notechart.MetaData")
+local UnifiedMetaData = require("notechart.UnifiedMetaData")
 local OJN = require("o2jam.OJN")
 local bmsNoteChartImporter = require("bms.NoteChartImporter")
+local EncodingConverter = require("notechart.EncodingConverter")
 
 ---@class o2jam.NoteChartImporter
 ---@operator call: o2jam.NoteChartImporter
@@ -11,6 +12,8 @@ local NoteChartImporter = class()
 
 NoteChartImporter.primaryTempo = 120
 NoteChartImporter.measureCount = 0
+
+local O2jamDifficultyNames = {"Easy", "Normal", "Hard"}
 
 function NoteChartImporter:import()
 	local noteCharts = {}
@@ -59,8 +62,23 @@ function NoteChartImporter:importSingle(index)
 
 	self:updateLength()
 
+	local ojn = self.ojn
 	noteChart.index = index
-	noteChart.metaData = MetaData(noteChart, self)
+	noteChart.metaData = UnifiedMetaData({
+		index = index,
+		format = "ojn",
+		title = EncodingConverter:fix(ojn.str_title),
+		artist = EncodingConverter:fix(ojn.str_artist),
+		name = O2jamDifficultyNames[index],
+		creator = EncodingConverter:fix(ojn.str_noter),
+		level = ojn.charts[index].level,
+		noteCount = ojn.charts[index].notes,
+		length = ojn.charts[index].duration,
+		bpm = ojn.bpm,
+		inputMode = tostring(noteChart.inputMode),
+		minTime = self.minTime,
+		maxTime = self.maxTime
+	})
 
 	return noteChart
 end

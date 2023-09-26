@@ -98,6 +98,7 @@ function SM:processHeaderLine(line)
 	end
 end
 
+---@param fileName string
 function SM:processBackground(fileName)
 	if not love then
 		self.header["BACKGROUND"] = ""
@@ -165,7 +166,6 @@ function SM:processBPM(line)
 	for _, tempoValue in ipairs(tempoValues) do
 		local beat, tempo = tempoValue:match("^(.+)=(.+)$")
 		if beat and tempo then
-			print(beat, tempo, tonumber(beat), tonumber(tempo))
 			table.insert(self.bpm, {
 				beat = tonumber(beat),
 				tempo = tonumber(tempo)

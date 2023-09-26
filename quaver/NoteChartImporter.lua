@@ -1,6 +1,6 @@
 local tinyyaml = require("tinyyaml")
 local NoteChart = require("ncdk.NoteChart")
-local MetaData = require("notechart.MetaData")
+local UnifiedMetaData = require("notechart.UnifiedMetaData")
 local osuNoteChartImporter = require("osu.NoteChartImporter")
 
 local class = require("class")
@@ -28,8 +28,28 @@ function NoteChartImporter:import()
 	noteChart.type = "quaver"
 
 	noteChart:compute()
+
+	local qua = self.qua
 	noteChart.index = 1
-	noteChart.metaData = MetaData(noteChart, self)
+	noteChart.metaData = UnifiedMetaData({
+		index = noteChart.index,
+		format = "qua",
+		title = qua["Title"],
+		artist = qua["Artist"],
+		source = qua["Source"],
+		tags = qua["Tags"],
+		name = qua["DifficultyName"],
+		creator = qua["Creator"],
+		audioPath = qua["AudioFile"],
+		stagePath = qua["BackgroundFile"],
+		previewTime = (qua["SongPreviewTime"] or 0) / 1000,
+		noteCount = self.noteCount,
+		length = self.totalLength / 1000,
+		bpm = self.primaryBPM,
+		inputMode = tostring(noteChart.inputMode),
+		minTime = self.minTime / 1000,
+		maxTime = self.maxTime / 1000,
+	})
 
 	self.noteCharts = {noteChart}
 end
