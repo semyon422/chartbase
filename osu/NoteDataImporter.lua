@@ -42,53 +42,66 @@ function NoteDataImporter:initEvent()
 	self.inputIndex = 0
 end
 
----@return ncdk.NoteData
----@return ncdk.NoteData?
-function NoteDataImporter:getNoteData()
-	local startNoteData, endNoteData
+function NoteDataImporter:getNote(time, noteType)
+	local startTimePoint = self.noteChartImporter.foregroundLayerData:getTimePoint(time / 1000, 1)
 
-	local startTimePoint = self.noteChartImporter.foregroundLayerData:getTimePoint(self.startTime / 1000, 1)
-
-	startNoteData = ncdk.NoteData(startTimePoint)
+	local startNoteData = ncdk.NoteData(startTimePoint)
 	startNoteData.inputType = self.inputType
 	startNoteData.inputIndex = self.inputIndex
 	startNoteData.sounds = self.sounds
 	startNoteData.keysound = self.keysound
+	startNoteData.noteType = noteType
+
+	return startNoteData
+end
+
+local function noSounds(noteData)
+	noteData.sounds = nil
+	return noteData
+end
+
+---@return ncdk.NoteData?
+---@return ncdk.NoteData?
+function NoteDataImporter:getNoteData()
+	local startTime = self.startTime
+	local endTime = self.endTime
 
 	if self.inputType == "auto" then
-		startNoteData.noteType ="SoundNote"
-	elseif not self.endTime then
-		startNoteData.noteType = "ShortNote"
-	else
-		startNoteData.noteType = "LongNoteStart"
-
-		local endTimePoint = self.noteChartImporter.foregroundLayerData:getTimePoint(self.endTime / 1000, 1)
-
-		endNoteData = ncdk.NoteData(endTimePoint)
-		endNoteData.inputType = self.inputType
-		endNoteData.inputIndex = self.inputIndex
-		endNoteData.keysound = self.keysound
-
-		endNoteData.noteType = "LongNoteEnd"
-
-		endNoteData.startNoteData = startNoteData
-		startNoteData.endNoteData = endNoteData
-
-		local startTime, endTime = self.startTime, self.endTime
-		if startTime ~= startTime and endTime ~= endTime then
-			startNoteData.noteType = "Ignore"
-			endNoteData.noteType = "Ignore"
-		elseif startTime ~= startTime and endTime == endTime then
-			startNoteData.noteType = "Ignore"
-			endNoteData.noteType = "SoundNote"
-		elseif startTime == startTime and endTime ~= endTime then
-			startNoteData.noteType = "SoundNote"
-			endNoteData.noteType = "Ignore"
-		elseif endTime < startTime then
-			startNoteData.noteType = "ShortNote"
-			endNoteData.noteType = "SoundNote"
-		end
+		return self:getNote(startTime, "SoundNote")
 	end
+
+	if not endTime then
+		if startTime ~= startTime then
+			return
+		end
+		return self:getNote(startTime, "ShortNote")
+	end
+
+	local startIsNan = startTime ~= startTime
+	local endIsNan = endTime ~= endTime
+
+	if startIsNan and endIsNan then
+		return
+	end
+
+	if not startIsNan and endIsNan then
+		return noSounds(self:getNote(startTime, "SoundNote"))
+	end
+	if startIsNan and not endIsNan then
+		return noSounds(self:getNote(endTime, "SoundNote"))
+	end
+
+	if endTime < startTime then
+		return self:getNote(startTime, "ShortNote"), noSounds(self:getNote(endTime, "SoundNote"))
+	end
+
+	local startNoteData = self:getNote(startTime, "LongNoteStart")
+	local endNoteData = self:getNote(endTime, "LongNoteEnd")
+
+	endNoteData.sounds = nil
+
+	endNoteData.startNoteData = startNoteData
+	startNoteData.endNoteData = endNoteData
 
 	return startNoteData, endNoteData
 end
