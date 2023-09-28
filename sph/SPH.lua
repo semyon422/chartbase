@@ -13,7 +13,6 @@ function SPH:new()
 	self.velocities = {}
 	self.expands = {}
 	self.beatOffset = -1
-	self.expandOffset = 0
 	self.fraction = {0, 1}
 end
 
@@ -78,18 +77,10 @@ end
 
 ---@param s string
 function SPH:processLine(s)
-	local expanded
-	if s:sub(1, 1) == "." then
-		expanded = true
-		s = s:sub(2)
-	elseif s == "-" then
+	if s == "-" then
 		self.beatOffset = self.beatOffset + 1
 		self.fraction = nil
 		return
-	end
-
-	if not expanded then
-		self.expandOffset = 0
 	end
 
 	local columns = self.columns
@@ -109,32 +100,19 @@ function SPH:processLine(s)
 			velocity = n
 		elseif k == "#" then
 			measure = f
-		end
-		if not expanded then
-			if k == "+" then
-				fraction = f
-				self.fraction = fraction
-			elseif k == "e" then
-				expand = n
-			elseif k == "." then
-				visual = true
-			end
-		else
-			if k == "+" then
-				expand = n - self.expandOffset
-				self.expandOffset = n
-			end
+		elseif k == "+" then
+			fraction = f
+			self.fraction = fraction
+		elseif k == "e" then
+			expand = n
+		elseif k == "." then
+			visual = true
 		end
 
 		info = info:sub(length + 2)
 	end
 
-	if expanded and not expand then
-		expand = math.floor(self.expandOffset) + 1 - self.expandOffset
-		self.expandOffset = 0
-	end
-
-	if not fraction and not visual and not expanded then
+	if not fraction and not visual then
 		self.beatOffset = self.beatOffset + 1
 		self.fraction = nil
 	end
