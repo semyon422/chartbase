@@ -10,8 +10,6 @@ function SPH:new()
 	self.metadata = {}
 	self.lines = {}
 	self.intervals = {}
-	self.velocities = {}
-	self.expands = {}
 	self.beatOffset = -1
 	self.fraction = {0, 1}
 end
@@ -75,6 +73,22 @@ function SPH:parseNumber(s)
 	return Fraction(0), 0, 0
 end
 
+---@param intervalOffset number
+function SPH:addInterval(intervalOffset)
+	local intervals = self.intervals
+	local interval = {
+		offset = intervalOffset,
+		beats = 1,
+		beatOffset = self.beatOffset,
+		start = self.fraction
+	}
+	local prev = intervals[#intervals]
+	if prev then
+		prev.beats = self.beatOffset - prev.beatOffset
+	end
+	table.insert(intervals, interval)
+end
+
 ---@param s string
 function SPH:processLine(s)
 	if s == "-" then
@@ -84,11 +98,11 @@ function SPH:processLine(s)
 	end
 
 	local columns = self.columns
-	local notes = s:sub(1, columns)
+
+	local intervalOffset, fraction, visual
+	local line = {}
+
 	local info = s:sub(columns + 1, -1)
-
-	local intervalOffset, fraction, velocity, expand, visual, measure
-
 	local charOffset = 0
 	while charOffset < #info do
 		local k = info:sub(1, 1)
@@ -96,17 +110,17 @@ function SPH:processLine(s)
 
 		if k == "=" then
 			intervalOffset = n
-		elseif k == "x" then
-			velocity = n
-		elseif k == "#" then
-			measure = f
 		elseif k == "+" then
 			fraction = f
 			self.fraction = fraction
-		elseif k == "e" then
-			expand = n
 		elseif k == "." then
 			visual = true
+		elseif k == "x" then
+			line.velocity = n
+		elseif k == "#" then
+			line.measure = f
+		elseif k == "e" then
+			line.expand = n
 		end
 
 		info = info:sub(length + 2)
@@ -117,39 +131,21 @@ function SPH:processLine(s)
 		self.fraction = nil
 	end
 
-	local intervals = self.intervals
-	local interval
 	if intervalOffset then
-		interval = {
-			offset = intervalOffset,
-			beats = 1,
-			beatOffset = self.beatOffset,
-			start = self.fraction
-		}
-		local prev = intervals[#intervals]
-		if prev then
-			prev.beats = self.beatOffset - prev.beatOffset
-		end
-		table.insert(intervals, interval)
+		self:addInterval(intervalOffset)
 	end
 
 	local _notes = {}
+	local notes = s:sub(1, columns)
 	for i = 1, #notes do
 		local note = notes:sub(i, i)
 		_notes[i] = note
 	end
 
-	local line = {
-		intervalIndex = math.max(#intervals, 1),
-		time = Fraction(self.beatOffset) + self.fraction,
-		notes = _notes,
-		velocity = velocity,
-		expand = expand,
-		measure = measure,
-	}
-	if interval then
-		interval.line = line
-	end
+	line.intervalIndex = math.max(#self.intervals, 1)
+	line.time = Fraction(self.beatOffset) + self.fraction
+	line.notes = _notes
+
 	table.insert(self.lines, line)
 end
 
