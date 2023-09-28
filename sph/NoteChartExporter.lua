@@ -108,7 +108,6 @@ function NoteChartExporter:export()
 		t.globalTime = t.time + beatOffset
 	end
 
-	local expandOffset = 0
 	local visualSideStarted = false
 	local dataStarted = false
 
@@ -135,19 +134,13 @@ function NoteChartExporter:export()
 
 				if not visualSideStarted then
 					visualSideStarted = true
-					expandOffset = 0
 					if dt[1] ~= 0 then
 						line = line .. "+" .. formatNumber(dt)
 					end
 				else
-					line = "." .. line
+					line = line .. "."
 					if timePoint._expandData then
-						expandOffset = expandOffset + timePoint._expandData.duration
-						if expandOffset % 1 ~= 0 or expandOffset == 0 then
-							line = line .. "+" .. formatNumber(expandOffset)
-						end
-					else
-						line = line .. "+" .. formatNumber(0)
+						line = line .. "e" .. formatNumber(timePoint._expandData.duration)
 					end
 				end
 				if timePoint._intervalData then
