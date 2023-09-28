@@ -82,21 +82,26 @@ end
 
 function NoteChartExporter:addHeader()
 	local lines = self.lines
-	local noteChartDataEntry = self.noteChartDataEntry
+	local chart = self.noteChartDataEntry
 
 	lines[#lines + 1] = "osu file format v14"
 	lines[#lines + 1] = ""
 	lines[#lines + 1] = "[General]"
 
-	local audioPath = noteChartDataEntry.audioPath
+	local audioPath = chart.audioPath
 	if audioPath ~= "" then
 		lines[#lines + 1] = "AudioFilename: " .. audioPath
 	else
 		lines[#lines + 1] = "AudioFilename: virtual"
 	end
 
+	local name =  chart.name
+	if chart.level and chart.level > 0 then
+		name = name .. " " .. chart.level
+	end
+
 	lines[#lines + 1] = "AudioLeadIn: 0"
-	lines[#lines + 1] = "PreviewTime: " .. noteChartDataEntry.previewTime * 1000
+	lines[#lines + 1] = "PreviewTime: " .. chart.previewTime * 1000
 	lines[#lines + 1] = "Countdown: 0"
 	lines[#lines + 1] = "SampleSet: Soft"
 	lines[#lines + 1] = "StackLeniency: 0.7"
@@ -104,14 +109,14 @@ function NoteChartExporter:addHeader()
 	lines[#lines + 1] = "LetterboxInBreaks: 0"
 	lines[#lines + 1] = ""
 	lines[#lines + 1] = "[Metadata]"
-	lines[#lines + 1] = "Title:" .. noteChartDataEntry.title
-	lines[#lines + 1] = "TitleUnicode:" .. noteChartDataEntry.title
-	lines[#lines + 1] = "Artist:" .. noteChartDataEntry.artist
-	lines[#lines + 1] = "ArtistUnicode:" .. noteChartDataEntry.artist
-	lines[#lines + 1] = "Creator:" .. noteChartDataEntry.creator
-	lines[#lines + 1] = "Version:" .. noteChartDataEntry.name
-	lines[#lines + 1] = "Source:" .. noteChartDataEntry.source
-	lines[#lines + 1] = "Tags:" .. noteChartDataEntry.tags
+	lines[#lines + 1] = "Title:" .. chart.title
+	lines[#lines + 1] = "TitleUnicode:" .. chart.title
+	lines[#lines + 1] = "Artist:" .. chart.artist
+	lines[#lines + 1] = "ArtistUnicode:" .. chart.artist
+	lines[#lines + 1] = "Creator:" .. chart.creator
+	lines[#lines + 1] = "Version:" .. name
+	lines[#lines + 1] = "Source:" .. chart.source
+	lines[#lines + 1] = "Tags:" .. chart.tags
 	lines[#lines + 1] = "BeatmapID:0"
 	lines[#lines + 1] = "BeatmapSetID:-1"
 	lines[#lines + 1] = ""
