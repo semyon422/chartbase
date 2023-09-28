@@ -187,6 +187,7 @@ function SPH:updateTime()
 		line.time = line.time - interval.beatOffset
 		if time ~= line.time or intervalIndex ~= line.intervalIndex then
 			time = line.time
+			intervalIndex = line.intervalIndex
 			visualSide = 0
 		else
 			visualSide = visualSide + 1
