@@ -1,9 +1,8 @@
-local class = require("class")
-local osuNoteDataImporter = require("osu.NoteDataImporter")
+local OsuNoteDataImporter = require("osu.NoteDataImporter")
 
----@class quaver.NoteDataImporter
+---@class quaver.NoteDataImporter: osu.NoteDataImporter
 ---@operator call: quaver.NoteDataImporter
-local NoteDataImporter = class()
+local NoteDataImporter = OsuNoteDataImporter + {}
 
 NoteDataImporter.inputType = "key"
 
@@ -45,7 +44,5 @@ function NoteDataImporter:init()
 		self.noteChartImporter.maxTime = lastTime
 	end
 end
-
-NoteDataImporter.getNoteData = osuNoteDataImporter.getNoteData
 
 return NoteDataImporter
