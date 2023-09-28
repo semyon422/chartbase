@@ -17,8 +17,9 @@ function NoteChartImporter:import()
 	local sph = SPH()
 	local content = self.content:gsub("\r[\r\n]?", "\n")
 	sph:import(content)
+	local sphLines = sph.sphLines
 
-	for _, interval in ipairs(sph.intervals) do
+	for _, interval in ipairs(sphLines.intervals) do
 		layerData:insertIntervalData(interval.offset, interval.beats, interval.start)
 	end
 
@@ -27,7 +28,7 @@ function NoteChartImporter:import()
 	local minTimePoint, maxTimePoint
 	local noteCount = 0
 	local longNotes = {}
-	for _, line in ipairs(sph.lines) do
+	for _, line in ipairs(sphLines.lines) do
 		local intervalData = layerData:getIntervalData(line.intervalIndex)
 		local timePoint = layerData:getTimePoint(intervalData, line.time, line.visualSide)
 
