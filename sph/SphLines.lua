@@ -117,8 +117,6 @@ function SphLines:processLine(s)
 	line.intervalIndex = math.max(#self.intervals, 1)
 	line.time = Fraction(self.beatOffset) + self.fraction
 
-	print(require("inspect")(line))
-
 	table.insert(self.lines, line)
 end
 
