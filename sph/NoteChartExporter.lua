@@ -38,7 +38,7 @@ function NoteChartExporter:checkEmpty(t)
 		not (t.noteDatas and next(t.noteDatas))
 end
 
----@param timePoint table
+---@param timePoint ncdk.IntervalTimePoint
 ---@return string?
 function NoteChartExporter:getLine(timePoint)
 	if self:checkEmpty(timePoint) then
@@ -61,19 +61,10 @@ function NoteChartExporter:getLine(timePoint)
 	return table.concat(notes)
 end
 
----@param n number|ncdk.Fraction
+---@param f ncdk.Fraction
 ---@return string
-local function formatNumber(n)
-	if n == math.huge then
-		return "1/0"
-	end
-	if type(n) == "number" then
-		n = Fraction(n, 192, false)
-	end
-	if n[2] == 1 then
-		return n[1]
-	end
-	return n[1] .. "/" .. n[2]
+local function formatFraction(f)
+	return f[1] .. "/" .. f[2]
 end
 
 ---@return string
@@ -81,11 +72,18 @@ function NoteChartExporter:export()
 	local noteChart = self.noteChart
 	local lines = {}
 
+	table.insert(lines, "# metadata")
+
 	local metaData = noteChart.metaData
 	for _, d in ipairs(headerLines) do
-		table.insert(lines, ("%s=%s"):format(d[1], metaData[d[2]]))
+		local k, v = d[1], metaData[d[2]]
+		if v then
+			table.insert(lines, ("%s %s"):format(k, v))
+		end
 	end
 	table.insert(lines, "")
+
+	table.insert(lines, "# notes")
 
 	local inputMode = noteChart.inputMode
 	self.columns = inputMode:getColumns()
@@ -135,23 +133,23 @@ function NoteChartExporter:export()
 				if not visualSideStarted then
 					visualSideStarted = true
 					if dt[1] ~= 0 then
-						line = line .. "+" .. formatNumber(dt)
+						line = line .. " +" .. formatFraction(dt)
 					end
 				else
-					line = line .. "."
+					line = line .. " v"
 					if timePoint._expandData then
-						line = line .. "e" .. formatNumber(timePoint._expandData.duration)
+						line = line .. " e" .. tostring(timePoint._expandData.duration)
 					end
 				end
 				if timePoint._intervalData then
-					line = line .. "=" .. timePoint._intervalData.timePoint.absoluteTime
+					line = line .. " =" .. timePoint._intervalData.timePoint.absoluteTime
+				end
+				if timePoint._velocityData then
+					line = line .. " x" .. tostring(timePoint._velocityData.currentSpeed)
 				end
 				if timePoint._measureData then
 					local n = timePoint._measureData.start
-					line = line .. "#" .. (n[1] ~= 0 and formatNumber(n) or "")
-				end
-				if timePoint._velocityData then
-					line = line .. "x" .. formatNumber(timePoint._velocityData.currentSpeed)
+					line = line .. " #" .. (n[1] ~= 0 and formatFraction(n) or "")
 				end
 			end
 			if dataStarted then

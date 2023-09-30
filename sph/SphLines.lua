@@ -2,6 +2,8 @@ local class = require("class")
 local Fraction = require("ncdk.Fraction")
 local SphNumber = require("sph.SphNumber")
 
+---@class sph.SphLines
+---@operator call: sph.SphLines
 local SphLines = class()
 
 function SphLines:new()
@@ -29,6 +31,45 @@ function SphLines:addInterval(intervalOffset)
 end
 
 ---@param s string
+---@param n number
+---@return table
+local function split_chars(s, n)
+	local chars = {}
+	for i = 1, #s, n do
+		table.insert(chars, s:sub(i, i + n - 1))
+	end
+	return chars
+end
+
+---@param notes table
+---@param templates table
+---@return table
+local function parse_notes(notes, templates)
+	local out = {}
+
+	for i, note in ipairs(notes) do
+		if note ~= "0" then
+			table.insert(out, {
+				column = i,
+				type = note,
+			})
+		end
+	end
+
+	if templates then
+		for i, template in ipairs(templates) do
+			if out[i] then
+				out[i].template = template
+			else
+				table.insert(out, {template = template})
+			end
+		end
+	end
+
+	return out
+end
+
+---@param s string
 function SphLines:processLine(s)
 	if s == "-" then
 		self.beatOffset = self.beatOffset + 1
@@ -36,33 +77,29 @@ function SphLines:processLine(s)
 		return
 	end
 
-	local columns = self.columns
-
 	local intervalOffset, fraction, visual
 	local line = {}
 
-	local info = s:sub(columns + 1, -1)
-	local charOffset = 0
-	while charOffset < #info do
-		local k = info:sub(1, 1)
-		local f, n, length = self.sphNumber:decode(info:sub(2))
+	local args = s:split(" ")
+	for i = 2, #args do
+		local k, v = args[i]:match("^(.)(.*)$")
 
 		if k == "=" then
-			intervalOffset = n
+			intervalOffset = tonumber(v)
 		elseif k == "+" then
-			fraction = f
+			fraction = self.sphNumber:decode(v)
 			self.fraction = fraction
-		elseif k == "." then
+		elseif k == "v" then
 			visual = true
-		elseif k == "x" then
-			line.velocity = n
 		elseif k == "#" then
-			line.measure = f
+			line.measure = self.sphNumber:decode(v)
+		elseif k == ":" then
+			line.templates = split_chars(v, 2)
+		elseif k == "x" then
+			line.velocity = tonumber(v)
 		elseif k == "e" then
-			line.expand = n
+			line.expand = tonumber(v)
 		end
-
-		info = info:sub(length + 2)
 	end
 
 	if not fraction and not visual then
@@ -74,16 +111,13 @@ function SphLines:processLine(s)
 		self:addInterval(intervalOffset)
 	end
 
-	local _notes = {}
-	local notes = s:sub(1, columns)
-	for i = 1, #notes do
-		local note = notes:sub(i, i)
-		_notes[i] = note
-	end
+	local notes = split_chars(args[1], 1)
+	line.notes = parse_notes(notes, line.templates)
 
 	line.intervalIndex = math.max(#self.intervals, 1)
 	line.time = Fraction(self.beatOffset) + self.fraction
-	line.notes = _notes
+
+	print(require("inspect")(line))
 
 	table.insert(self.lines, line)
 end
