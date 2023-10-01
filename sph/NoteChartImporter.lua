@@ -18,7 +18,7 @@ end
 function NoteChartImporter:import()
 	local sph = self.sph
 	local content = self.content:gsub("\r[\r\n]?", "\n")
-	sph:import(content)
+	sph:decode(content)
 
 	local noteChart = self.noteChart
 

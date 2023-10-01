@@ -1,0 +1,32 @@
+local Sph = require("sph.Sph")
+
+local test = {}
+
+function test.encdec_1(t)
+	local sph = Sph()
+
+	local chart = [[
+# metadata
+title Title
+artist Artist
+
+# notes
+0100 +1/2
+1000 =0.01
+0100 +1/2
+1000
+0100 +1/2 x1.1 #1/2
+0004 v e0.5
+1000 x1
+0100 +1/2
+0010
+-
+-
+- =1.01
+]]
+	sph:decode(chart)
+
+	t:eq(sph:encode(), chart)
+end
+
+return test

@@ -13,7 +13,7 @@ function Sph:new()
 end
 
 ---@param line string
-function Sph:processLine(line)
+function Sph:decodeLine(line)
 	if line == "" then
 		return
 	end
@@ -33,16 +33,62 @@ function Sph:processLine(line)
 			table.insert(self.templates[t][k], v)
 		end
 	elseif self.section == "notes" then
-		self.sphLines:processLine(line)
+		self.sphLines:decodeLine(line)
 	end
 end
 
 ---@param s string
-function Sph:import(s)
+function Sph:decode(s)
 	for _, line in ipairs(s:split("\n")) do
-		self:processLine(line)
+		self:decodeLine(line)
 	end
 	self.sphLines:updateTime()
+end
+
+local headerLines = {
+	"title",
+	"artist",
+	"name",
+	"creator",
+	"source",
+	"level",
+	"tags",
+	"audio",
+	"background",
+	"preview",
+	"input",
+}
+
+---@return string
+function Sph:encode()
+	local lines = {}
+
+	table.insert(lines, "# metadata")
+	local metadata = self.metadata
+	for _, k in ipairs(headerLines) do
+		local v = metadata[k]
+		if v then
+			table.insert(lines, ("%s %s"):format(k, v))
+		end
+	end
+	table.insert(lines, "")
+
+	local templates = self.templates
+	if #templates > 0 then
+		table.insert(lines, "# templates")
+		for t, k in pairs(templates) do
+			for _, v in ipairs(k) do
+				table.insert(lines, ("%s %s %s"):format(t, k, v))
+			end
+		end
+		table.insert(lines, "")
+	end
+
+	table.insert(lines, "# notes")
+	table.insert(lines, self.sphLines:encode())
+	table.insert(lines, "")
+
+	return table.concat(lines, "\n")
 end
 
 ---@param info table
