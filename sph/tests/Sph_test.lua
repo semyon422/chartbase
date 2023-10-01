@@ -11,7 +11,7 @@ title Title
 artist Artist
 
 # notes
-0100 +1/2
+0100 =0 +1/2
 1000 =0.01
 0100 +1/2
 1000
