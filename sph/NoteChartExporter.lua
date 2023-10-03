@@ -30,6 +30,9 @@ function NoteChartExporter:new()
 	self.sph = Sph()
 end
 
+---@param a table
+---@param b table
+---@return boolean
 local function sortNotes(a, b)
 	return a.column < b.column
 end
@@ -52,6 +55,9 @@ function NoteChartExporter:getNotes(timePoint)
 	return notes
 end
 
+---@param a table
+---@param b table
+---@return boolean
 local function sortSound(a, b)
 	if a.column == b.column then
 		return a.sound < b.sound

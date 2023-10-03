@@ -47,6 +47,7 @@ function NoteChartImporter:import()
 	self.noteCharts = {noteChart}
 end
 
+---@param line table
 function NoteChartImporter:processLine(line)
 	local layerData = self.layerData
 	local inputMap = self.inputMap
@@ -119,6 +120,7 @@ function NoteChartImporter:processLine(line)
 	end
 end
 
+---@param timePoint ncdk.TimePoint
 function NoteChartImporter:updateBoundaries(timePoint)
 	if not self.minTimePoint or timePoint < self.minTimePoint then
 		self.minTimePoint = timePoint
