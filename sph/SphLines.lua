@@ -226,11 +226,12 @@ function SphLines:encode()
 				line.velocity or
 				line.measure
 
-			if line.globalTime ~= prevTime then
+			local isNextTime = line.globalTime ~= prevTime
+			if isNextTime then
 				prevTime = line.globalTime
 			end
 
-			local visual = (line.visualSide or 0) > 0
+			local visual = not isNextTime and (line.visualSide or 0) > 0
 
 			str = str or "-"
 			local dt = line.globalTime % 1

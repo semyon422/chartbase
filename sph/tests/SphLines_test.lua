@@ -1,4 +1,5 @@
 local SphLines = require("sph.SphLines")
+local Fraction = require("ncdk.Fraction")
 
 local test = {}
 
@@ -139,6 +140,70 @@ function test.decenc_5(t)
 	t:eq(sl.lines[1].sounds[1], 0)
 	t:eq(sl.lines[1].sounds[2], 85 + 1)
 	t:eq(sl.lines[1].sounds[3], 85 ^ 2 - 1)
+
+	t:eq(sl:encode(), table.concat(lines_out, "\n"))
+end
+
+function test.decenc_6(t)
+	local sl = SphLines()
+
+	local lines_in = {
+		"1000 =0",
+		"-",
+		"-",
+		"-",
+		"1000 v",
+		"-",
+		"- =1",
+	}
+	local lines_out = {
+		"1000 =0",
+		"-",
+		"-",
+		"1000",
+		"-",
+		"- =1",
+	}
+	for _, line in ipairs(lines_in) do
+		sl:decodeLine(line)
+	end
+	sl:updateTime()
+
+	t:eq(#sl.lines, 3)
+	t:eq(sl.lines[2].time, Fraction(3))
+
+	sl:calcIntervals()
+	sl:calcGlobalTime()
+
+	t:eq(sl.lines[2].globalTime, Fraction(3))
+
+	t:eq(sl:encode(), table.concat(lines_out, "\n"))
+end
+
+function test.decenc_7(t)
+	local sl = SphLines()
+
+	local lines_in = {
+		"1000 =0",
+		"-",
+		"-",
+		"- +1/2",
+		"1000 v",
+		"-",
+		"- =1",
+	}
+	local lines_out = {
+		"1000 =0",
+		"-",
+		"-",
+		"1000 +1/2",
+		"-",
+		"- =1",
+	}
+	for _, line in ipairs(lines_in) do
+		sl:decodeLine(line)
+	end
+	sl:updateTime()
 
 	t:eq(sl:encode(), table.concat(lines_out, "\n"))
 end
