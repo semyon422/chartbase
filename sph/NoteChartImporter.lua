@@ -57,12 +57,13 @@ function NoteChartImporter:processLine(line)
 	local timePoint = layerData:getTimePoint(intervalData, line.time, line.visualSide)
 
 	local line_sounds = line.sounds or {}
+	local line_volume = line.volume or {}
 	for i, note in ipairs(line.notes) do
 		local noteData = NoteData(timePoint)
 
 		local sound = sounds[line_sounds[i]]
 		if sound then
-			noteData.sounds = {{sound, 1}}
+			noteData.sounds = {{sound, line_volume[i] or 1}}
 			self.noteChart:addResource("sound", sound, {sound})
 		end
 
@@ -97,7 +98,7 @@ function NoteChartImporter:processLine(line)
 		if sound then
 			local noteData = NoteData(timePoint)
 			noteData.noteType = "SoundNote"
-			noteData.sounds = {{sound, 1}}
+			noteData.sounds = {{sound, line_volume[i] or 1}}
 			self.noteChart:addResource("sound", sound, {sound})
 			layerData:addNoteData(noteData, "auto", i)
 		end

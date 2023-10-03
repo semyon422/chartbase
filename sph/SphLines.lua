@@ -69,6 +69,20 @@ local function parse_sounds(sounds)
 	return out
 end
 
+---@param volume table
+---@return table
+local function parse_volume(volume)
+	local out = {}
+	for i, vol in ipairs(volume) do
+		vol = tonumber(vol) or 0
+		if vol == 0 then
+			vol = 100
+		end
+		out[i] = vol / 100
+	end
+	return out
+end
+
 ---@param s string
 function SphLines:decodeLine(s)
 	local intervalOffset, fraction, visual
@@ -89,6 +103,8 @@ function SphLines:decodeLine(s)
 			line.measure = self.sphNumber:decode(v)
 		elseif k == ":" then
 			line.sounds = parse_sounds(split_chars(v, 2))
+		elseif k == "." then
+			line.volume = parse_volume(split_chars(v, 2))
 		elseif k == "x" then
 			line.velocity = tonumber(v)
 		elseif k == "e" then
@@ -261,6 +277,13 @@ function SphLines:encode()
 					out[i] = template_key.encode(sound)
 				end
 				str = str .. " :" .. table.concat(out)
+			end
+			if line.volume and #line.volume > 0 then
+				local out = {}
+				for i, vol in ipairs(line.volume) do
+					out[i] = ("%02d"):format(math.floor(vol * 100 + 0.5) % 100)
+				end
+				str = str .. " ." .. table.concat(out)
 			end
 
 			if hasPayload or dt[1] == 0 and not visual then

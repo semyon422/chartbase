@@ -61,22 +61,29 @@ end
 
 ---@param timePoint ncdk.IntervalTimePoint
 ---@return table
+---@return table
 function NoteChartExporter:getSounds(timePoint)
 	local sounds_map = self.sounds_map
 
 	local notes = {}
 	for input, noteData in pairs(timePoint.noteDatas) do
 		local column = self.inputMap[input]
-		local nsound = noteData.sounds and noteData.sounds[1] and noteData.sounds[1][1]
+		local nds = noteData.sounds and noteData.sounds[1]
+		local nsound = nds and nds[1]
+		local nvolume = nds and nds[2]
 		table.insert(notes, {
 			column = column or math.huge,
 			sound = sounds_map[nsound] or 0,
+			volume = nvolume or 1,
 		})
 	end
 	table.sort(notes, sortSound)
+
 	local sounds = {}
+	local volume = {}
 	for i, note in ipairs(notes) do
 		sounds[i] = note.sound
+		volume[i] = note.volume
 	end
 	for i = #sounds, 1, -1 do
 		if sounds[i] == 0 then
@@ -85,7 +92,15 @@ function NoteChartExporter:getSounds(timePoint)
 			break
 		end
 	end
-	return sounds
+	for i = #volume, 1, -1 do
+		if volume[i] == 1 then
+			volume[i] = nil
+		else
+			break
+		end
+	end
+
+	return sounds, volume
 end
 
 ---@return table
@@ -158,7 +173,7 @@ function NoteChartExporter:export()
 		line.time = t.time
 		line.visualSide = t.visualSide
 		line.notes = self:getNotes(t)
-		line.sounds = self:getSounds(t)
+		line.sounds, line.volume = self:getSounds(t)
 		line.intervalIndex = math.max(#sphLines.intervals, 1)
 		line.intervalSet = t._intervalData ~= nil
 		if t._expandData then

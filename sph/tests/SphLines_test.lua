@@ -125,11 +125,11 @@ function test.decenc_5(t)
 	local sl = SphLines()
 
 	local lines_in = {
-		"- =0 :0011##",
+		"- =0 :0011## .0050",
 		"- =1",
 	}
 	local lines_out = {
-		"- =0 :0011##",
+		"- =0 :0011## .0050",
 		"- =1",
 	}
 	for _, line in ipairs(lines_in) do
