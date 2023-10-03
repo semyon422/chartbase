@@ -10,9 +10,13 @@ function test.encdec_1(t)
 title Title
 artist Artist
 
+# sounds
+01 sound01.ogg
+## sound##.ogg
+
 # notes
 0100 =0 +1/2
-1000 =0.01
+1000 =0.01 :01##
 0100 +1/2
 1000
 0100 +1/2 x1.1 #1/2

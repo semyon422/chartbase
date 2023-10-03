@@ -120,4 +120,27 @@ function test.decenc_4(t)
 	t:eq(sl:encode(), table.concat(lines_out, "\n"))
 end
 
+function test.decenc_5(t)
+	local sl = SphLines()
+
+	local lines_in = {
+		"- =0 :0011##",
+		"- =1",
+	}
+	local lines_out = {
+		"- =0 :0011##",
+		"- =1",
+	}
+	for _, line in ipairs(lines_in) do
+		sl:decodeLine(line)
+	end
+	sl:updateTime()
+
+	t:eq(sl.lines[1].sounds[1], 0)
+	t:eq(sl.lines[1].sounds[2], 85 + 1)
+	t:eq(sl.lines[1].sounds[3], 85 ^ 2 - 1)
+
+	t:eq(sl:encode(), table.concat(lines_out, "\n"))
+end
+
 return test

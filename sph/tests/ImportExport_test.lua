@@ -14,14 +14,20 @@ artist Artist
 audio audio.mp3
 input 4key
 
+# sounds
+01 sound01.ogg
+02 sound02.ogg
+03 sound03.ogg
+04 sound04.ogg
+
 # notes
 0100 +1/2
-1000 =0.01
+1000 =0.01 :0102
 0100 +1/2
 1000
 0100 +1/2 x1.1 #1/2
 0004 v e0.5
-1000 x1
+1000 x1 :0001020304
 0100 +1/2
 0010
 -

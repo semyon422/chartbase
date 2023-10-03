@@ -1,6 +1,7 @@
 local class = require("class")
 local Fraction = require("ncdk.Fraction")
 local SphNumber = require("sph.SphNumber")
+local template_key = require("sph.template_key")
 
 ---@class sph.SphLines
 ---@operator call: sph.SphLines
@@ -44,11 +45,9 @@ local function split_chars(s, n)
 end
 
 ---@param notes table
----@param templates table
 ---@return table
-local function parse_notes(notes, templates)
+local function parse_notes(notes)
 	local out = {}
-
 	for i, note in ipairs(notes) do
 		if note ~= "0" then
 			table.insert(out, {
@@ -57,17 +56,16 @@ local function parse_notes(notes, templates)
 			})
 		end
 	end
+	return out
+end
 
-	if templates then
-		for i, template in ipairs(templates) do
-			if out[i] then
-				out[i].template = template
-			else
-				table.insert(out, {template = template})
-			end
-		end
+---@param sounds table
+---@return table
+local function parse_sounds(sounds)
+	local out = {}
+	for i, sound in ipairs(sounds) do
+		out[i] = template_key.decode(sound)
 	end
-
 	return out
 end
 
@@ -90,7 +88,7 @@ function SphLines:decodeLine(s)
 		elseif k == "#" then
 			line.measure = self.sphNumber:decode(v)
 		elseif k == ":" then
-			line.templates = split_chars(v, 2)
+			line.sounds = parse_sounds(split_chars(v, 2))
 		elseif k == "x" then
 			line.velocity = tonumber(v)
 		elseif k == "e" then
@@ -116,7 +114,7 @@ function SphLines:decodeLine(s)
 	if args[1] ~= "-" then
 		self.columns = math.max(self.columns, #args[1])
 		local notes = split_chars(args[1], 1)
-		line.notes = parse_notes(notes, line.templates)
+		line.notes = parse_notes(notes)
 	end
 
 	if not intervalOffset and not next(line) then
@@ -255,6 +253,13 @@ function SphLines:encode()
 			if line.measure then
 				local n = line.measure
 				str = str .. " #" .. (n[1] ~= 0 and formatFraction(n) or "")
+			end
+			if line.sounds and #line.sounds > 0 then
+				local out = {}
+				for i, sound in ipairs(line.sounds) do
+					out[i] = template_key.encode(sound)
+				end
+				str = str .. " :" .. table.concat(out)
 			end
 
 			if hasPayload or dt[1] == 0 and not visual then

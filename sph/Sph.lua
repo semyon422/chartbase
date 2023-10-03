@@ -1,5 +1,6 @@
 local class = require("class")
 local SphLines = require("sph.SphLines")
+local template_key = require("sph.template_key")
 
 ---@class sph.Sph
 ---@operator call: sph.Sph
@@ -7,7 +8,7 @@ local Sph = class()
 
 function Sph:new()
 	self.metadata = {}
-	self.templates = {}
+	self.sounds = {}
 	self.sphLines = SphLines()
 	self.section = ""
 end
@@ -18,19 +19,18 @@ function Sph:decodeLine(line)
 		return
 	end
 
-	if line:sub(1, 1) == "#" then
-		self.section = line:match("^# (.+)$")
+	local section = line:match("^# (.+)$")
+	if section then
+		self.section = section
 	elseif self.section == "metadata" then
 		local k, v = line:match("^(%w+) (.+)$")
 		if k then
 			self.metadata[k] = v
 		end
-	elseif self.section == "templates" then
-		local t, k, v = line:match("^(%w+) (%w+) (.+)$")
+	elseif self.section == "sounds" then
+		local t, v = line:match("^(..) (.+)$")
 		if t then
-			self.templates[t] = self.templates[t] or {}
-			self.templates[t][k] = self.templates[t][k] or {}
-			table.insert(self.templates[t][k], v)
+			self.sounds[template_key.decode(t)] = v
 		end
 	elseif self.section == "notes" then
 		self.sphLines:decodeLine(line)
@@ -73,13 +73,18 @@ function Sph:encode()
 	end
 	table.insert(lines, "")
 
-	local templates = self.templates
-	if #templates > 0 then
-		table.insert(lines, "# templates")
-		for t, k in pairs(templates) do
-			for _, v in ipairs(k) do
-				table.insert(lines, ("%s %s %s"):format(t, k, v))
-			end
+	local sounds = self.sounds
+	if next(sounds) then
+		table.insert(lines, "# sounds")
+		local sorted_sounds = {}
+		for t, v in pairs(sounds) do
+			table.insert(sorted_sounds, {t, v})
+		end
+		table.sort(sorted_sounds, function(a, b)
+			return a[1] < b[1]
+		end)
+		for _, s in ipairs(sorted_sounds) do
+			table.insert(lines, ("%s %s"):format(template_key.encode(s[1]), s[2]))
 		end
 		table.insert(lines, "")
 	end

@@ -51,40 +51,56 @@ function NoteChartImporter:processLine(line)
 	local layerData = self.layerData
 	local inputMap = self.inputMap
 	local longNotes = self.longNotes
+	local sounds = self.sph.sounds
 
 	local intervalData = layerData:getIntervalData(line.intervalIndex)
 	local timePoint = layerData:getTimePoint(intervalData, line.time, line.visualSide)
 
-	local hasNote = false
-	for _, note in ipairs(line.notes) do
+	local line_sounds = line.sounds or {}
+	for i, note in ipairs(line.notes) do
 		local noteData = NoteData(timePoint)
-		local inputType, inputIndex = "auto", 1
-		noteData.noteType = "SoundNote"
+
+		local sound = sounds[line_sounds[i]]
+		if sound then
+			noteData.sounds = {{sound, 1}}
+			self.noteChart:addResource("sound", sound, {sound})
+		end
 
 		local col = note.column
-		if col then
-			inputType, inputIndex = unpack(inputMap[col])
+		local inputType, inputIndex = unpack(inputMap[col])
 
-			local t = note.type
-			if t == "1" then
-				noteData.noteType = "ShortNote"
-				self.noteCount = self.noteCount + 1
-			elseif t == "2" then
-				noteData.noteType = "ShortNote"
-				self.noteCount = self.noteCount + 1
-				longNotes[col] = noteData
-			elseif t == "3" and longNotes[col] then
-				noteData.noteType = "LongNoteEnd"
-				noteData.startNoteData = longNotes[col]
-				longNotes[col].endNoteData = noteData
-				longNotes[col].noteType = "LongNoteStart"
-				longNotes[col] = nil
-			elseif t == "4" then
-				noteData.noteType = "SoundNote"
-			end
-			hasNote = true
+		local t = note.type
+		if t == "1" then
+			noteData.noteType = "ShortNote"
+			self.noteCount = self.noteCount + 1
+		elseif t == "2" then
+			noteData.noteType = "ShortNote"
+			self.noteCount = self.noteCount + 1
+			longNotes[col] = noteData
+		elseif t == "3" and longNotes[col] then
+			noteData.noteType = "LongNoteEnd"
+			noteData.startNoteData = longNotes[col]
+			longNotes[col].endNoteData = noteData
+			longNotes[col].noteType = "LongNoteStart"
+			longNotes[col] = nil
+		elseif t == "4" then
+			noteData.noteType = "SoundNote"
+		else
+			error("unsupported note type " .. t)
 		end
+
 		layerData:addNoteData(noteData, inputType, inputIndex)
+	end
+
+	for i = #line.notes + 1, #line_sounds do
+		local sound = sounds[line_sounds[i]]
+		if sound then
+			local noteData = NoteData(timePoint)
+			noteData.noteType = "SoundNote"
+			noteData.sounds = {{sound, 1}}
+			self.noteChart:addResource("sound", sound, {sound})
+			layerData:addNoteData(noteData, "auto", i)
+		end
 	end
 
 	if line.velocity then
@@ -97,7 +113,7 @@ function NoteChartImporter:processLine(line)
 		layerData:insertMeasureData(timePoint, line.measure)
 	end
 
-	if hasNote then
+	if #line.notes > 0 then
 		self:updateBoundaries(timePoint)
 	end
 end
