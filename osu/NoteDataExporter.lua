@@ -28,7 +28,7 @@ function NoteDataExporter:getHitObject()
 		key = noteData.inputIndex
 	end
 
-	local x = 512 / keymode * (key - 0.5)
+	local x = math.floor(512 / keymode * (key - 0.5))
 	local y = 192
 	local startTime = math.floor(noteData.timePoint.absoluteTime * 1000)
 	local endTime
