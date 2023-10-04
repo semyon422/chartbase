@@ -43,7 +43,7 @@ function NoteDataImporter:initEvent()
 end
 
 function NoteDataImporter:getNote(time, noteType)
-	local startTimePoint = self.noteChartImporter.foregroundLayerData:getTimePoint(time / 1000, 1)
+	local startTimePoint = self.noteChartImporter.foregroundLayerData:getTimePoint(time / 1000)
 
 	local startNoteData = ncdk.NoteData(startTimePoint)
 	startNoteData.inputType = self.inputType
