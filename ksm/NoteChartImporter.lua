@@ -58,9 +58,7 @@ function NoteChartImporter:import()
 
 	local ksh = self.ksh
 	local options = ksh.options
-	noteChart.index = 1
 	noteChart.metaData = UnifiedMetaData({
-		index = noteChart.index,
 		format = "ksh",
 		title = EncodingConverter:fix(options["title"]),
 		artist = EncodingConverter:fix(options["artist"]),

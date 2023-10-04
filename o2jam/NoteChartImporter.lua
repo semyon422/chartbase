@@ -63,9 +63,7 @@ function NoteChartImporter:importSingle(index)
 	self:updateLength()
 
 	local ojn = self.ojn
-	noteChart.index = index
 	noteChart.metaData = UnifiedMetaData({
-		index = index,
 		format = "ojn",
 		title = EncodingConverter:fix(ojn.str_title),
 		artist = EncodingConverter:fix(ojn.str_artist),

@@ -70,13 +70,10 @@ function NoteChartImporter:import()
 
 	self:updateLength()
 
-	noteChart.index = 1
-
 	local bms = self.bms
 	local header = bms.header
 	local title, name = splitTitle(EncodingConverter:fix(header["TITLE"]))
 	noteChart.metaData = UnifiedMetaData({
-		index = noteChart.index,
 		format = "bms",
 		title = title,
 		artist = EncodingConverter:fix(header["ARTIST"]),

@@ -64,9 +64,7 @@ function NoteChartImporter:importSingle()
 	local index = self.chartIndex
 	local chart = self.chart
 
-	noteChart.index = index
 	noteChart.metaData = UnifiedMetaData({
-		index = index,
 		format = "sm",
 		title = EncodingConverter:fix(header["TITLE"]),
 		artist = EncodingConverter:fix(header["ARTIST"]),

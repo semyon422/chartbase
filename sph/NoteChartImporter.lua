@@ -160,10 +160,7 @@ function NoteChartImporter:setMetadata()
 		maxTime = self.maxTimePoint.absoluteTime
 	end
 
-	noteChart.index = 1
 	noteChart.metaData = {
-		hash = "",
-		index = 1,
 		format = "sph",
 		title = sph.metadata.title,
 		artist = sph.metadata.artist,

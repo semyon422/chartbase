@@ -30,9 +30,7 @@ function NoteChartImporter:import()
 	noteChart:compute()
 
 	local qua = self.qua
-	noteChart.index = 1
 	noteChart.metaData = UnifiedMetaData({
-		index = noteChart.index,
 		format = "qua",
 		title = qua["Title"],
 		artist = qua["Artist"],

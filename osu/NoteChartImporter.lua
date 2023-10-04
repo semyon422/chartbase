@@ -38,11 +38,9 @@ function NoteChartImporter:import()
 	end
 	noteChart.type = "osu"
 	noteChart:compute()
-	noteChart.index = 1
 
 	local metadata = self.osu.metadata
 	noteChart.metaData = UnifiedMetaData({
-		index = noteChart.index,
 		format = "osu",
 		title = metadata.Title,
 		artist = metadata.Artist,

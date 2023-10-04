@@ -1,6 +1,5 @@
 local keys_and_types = {
 	string = {
-		"hash",
 		"format",
 		"title",
 		"artist",

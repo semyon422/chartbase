@@ -45,9 +45,7 @@ function NoteChartImporter:import()
 	noteChart:compute()
 
 	local mid = self.mid
-	noteChart.index = 1
 	noteChart.metaData = UnifiedMetaData({
-		index = noteChart.index,
 		format = "mid",
 		title = EncodingConverter:fix(self.title),
 		noteCount = self.noteCount,
