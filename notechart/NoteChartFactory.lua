@@ -57,7 +57,9 @@ end
 ---@param path string
 ---@return table
 function NoteChartFactory:getNoteChartImporter(path)
-	return NoteChartImporters[path:lower():match("^.+%.(.-)$")]
+	local Importer = NoteChartImporters[path:lower():match("^.+%.(.-)$")]
+	assert(Importer, "Importer is not found for " .. path)
+	return Importer()
 end
 
 ---@param content string
@@ -71,13 +73,31 @@ end
 
 ---@param path string
 ---@param content string
----@param index number?
+---@return table?
+---@return string?
+function NoteChartFactory:getNoteCharts(path, content)
+	local importer = self:getNoteChartImporter(path)
+
+	importer.path = path
+	importer.content = self:deleteBOM(content)
+
+	local status, err = xpcall(function() return importer:import() end, debug.traceback)
+
+	if not status then
+		return nil, err
+	end
+
+	return importer.noteCharts
+end
+
+---@param path string
+---@param content string
+---@param index number
 ---@param settings table?
 ---@return table?
 ---@return string?
-function NoteChartFactory:getNoteCharts(path, content, index, settings)
-	local NoteChartImporter = assert(self:getNoteChartImporter(path), "Importer is not found for " .. path)
-	local importer = NoteChartImporter()
+function NoteChartFactory:getNoteChart(path, content, index, settings)
+	local importer = self:getNoteChartImporter(path)
 
 	importer.path = path
 	importer.content = self:deleteBOM(content)
@@ -90,7 +110,7 @@ function NoteChartFactory:getNoteCharts(path, content, index, settings)
 		return nil, err
 	end
 
-	return importer.noteCharts
+	return importer.noteCharts[1]
 end
 
 return NoteChartFactory
