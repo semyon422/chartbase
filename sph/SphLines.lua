@@ -88,7 +88,13 @@ function SphLines:decodeLine(s)
 	local intervalOffset, fraction, visual
 	local line = {}
 
-	local args = s:split(" ")
+	local data, comment = s:match("^(.-) // (.+)$")
+	if not data then
+		data = s
+	end
+	line.comment = comment
+
+	local args = data:split(" ")
 	for i = 2, #args do
 		local k, v = args[i]:match("^(.)(.*)$")
 
@@ -284,6 +290,9 @@ function SphLines:encode()
 					out[i] = ("%02d"):format(math.floor(vol * 100 + 0.5) % 100)
 				end
 				str = str .. " ." .. table.concat(out)
+			end
+			if line.comment and #line.comment > 0 then
+				str = str .. " // " .. line.comment
 			end
 
 			if hasPayload or dt[1] == 0 and not visual then

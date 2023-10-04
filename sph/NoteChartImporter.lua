@@ -57,6 +57,8 @@ function NoteChartImporter:processLine(line)
 	local intervalData = layerData:getIntervalData(line.intervalIndex)
 	local timePoint = layerData:getTimePoint(intervalData, line.time, line.visualSide)
 
+	timePoint.comment = line.comment
+
 	local line_sounds = line.sounds or {}
 	local line_volume = line.volume or {}
 	for i, note in ipairs(line.notes) do

@@ -182,6 +182,7 @@ function NoteChartExporter:export()
 		line.sounds, line.volume = self:getSounds(t)
 		line.intervalIndex = math.max(#sphLines.intervals, 1)
 		line.intervalSet = t._intervalData ~= nil
+		line.comment = t.comment
 		if t._expandData then
 			line.expand = t._expandData.duration
 		end

@@ -7,7 +7,7 @@ function test.decenc_1(t)
 	local sl = SphLines()
 
 	local lines = {
-		"0100 +1/2",
+		"0100 +1/2 // comment",
 		"1000 =0.01",
 		"0100 +1/2",
 		"1000",
@@ -24,6 +24,8 @@ function test.decenc_1(t)
 		sl:decodeLine(line)
 	end
 	sl:updateTime()
+
+	t:eq(sl.lines[1].comment, "comment")
 
 	t:eq(sl:encode(), table.concat(lines, "\n"))
 end
