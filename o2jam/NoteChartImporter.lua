@@ -15,6 +15,19 @@ NoteChartImporter.measureCount = 0
 
 local O2jamDifficultyNames = {"Easy", "Normal", "Hard"}
 
+local encodings = {
+	"SHIFT-JIS",
+	"ISO-8859-1",
+	"CP932",
+	"EUC-KR",
+	"US-ASCII",
+	"CP1252",
+}
+
+function NoteChartImporter:new()
+	self.conv = EncodingConverter(encodings)
+end
+
 function NoteChartImporter:import()
 	local noteCharts = {}
 
@@ -65,10 +78,10 @@ function NoteChartImporter:importSingle(index)
 	local ojn = self.ojn
 	noteChart.metaData = UnifiedMetaData({
 		format = "ojn",
-		title = EncodingConverter:fix(ojn.str_title),
-		artist = EncodingConverter:fix(ojn.str_artist),
+		title = self.conv:convert(ojn.str_title),
+		artist = self.conv:convert(ojn.str_artist),
 		name = O2jamDifficultyNames[index],
-		creator = EncodingConverter:fix(ojn.str_noter),
+		creator = self.conv:convert(ojn.str_noter),
 		level = ojn.charts[index].level,
 		noteCount = ojn.charts[index].notes,
 		length = ojn.charts[index].duration,

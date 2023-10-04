@@ -4,7 +4,6 @@ local Fraction = require("ncdk.Fraction")
 local NoteChart = require("ncdk.NoteChart")
 local UnifiedMetaData = require("notechart.UnifiedMetaData")
 local MID = require("midi.MID")
-local EncodingConverter = require("notechart.EncodingConverter")
 
 ---@class midi.NoteChartImporter
 ---@operator call: midi.NoteChartImporter
@@ -47,7 +46,7 @@ function NoteChartImporter:import()
 	local mid = self.mid
 	noteChart.metaData = UnifiedMetaData({
 		format = "mid",
-		title = EncodingConverter:fix(self.title),
+		title = self.title,
 		noteCount = self.noteCount,
 		length = mid.length,
 		bpm = mid.bpm,

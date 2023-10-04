@@ -9,12 +9,27 @@ local EncodingConverter = require("notechart.EncodingConverter")
 ---@operator call: stepmania.NoteChartImporter
 local NoteChartImporter = class()
 
+local encodings = {
+	"SHIFT-JIS",
+	"ISO-8859-1",
+	"CP932",
+	"EUC-KR",
+	"US-ASCII",
+	"CP1252",
+}
+
+function NoteChartImporter:new()
+	self.conv = EncodingConverter(encodings)
+end
+
 function NoteChartImporter:import()
 	local noteCharts = {}
 
 	if not self.sm then
 		self.sm = SM()
-		self.sm:import(self.content:gsub("\r[\r\n]?", "\n"), self.path)
+		local content = self.content:gsub("\r[\r\n]?", "\n")
+		content = self.conv:convert(content)
+		self.sm:import(content, self.path)
 	end
 
 	local i0, i1 = 1, #self.sm.charts
@@ -66,14 +81,14 @@ function NoteChartImporter:importSingle()
 
 	noteChart.metaData = UnifiedMetaData({
 		format = "sm",
-		title = EncodingConverter:fix(header["TITLE"]),
-		artist = EncodingConverter:fix(header["ARTIST"]),
-		source = EncodingConverter:fix(header["SUBTITLE"]),
+		title = header["TITLE"],
+		artist = header["ARTIST"],
+		source = header["SUBTITLE"],
 		name = chart.metaData[3],
-		creator = EncodingConverter:fix(header["CREDIT"]),
+		creator = header["CREDIT"],
 		level = tonumber(chart.metaData[4]),
-		audioPath = EncodingConverter:fix(header["MUSIC"]),
-		stagePath = EncodingConverter:fix(header["BACKGROUND"]),
+		audioPath = header["MUSIC"],
+		stagePath = header["BACKGROUND"],
 		previewTime = tonumber(header["SAMPLESTART"]) or 0,
 		noteCount = self.noteCount,
 		length = self.totalLength,

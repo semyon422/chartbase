@@ -44,6 +44,19 @@ end
 ---@operator call: bms.NoteChartImporter
 local NoteChartImporter = class()
 
+local encodings = {
+	"SHIFT-JIS",
+	"ISO-8859-1",
+	"CP932",
+	"EUC-KR",
+	"US-ASCII",
+	"CP1252",
+}
+
+function NoteChartImporter:new()
+	self.conv = EncodingConverter(encodings)
+end
+
 function NoteChartImporter:import()
 	self.noteChart = NoteChart()
 	local noteChart = self.noteChart
@@ -57,6 +70,7 @@ function NoteChartImporter:import()
 		self.bms = BMS()
 		self.bms.pms = self.path:lower():sub(-4, -1) == ".pms"
 		local content = self.content:gsub("\r[\r\n]?", "\n")
+		content = self.conv:convert(content)
 		self.bms:import(content)
 	end
 
@@ -72,14 +86,14 @@ function NoteChartImporter:import()
 
 	local bms = self.bms
 	local header = bms.header
-	local title, name = splitTitle(EncodingConverter:fix(header["TITLE"]))
+	local title, name = splitTitle(header["TITLE"])
 	noteChart.metaData = UnifiedMetaData({
 		format = "bms",
 		title = title,
-		artist = EncodingConverter:fix(header["ARTIST"]),
+		artist = header["ARTIST"],
 		name = name,
 		level = tonumber(header["PLAYLEVEL"]),
-		stagePath = EncodingConverter:fix(header["STAGEFILE"]),
+		stagePath = header["STAGEFILE"],
 		noteCount = self.noteCount,
 		length = self.totalLength,
 		bpm = bms.baseTempo or 0,
@@ -218,13 +232,13 @@ function NoteChartImporter:processData()
 					noteData.sounds = {}
 					noteData.images = {}
 					if channelInfo.name == "Note" or channelInfo.name == "BGM" then
-						local sound = EncodingConverter:fix(self.bms.wav[value])
+						local sound = self.bms.wav[value]
 						if sound and not channelInfo.mine then
 							noteData.sounds[1] = {sound, 1}
 							self.noteChart:addResource("sound", sound, {sound})
 						end
 					elseif channelInfo.name == "BGA" then
-						local image = EncodingConverter:fix(self.bms.bmp[value])
+						local image = self.bms.bmp[value]
 						if image then
 							noteData.images[1] = {image, 1}
 							self.noteChart:addResource("image", image, {image})

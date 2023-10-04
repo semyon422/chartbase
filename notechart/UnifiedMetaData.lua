@@ -30,10 +30,6 @@ local required_keys = {
 	"inputMode",
 }
 
-local default_values = {
-	index = 1,
-}
-
 local allowed_keys = {}
 for _type, keys in pairs(keys_and_types) do
 	for _, key in ipairs(keys) do
@@ -59,9 +55,6 @@ local function UnifiedMetaData(t)
 	for _, k in pairs(required_keys) do
 		assert(t[k], ("key '%s' required"):format(k))
 		assert_type(t, k)
-	end
-	for k, v in pairs(default_values) do
-		t[k] = t[k] or v
 	end
 	return t
 end

@@ -13,13 +13,28 @@ local NoteChartImporter = class()
 NoteChartImporter.primaryTempo = 120
 NoteChartImporter.measureCount = 0
 
+local encodings = {
+	"SHIFT-JIS",
+	"ISO-8859-1",
+	"CP932",
+	"EUC-KR",
+	"US-ASCII",
+	"CP1252",
+}
+
+function NoteChartImporter:new()
+	self.conv = EncodingConverter(encodings)
+end
+
 function NoteChartImporter:import()
 	self.noteChart = NoteChart()
 	local noteChart = self.noteChart
 
 	if not self.ksh then
 		self.ksh = Ksh()
-		self.ksh:import(self.content:gsub("\r\n", "\n"))
+		local content = self.content:gsub("\r\n", "\n")
+		content = self.conv:convert(content)
+		self.ksh:import(content)
 	end
 
 	self.foregroundLayerData = noteChart:getLayerData(1)
@@ -60,13 +75,13 @@ function NoteChartImporter:import()
 	local options = ksh.options
 	noteChart.metaData = UnifiedMetaData({
 		format = "ksh",
-		title = EncodingConverter:fix(options["title"]),
-		artist = EncodingConverter:fix(options["artist"]),
-		name = EncodingConverter:fix(options["difficulty"]),
-		creator = EncodingConverter:fix(options["effect"]),
+		title = options["title"],
+		artist = options["artist"],
+		name = options["difficulty"],
+		creator = options["effect"],
 		level = tonumber(options["level"]),
 		audioPath = self.audioFileName,
-		stagePath = EncodingConverter:fix(options["jacket"]),
+		stagePath = options["jacket"],
 		previewTime = (options["plength"] or 0) / 1000,
 		noteCount = self.noteCount,
 		length = self.totalLength,
