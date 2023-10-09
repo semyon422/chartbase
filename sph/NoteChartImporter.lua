@@ -160,6 +160,13 @@ function NoteChartImporter:setMetadata()
 		maxTime = self.maxTimePoint.absoluteTime
 	end
 
+	local layerData = self.noteChart:getLayerData(1)
+
+	local a = layerData:getIntervalData(1).timePoint
+	local b = layerData:getIntervalData(layerData:getIntervalDataCount()).timePoint
+	local beats = b:sub(a)
+	local avgBeatDuration = (b.absoluteTime - a.absoluteTime) / beats
+
 	noteChart.metaData = {
 		format = "sph",
 		title = sph.metadata.title,
@@ -174,7 +181,7 @@ function NoteChartImporter:setMetadata()
 		previewTime = sph.metadata.preview,
 		noteCount = self.noteCount,
 		length = totalLength,
-		bpm = sph.metadata.bpm,
+		bpm = 60 / avgBeatDuration,
 		inputMode = sph.metadata.input,
 		minTime = minTime,
 		maxTime = maxTime,
