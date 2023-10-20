@@ -101,9 +101,15 @@ end
 function Sph:getDefault(info)
 	local out = {}
 
+	table.insert(out, "# metadata")
 	for k, v in pairs(info) do
 		table.insert(out, k .. " " .. v)
 	end
+	table.insert(out, "preview 0")
+	table.insert(out, "input 4key")
+
+	table.insert(out, "")
+	table.insert(out, "# notes")
 	table.insert(out, "0000 =0")
 	table.insert(out, "0000 =1")
 
