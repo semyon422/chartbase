@@ -89,7 +89,7 @@ function NoteChartExporter:addHeader()
 	lines[#lines + 1] = "[General]"
 
 	local audioPath = chart.audioPath
-	if audioPath ~= "" then
+	if audioPath and audioPath ~= "" then
 		lines[#lines + 1] = "AudioFilename: " .. audioPath
 	else
 		lines[#lines + 1] = "AudioFilename: virtual"
@@ -101,7 +101,7 @@ function NoteChartExporter:addHeader()
 	end
 
 	lines[#lines + 1] = "AudioLeadIn: 0"
-	lines[#lines + 1] = "PreviewTime: " .. chart.previewTime * 1000
+	lines[#lines + 1] = "PreviewTime: " .. (chart.previewTime or 0) * 1000
 	lines[#lines + 1] = "Countdown: 0"
 	lines[#lines + 1] = "SampleSet: Soft"
 	lines[#lines + 1] = "StackLeniency: 0.7"
@@ -109,14 +109,14 @@ function NoteChartExporter:addHeader()
 	lines[#lines + 1] = "LetterboxInBreaks: 0"
 	lines[#lines + 1] = ""
 	lines[#lines + 1] = "[Metadata]"
-	lines[#lines + 1] = "Title:" .. chart.title
-	lines[#lines + 1] = "TitleUnicode:" .. chart.title
-	lines[#lines + 1] = "Artist:" .. chart.artist
-	lines[#lines + 1] = "ArtistUnicode:" .. chart.artist
-	lines[#lines + 1] = "Creator:" .. chart.creator
-	lines[#lines + 1] = "Version:" .. name
-	lines[#lines + 1] = "Source:" .. chart.source
-	lines[#lines + 1] = "Tags:" .. chart.tags
+	lines[#lines + 1] = "Title:" .. (chart.title or "")
+	lines[#lines + 1] = "TitleUnicode:" .. (chart.title or "")
+	lines[#lines + 1] = "Artist:" .. (chart.artist or "")
+	lines[#lines + 1] = "ArtistUnicode:" .. (chart.artist or "")
+	lines[#lines + 1] = "Creator:" .. (chart.creator or "")
+	lines[#lines + 1] = "Version:" .. (name or "")
+	lines[#lines + 1] = "Source:" .. (chart.source or "")
+	lines[#lines + 1] = "Tags:" .. (chart.tags or "")
 	lines[#lines + 1] = "BeatmapID:0"
 	lines[#lines + 1] = "BeatmapSetID:-1"
 	lines[#lines + 1] = ""
@@ -141,7 +141,7 @@ function NoteChartExporter:addEvents()
 
 	lines[#lines + 1] = "//Background and Video events"
 	local stagePath = noteChartDataEntry.stagePath
-	if stagePath ~= "" then
+	if stagePath and stagePath ~= "" then
 		lines[#lines + 1] = ("0,0,\"%s\",0,0"):format(stagePath)
 	end
 
