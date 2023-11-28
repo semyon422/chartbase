@@ -30,7 +30,7 @@ function NoteChartImporter:import()
 	if mode == 0 then
 		noteChart.inputMode.osu = 1
 	elseif mode == 1 then
-		noteChart.inputMode.taiko = 1
+		noteChart.inputMode.key = 2
 	elseif mode == 2 then
 		noteChart.inputMode.fruits = 1
 	elseif mode == 3 then

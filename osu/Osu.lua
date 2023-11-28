@@ -168,15 +168,25 @@ function Osu:addHitObject(line)
 		addition = split[6] and split[6]:split(":") or {}
 	end
 
-	note.hitSoundBitmap = tonumber(split[5])
+	note.hitSoundBitmap = tonumber(split[5]) or 0
 	note.sampleSetId = tonumber(addition[1]) or 0
 	note.additionalSampleSetId = tonumber(addition[2]) or 0
 	note.customSampleSetIndex = tonumber(addition[3]) or 0
 	note.hitSoundVolume = tonumber(addition[4]) or 0
 	note.customHitSound = addition[5] or ""
 
-	local keymode = self.keymode
-	note.key = math.max(1, math.min(keymode, math.floor(note.x / 512 * keymode + 1)))
+	if self.mode == 1 then  -- taiko
+		local bm = note.hitSoundBitmap
+		if bit.band(bm, 10) ~= 0 then  -- 2 | 8
+			note.key = 2  -- kat
+		else
+			note.key = 1  -- don
+		end
+		note.is_double = bit.band(bm, 4) ~= 0
+	else
+		local keymode = self.keymode
+		note.key = math.max(1, math.min(keymode, math.floor(note.x / 512 * keymode + 1)))
+	end
 
 	self.hitObjects[#self.hitObjects + 1] = note
 end
