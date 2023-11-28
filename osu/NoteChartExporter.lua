@@ -101,7 +101,7 @@ function NoteChartExporter:addHeader()
 	end
 
 	lines[#lines + 1] = "AudioLeadIn: 0"
-	lines[#lines + 1] = "PreviewTime: " .. (chart.previewTime or 0) * 1000
+	lines[#lines + 1] = "PreviewTime: " .. math.floor((chart.previewTime or 0) * 1000)
 	lines[#lines + 1] = "Countdown: 0"
 	lines[#lines + 1] = "SampleSet: Soft"
 	lines[#lines + 1] = "StackLeniency: 0.7"
