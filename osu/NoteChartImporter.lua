@@ -267,6 +267,7 @@ function NoteChartImporter:addNoteParser(note, event)
 	local noteDataImporter = NoteDataImporter(note)
 	noteDataImporter.noteChartImporter = self
 	noteDataImporter.noteChart = self.noteChart
+	noteDataImporter.mode = self.osu.mode
 	if not event then
 		noteDataImporter:init()
 		self.noteCount = self.noteCount + 1

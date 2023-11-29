@@ -95,7 +95,12 @@ function NoteDataImporter:getNoteData()
 		return self:getNote(startTime, "ShortNote"), noSounds(self:getNote(endTime, "SoundNote"))
 	end
 
-	local startNoteData = self:getNote(startTime, "LongNoteStart")
+	local lnType = "LongNoteStart"
+	if self.mode == 2 then
+		lnType = "DrumrollNoteStart"
+	end
+
+	local startNoteData = self:getNote(startTime, lnType)
 	local endNoteData = self:getNote(endTime, "LongNoteEnd")
 
 	endNoteData.sounds = nil
