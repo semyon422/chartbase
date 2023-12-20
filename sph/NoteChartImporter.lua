@@ -89,8 +89,6 @@ function NoteChartImporter:processLine(line)
 			longNotes[col] = nil
 		elseif t == "4" then
 			noteData.noteType = "SoundNote"
-		else
-			error("unsupported note type " .. t)
 		end
 
 		layerData:addNoteData(noteData, inputType, inputIndex)
