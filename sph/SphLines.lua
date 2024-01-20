@@ -83,6 +83,16 @@ local function parse_volume(volume)
 	return out
 end
 
+---@param velocity string
+---@return table
+local function parse_velocity(velocity)
+	local out = velocity:split(",")
+	for i = 1, 3 do
+		out[i] = tonumber(out[i]) or 1
+	end
+	return out
+end
+
 ---@param s string
 function SphLines:decodeLine(s)
 	local intervalOffset, fraction, visual
@@ -112,7 +122,7 @@ function SphLines:decodeLine(s)
 		elseif k == "." then
 			line.volume = parse_volume(split_chars(v, 2))
 		elseif k == "x" then
-			line.velocity = tonumber(v)
+			line.velocity = parse_velocity(v)
 		elseif k == "e" then
 			line.expand = tonumber(v)
 		end
@@ -166,6 +176,18 @@ end
 ---@return string
 local function formatFraction(f)
 	return f[1] .. "/" .. f[2]
+end
+
+---@param v table
+---@return string
+local function format_velocity(v)
+	if v[3] ~= 1 then
+		return ("%s,%s,%s"):format(v[1], v[2], v[3])
+	end
+	if v[2] ~= 1 then
+		return ("%s,%s"):format(v[1], v[2])
+	end
+	return tostring(v[1])
 end
 
 ---@param _notes table
@@ -271,7 +293,7 @@ function SphLines:encode()
 				str = str .. " e" .. tostring(line.expand)
 			end
 			if line.velocity then
-				str = str .. " x" .. tostring(line.velocity)
+				str = str .. " x" .. format_velocity(line.velocity)
 			end
 			if line.measure then
 				local n = line.measure

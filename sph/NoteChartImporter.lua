@@ -106,7 +106,7 @@ function NoteChartImporter:processLine(line)
 	end
 
 	if line.velocity then
-		layerData:insertVelocityData(timePoint, line.velocity)
+		layerData:insertVelocityData(timePoint, unpack(line.velocity, 1, 3))
 	end
 	if line.expand and line.expand ~= 0 then
 		layerData:insertExpandData(timePoint, line.expand)

@@ -187,7 +187,11 @@ function NoteChartExporter:export()
 			line.expand = t._expandData.duration
 		end
 		if t._velocityData then
-			line.velocity = t._velocityData.currentSpeed
+			line.velocity = {
+				t._velocityData.currentSpeed,
+				t._velocityData.localSpeed,
+				t._velocityData.globalSpeed,
+			}
 		end
 		if t._measureData then
 			line.measure = t._measureData.start
