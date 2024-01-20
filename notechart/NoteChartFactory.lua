@@ -7,6 +7,7 @@ local sph = require("sph")
 local midi = require("midi")
 local stepmania = require("stepmania")
 
+---@class notechart.NoteChartFactory
 local NoteChartFactory = {}
 
 local RelatedContainerExtensions = {
