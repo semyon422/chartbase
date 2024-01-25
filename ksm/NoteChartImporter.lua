@@ -1,7 +1,7 @@
 local class = require("class")
 local ncdk = require("ncdk")
 local NoteChart = require("ncdk.NoteChart")
-local UnifiedMetaData = require("notechart.UnifiedMetaData")
+local Chartmeta = require("notechart.Chartmeta")
 local Ksh = require("ksm.Ksh")
 local bmsNoteChartImporter = require("bms.NoteChartImporter")
 local EncodingConverter = require("notechart.EncodingConverter")
@@ -73,22 +73,20 @@ function NoteChartImporter:import()
 
 	local ksh = self.ksh
 	local options = ksh.options
-	noteChart.metaData = UnifiedMetaData({
+	noteChart.chartmeta = Chartmeta({
 		format = "ksh",
 		title = options["title"],
 		artist = options["artist"],
 		name = options["difficulty"],
 		creator = options["effect"],
 		level = tonumber(options["level"]),
-		audioPath = self.audioFileName,
-		stagePath = options["jacket"],
-		previewTime = (options["plength"] or 0) / 1000,
-		noteCount = self.noteCount,
-		length = self.totalLength,
-		bpm = 0,
-		inputMode = tostring(noteChart.inputMode),
-		minTime = self.minTime,
-		maxTime = self.maxTime
+		audio_path = self.audioFileName,
+		background_path = options["jacket"],
+		preview_time = (options["plength"] or 0) / 1000,
+		notes_count = self.notes_count,
+		duration = self.totalLength,
+		inputmode = tostring(noteChart.inputMode),
+		start_time = self.minTime,
 	})
 
 	self.noteCharts = {noteChart}
@@ -113,7 +111,7 @@ function NoteChartImporter:processAudio()
 end
 
 function NoteChartImporter:processData()
-	self.noteCount = 0
+	self.notes_count = 0
 
 	self.minTimePoint = nil
 	self.maxTimePoint = nil
@@ -186,7 +184,7 @@ function NoteChartImporter:processData()
 			lastTimePoint = endTimePoint
 		end
 
-		self.noteCount = self.noteCount + 1
+		self.notes_count = self.notes_count + 1
 
 		if not self.minTimePoint or lastTimePoint < self.minTimePoint then
 			self.minTimePoint = lastTimePoint

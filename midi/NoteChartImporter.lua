@@ -2,7 +2,7 @@ local class = require("class")
 local ncdk = require("ncdk")
 local Fraction = require("ncdk.Fraction")
 local NoteChart = require("ncdk.NoteChart")
-local UnifiedMetaData = require("notechart.UnifiedMetaData")
+local Chartmeta = require("notechart.Chartmeta")
 local MID = require("midi.MID")
 
 ---@class midi.NoteChartImporter
@@ -34,7 +34,7 @@ function NoteChartImporter:import()
 	end
 
 	local addedNotes = {}
-	self.noteCount = 0
+	self.notes_count = 0
 	for i = 1, #self.mid.notes do
 		self:processData(i, self:createLayerData(i), addedNotes)
 	end
@@ -44,15 +44,14 @@ function NoteChartImporter:import()
 	noteChart:compute()
 
 	local mid = self.mid
-	noteChart.metaData = UnifiedMetaData({
+	noteChart.chartmeta = Chartmeta({
 		format = "mid",
 		title = self.title,
-		noteCount = self.noteCount,
-		length = mid.length,
-		bpm = mid.bpm,
-		inputMode = tostring(noteChart.inputMode),
-		minTime = mid.minTime,
-		maxTime = mid.maxTime
+		notes_count = self.notes_count,
+		duration = mid.length,
+		tempo = mid.bpm,
+		inputmode = tostring(noteChart.inputMode),
+		start_time = mid.minTime,
 	})
 end
 
@@ -100,7 +99,7 @@ function NoteChartImporter:processData(trackIndex, layerData, addedNotes)
 	local hitsoundType = self.hitsoundType
 	local hitsoundFormat = self.hitsoundFormat
 	local keys = self.keys
-	local noteCount = self.noteCount
+	local notes_count = self.notes_count
 
 	local prevEvents = {}
 	for i = 1, 88 do
@@ -161,13 +160,13 @@ function NoteChartImporter:processData(trackIndex, layerData, addedNotes)
 
 				layerData:addNoteData(endNoteData, inputType, inputIndex)
 
-				noteCount = noteCount + 1
+				notes_count = notes_count + 1
 				addedNotes[eventId] = true
 			end
 		end
 	end
 
-	self.noteCount = noteCount
+	self.notes_count = notes_count
 end
 
 function NoteChartImporter:processMeasureLines()

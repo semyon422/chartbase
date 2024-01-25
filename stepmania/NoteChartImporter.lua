@@ -1,7 +1,7 @@
 local class = require("class")
 local ncdk = require("ncdk")
 local NoteChart = require("ncdk.NoteChart")
-local UnifiedMetaData = require("notechart.UnifiedMetaData")
+local Chartmeta = require("notechart.Chartmeta")
 local SM = require("stepmania.SM")
 local EncodingConverter = require("notechart.EncodingConverter")
 
@@ -79,23 +79,22 @@ function NoteChartImporter:importSingle()
 	local index = self.chartIndex
 	local chart = self.chart
 
-	noteChart.metaData = UnifiedMetaData({
+	noteChart.chartmeta = Chartmeta({
 		format = "sm",
 		title = header["TITLE"],
 		artist = header["ARTIST"],
 		source = header["SUBTITLE"],
-		name = chart.metaData[3],
+		name = chart.header[3],
 		creator = header["CREDIT"],
-		level = tonumber(chart.metaData[4]),
-		audioPath = header["MUSIC"],
-		stagePath = header["BACKGROUND"],
-		previewTime = tonumber(header["SAMPLESTART"]) or 0,
-		noteCount = self.noteCount,
-		length = self.totalLength,
-		bpm = sm.displayTempo or 0,
-		inputMode = tostring(noteChart.inputMode),
-		minTime = self.minTime,
-		maxTime = self.maxTime,
+		level = tonumber(chart.header[4]),
+		audio_path = header["MUSIC"],
+		background_path = header["BACKGROUND"],
+		preview_time = tonumber(header["SAMPLESTART"]) or 0,
+		notes_count = self.notes_count,
+		duration = self.totalLength,
+		tempo = sm.displayTempo or 0,
+		inputmode = tostring(noteChart.inputMode),
+		start_time = self.minTime,
 	})
 
 	return noteChart
@@ -126,7 +125,7 @@ function NoteChartImporter:processTempo()
 end
 
 function NoteChartImporter:processNotes()
-	self.noteCount = 0
+	self.notes_count = 0
 
 	self.minTimePoint = nil
 	self.maxTimePoint = nil
@@ -143,13 +142,13 @@ function NoteChartImporter:processNotes()
 
 		if note.noteType == "1" then
 			noteData.noteType = "ShortNote"
-			self.noteCount = self.noteCount + 1
+			self.notes_count = self.notes_count + 1
 		elseif note.noteType == "M" or note.noteType == "F" then
 			noteData.noteType = "SoundNote"
 		elseif note.noteType == "2" or note.noteType == "4" then
 			noteData.noteType = "ShortNote"
 			longNotes[note.inputIndex] = noteData
-			self.noteCount = self.noteCount + 1
+			self.notes_count = self.notes_count + 1
 		elseif note.noteType == "3" then
 			noteData.noteType = "LongNoteEnd"
 			noteData.startNoteData = longNotes[note.inputIndex]

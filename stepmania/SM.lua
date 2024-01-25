@@ -18,7 +18,7 @@ function SM:newChart()
 		mode = 0,
 		notes = {},
 		linesPerMeasure = {},
-		metaData = {},
+		header = {},
 	}
 	self.chart = chart
 	table.insert(self.charts, chart)
@@ -56,8 +56,8 @@ function SM:processLine(line)
 		self.parsingNotesMetaData = true
 		self:newChart()
 	elseif self.parsingNotesMetaData then
-		table.insert(chart.metaData, line:match("^(.-):.*$"))
-		if #chart.metaData == 5 then
+		table.insert(chart.header, line:match("^(.-):.*$"))
+		if #chart.header == 5 then
 			self.parsingNotesMetaData = false
 		end
 	elseif self.parsingNotes and not line:find(",") and line:find("//") then

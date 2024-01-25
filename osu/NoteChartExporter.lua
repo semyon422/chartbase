@@ -7,10 +7,6 @@ local mappings = require("osu.exportKeyMappings")
 ---@operator call: osu.NoteChartExporter
 local NoteChartExporter = class()
 
-function NoteChartExporter:new()
-	self.metaData = {}
-end
-
 ---@return string
 function NoteChartExporter:export()
 	local inputMode = self.noteChart.inputMode
@@ -54,7 +50,7 @@ function NoteChartExporter:loadNotes()
 						table.insert(_noteDatas, noteData)
 					elseif noteData.noteType == "SoundNote" then
 						if noteData.stream then
-							self.audioPath = noteData.sounds[1][1]
+							self.audio_path = noteData.sounds[1][1]
 						else
 							table.insert(samples, noteData)
 						end
@@ -82,26 +78,26 @@ end
 
 function NoteChartExporter:addHeader()
 	local lines = self.lines
-	local chart = self.noteChartDataEntry
+	local chartmeta = self.chartmeta
 
 	lines[#lines + 1] = "osu file format v14"
 	lines[#lines + 1] = ""
 	lines[#lines + 1] = "[General]"
 
-	local audioPath = chart.audioPath
-	if audioPath and audioPath ~= "" then
-		lines[#lines + 1] = "AudioFilename: " .. audioPath
+	local audio_path = chartmeta.audio_path
+	if audio_path and audio_path ~= "" then
+		lines[#lines + 1] = "AudioFilename: " .. audio_path
 	else
 		lines[#lines + 1] = "AudioFilename: virtual"
 	end
 
-	local name =  chart.name
-	if chart.level and chart.level > 0 then
-		name = name .. " " .. chart.level
+	local name =  chartmeta.name
+	if chartmeta.level and chartmeta.level > 0 then
+		name = name .. " " .. chartmeta.level
 	end
 
 	lines[#lines + 1] = "AudioLeadIn: 0"
-	lines[#lines + 1] = "PreviewTime: " .. math.floor((chart.previewTime or 0) * 1000)
+	lines[#lines + 1] = "PreviewTime: " .. math.floor((chartmeta.preview_time or 0) * 1000)
 	lines[#lines + 1] = "Countdown: 0"
 	lines[#lines + 1] = "SampleSet: Soft"
 	lines[#lines + 1] = "StackLeniency: 0.7"
@@ -109,14 +105,14 @@ function NoteChartExporter:addHeader()
 	lines[#lines + 1] = "LetterboxInBreaks: 0"
 	lines[#lines + 1] = ""
 	lines[#lines + 1] = "[Metadata]"
-	lines[#lines + 1] = "Title:" .. (chart.title or "")
-	lines[#lines + 1] = "TitleUnicode:" .. (chart.title or "")
-	lines[#lines + 1] = "Artist:" .. (chart.artist or "")
-	lines[#lines + 1] = "ArtistUnicode:" .. (chart.artist or "")
-	lines[#lines + 1] = "Creator:" .. (chart.creator or "")
+	lines[#lines + 1] = "Title:" .. (chartmeta.title or "")
+	lines[#lines + 1] = "TitleUnicode:" .. (chartmeta.title or "")
+	lines[#lines + 1] = "Artist:" .. (chartmeta.artist or "")
+	lines[#lines + 1] = "ArtistUnicode:" .. (chartmeta.artist or "")
+	lines[#lines + 1] = "Creator:" .. (chartmeta.creator or "")
 	lines[#lines + 1] = "Version:" .. (name or "")
-	lines[#lines + 1] = "Source:" .. (chart.source or "")
-	lines[#lines + 1] = "Tags:" .. (chart.tags or "")
+	lines[#lines + 1] = "Source:" .. (chartmeta.source or "")
+	lines[#lines + 1] = "Tags:" .. (chartmeta.tags or "")
 	lines[#lines + 1] = "BeatmapID:0"
 	lines[#lines + 1] = "BeatmapSetID:-1"
 	lines[#lines + 1] = ""
@@ -135,14 +131,14 @@ end
 function NoteChartExporter:addEvents()
 	local lines = self.lines
 	local events = self.events
-	local noteChartDataEntry = self.noteChartDataEntry
+	local chartmeta = self.chartmeta
 
 	lines[#lines + 1] = "[Events]"
 
 	lines[#lines + 1] = "//Background and Video events"
-	local stagePath = noteChartDataEntry.stagePath
-	if stagePath and stagePath ~= "" then
-		lines[#lines + 1] = ("0,0,\"%s\",0,0"):format(stagePath)
+	local background_path = chartmeta.background_path
+	if background_path and background_path ~= "" then
+		lines[#lines + 1] = ("0,0,\"%s\",0,0"):format(background_path)
 	end
 
 	lines[#lines + 1] = "//Break Periods"

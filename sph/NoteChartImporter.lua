@@ -3,6 +3,7 @@ local Sph = require("sph.Sph")
 local NoteChart = require("ncdk.NoteChart")
 local NoteData = require("ncdk.NoteData")
 local InputMode = require("ncdk.InputMode")
+local Chartmeta = require("notechart.Chartmeta")
 
 ---@class sph.NoteChartImporter
 ---@operator call: sph.NoteChartImporter
@@ -11,7 +12,7 @@ local NoteChartImporter = class()
 function NoteChartImporter:new()
 	self.noteChart = NoteChart()
 	self.sph = Sph()
-	self.noteCount = 0
+	self.notes_count = 0
 	self.longNotes = {}
 end
 
@@ -76,10 +77,10 @@ function NoteChartImporter:processLine(line)
 		local t = note.type
 		if t == "1" then
 			noteData.noteType = "ShortNote"
-			self.noteCount = self.noteCount + 1
+			self.notes_count = self.notes_count + 1
 		elseif t == "2" then
 			noteData.noteType = "ShortNote"
-			self.noteCount = self.noteCount + 1
+			self.notes_count = self.notes_count + 1
 			longNotes[col] = noteData
 		elseif t == "3" and longNotes[col] then
 			noteData.noteType = "LongNoteEnd"
@@ -165,7 +166,7 @@ function NoteChartImporter:setMetadata()
 	local beats = b:sub(a)
 	local avgBeatDuration = (b.absoluteTime - a.absoluteTime) / beats
 
-	noteChart.metaData = {
+	noteChart.chartmeta = Chartmeta({
 		format = "sph",
 		title = sph.metadata.title,
 		artist = sph.metadata.artist,
@@ -174,16 +175,15 @@ function NoteChartImporter:setMetadata()
 		name = sph.metadata.name,
 		creator = sph.metadata.creator,
 		level = sph.metadata.level,
-		audioPath = sph.metadata.audio,
-		stagePath = sph.metadata.background,
-		previewTime = sph.metadata.preview,
-		noteCount = self.noteCount,
-		length = totalLength,
-		bpm = 60 / avgBeatDuration,
-		inputMode = sph.metadata.input,
-		minTime = minTime,
-		maxTime = maxTime,
-	}
+		audio_path = sph.metadata.audio,
+		background_path = sph.metadata.background,
+		preview_time = sph.metadata.preview,
+		notes_count = self.notes_count,
+		duration = totalLength,
+		tempo = 60 / avgBeatDuration,
+		inputmode = sph.metadata.input,
+		start_time = minTime,
+	})
 end
 
 return NoteChartImporter

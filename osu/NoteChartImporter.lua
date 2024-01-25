@@ -1,7 +1,7 @@
 local class = require("class")
 local ncdk = require("ncdk")
 local NoteChart = require("ncdk.NoteChart")
-local UnifiedMetaData = require("notechart.UnifiedMetaData")
+local Chartmeta = require("notechart.Chartmeta")
 local Osu = require("osu.Osu")
 local NoteDataImporter = require("osu.NoteDataImporter")
 local TimingDataImporter = require("osu.TimingDataImporter")
@@ -40,7 +40,7 @@ function NoteChartImporter:import()
 	noteChart:compute()
 
 	local metadata = self.osu.metadata
-	noteChart.metaData = UnifiedMetaData({
+	noteChart.chartmeta = Chartmeta({
 		format = "osu",
 		title = metadata.Title,
 		artist = metadata.Artist,
@@ -48,18 +48,17 @@ function NoteChartImporter:import()
 		tags = metadata.Tags,
 		name = metadata.Version,
 		creator = metadata.Creator,
-		audioPath = metadata.AudioFilename,
-		stagePath = self.osu.background,
-		previewTime = metadata.PreviewTime / 1000,
-		noteCount = self.noteCount,
-		length = self.totalLength / 1000,
-		bpm = self.primaryBPM,
-		inputMode = tostring(noteChart.inputMode),
-		minTime = self.minTime / 1000,
-		maxTime = self.maxTime / 1000,
-		avgTempo = self.primaryBPM,
-		minTempo = self.minTempo,
-		maxTempo = self.maxTempo,
+		audio_path = metadata.AudioFilename,
+		background_path = self.osu.background,
+		preview_time = metadata.PreviewTime / 1000,
+		notes_count = self.notes_count,
+		duration = self.totalLength / 1000,
+		inputmode = tostring(noteChart.inputMode),
+		start_time = self.minTime / 1000,
+		tempo = self.primaryBPM,
+		tempo_avg = self.primaryBPM,
+		tempo_min = self.minTempo,
+		tempo_max = self.maxTempo,
 	})
 
 	self.noteCharts = {noteChart}
@@ -81,7 +80,7 @@ function NoteChartImporter:process()
 	self.timingDataImporters = {}
 	self.noteDataImporters = {}
 
-	self.noteCount = 0
+	self.notes_count = 0
 
 	for _, event in ipairs(self.osu.events) do
 		self:addNoteParser(event, true)
@@ -270,7 +269,7 @@ function NoteChartImporter:addNoteParser(note, event)
 	noteDataImporter.mode = self.osu.mode
 	if not event then
 		noteDataImporter:init()
-		self.noteCount = self.noteCount + 1
+		self.notes_count = self.notes_count + 1
 	else
 		noteDataImporter:initEvent()
 	end

@@ -1,7 +1,7 @@
 local class = require("class")
 local ncdk = require("ncdk")
 local NoteChart = require("ncdk.NoteChart")
-local UnifiedMetaData = require("notechart.UnifiedMetaData")
+local Chartmeta = require("notechart.Chartmeta")
 local OJN = require("o2jam.OJN")
 local bmsNoteChartImporter = require("bms.NoteChartImporter")
 local EncodingConverter = require("notechart.EncodingConverter")
@@ -76,19 +76,18 @@ function NoteChartImporter:importSingle(index)
 	self:updateLength()
 
 	local ojn = self.ojn
-	noteChart.metaData = UnifiedMetaData({
+	noteChart.chartmeta = Chartmeta({
 		format = "ojn",
 		title = self.conv:convert(ojn.str_title),
 		artist = self.conv:convert(ojn.str_artist),
 		name = O2jamDifficultyNames[index],
 		creator = self.conv:convert(ojn.str_noter),
 		level = ojn.charts[index].level,
-		noteCount = ojn.charts[index].notes,
-		length = ojn.charts[index].duration,
-		bpm = ojn.bpm,
-		inputMode = tostring(noteChart.inputMode),
-		minTime = self.minTime,
-		maxTime = self.maxTime
+		notes_count = ojn.charts[index].notes,
+		duration = ojn.charts[index].duration,
+		tempo = ojn.bpm,
+		inputmode = tostring(noteChart.inputMode),
+		start_time = self.minTime,
 	})
 
 	return noteChart
@@ -105,7 +104,7 @@ end
 function NoteChartImporter:processData()
 	local longNoteData = {}
 
-	self.noteCount = 0
+	self.notes_count = 0
 
 	self.minTimePoint = nil
 	self.maxTimePoint = nil
@@ -158,7 +157,7 @@ function NoteChartImporter:processData()
 						longNoteData[inputIndex] = noteData
 					end
 
-					self.noteCount = self.noteCount + 1
+					self.notes_count = self.notes_count + 1
 					noteData.sounds = {{event.value, event.volume}}
 				end
 				if not self.minTimePoint or timePoint < self.minTimePoint then

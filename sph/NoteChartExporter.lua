@@ -13,9 +13,9 @@ local headerLines = {
 	{"source", "source"},
 	{"level", "level"},
 	{"tags", "tags"},
-	{"audio", "audioPath"},
-	{"background", "stagePath"},
-	{"preview", "previewTime"},
+	{"audio", "audio_path"},
+	{"background", "background_path"},
+	{"preview", "preview_time"},
 	{"input", "inputMode"},
 }
 
@@ -111,11 +111,11 @@ end
 
 ---@return table
 function NoteChartExporter:getMetadata()
-	local metaData = self.noteChart.metaData
+	local chartmeta = self.noteChart.chartmeta
 
 	local md = {}
 	for _, d in ipairs(headerLines) do
-		local k, v = d[1], metaData[d[2]]
+		local k, v = d[1], chartmeta[d[2]]
 		if v then
 			md[k] = v
 		end

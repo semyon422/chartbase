@@ -1,6 +1,6 @@
 local tinyyaml = require("tinyyaml")
 local NoteChart = require("ncdk.NoteChart")
-local UnifiedMetaData = require("notechart.UnifiedMetaData")
+local Chartmeta = require("notechart.Chartmeta")
 local osuNoteChartImporter = require("osu.NoteChartImporter")
 
 local class = require("class")
@@ -30,7 +30,7 @@ function NoteChartImporter:import()
 	noteChart:compute()
 
 	local qua = self.qua
-	noteChart.metaData = UnifiedMetaData({
+	noteChart.chartmeta = Chartmeta({
 		format = "qua",
 		title = tostring(qua["Title"]),  -- yaml can be parsed as number
 		artist = tostring(qua["Artist"]),
@@ -38,28 +38,27 @@ function NoteChartImporter:import()
 		tags = tostring(qua["Tags"]),
 		name = tostring(qua["DifficultyName"]),
 		creator = tostring(qua["Creator"]),
-		audioPath = tostring(qua["AudioFile"]),
-		stagePath = tostring(qua["BackgroundFile"]),
-		previewTime = (qua["SongPreviewTime"] or 0) / 1000,
-		noteCount = self.noteCount,
-		length = self.totalLength / 1000,
-		bpm = self.primaryBPM,
-		inputMode = tostring(noteChart.inputMode),
-		minTime = self.minTime / 1000,
-		maxTime = self.maxTime / 1000,
+		audio_path = tostring(qua["AudioFile"]),
+		background_path = tostring(qua["BackgroundFile"]),
+		preview_time = (qua["SongPreviewTime"] or 0) / 1000,
+		notes_count = self.notes_count,
+		duration = self.totalLength / 1000,
+		tempo = self.primaryBPM,
+		tempo_avg = self.primaryBPM,
+		inputmode = tostring(noteChart.inputMode),
+		start_time = self.minTime / 1000,
 	})
 
 	self.noteCharts = {noteChart}
 end
 
 function NoteChartImporter:process()
-	self.metaData = {}
 	self.eventParsers = {}
 	self.tempTimingDataImporters = {}
 	self.timingDataImporters = {}
 	self.noteDataImporters = {}
 
-	self.noteCount = 0
+	self.notes_count = 0
 
 	local TimingPoints = self.qua.TimingPoints
 	for i = 1, #TimingPoints do
@@ -77,7 +76,7 @@ function NoteChartImporter:process()
 	end
 
 	self:updateLength()
-	self.noteCount = #HitObjects
+	self.notes_count = #HitObjects
 
 	self:processTimingDataImporters()
 	table.sort(self.noteDataImporters, function(a, b) return a.startTime < b.startTime end)

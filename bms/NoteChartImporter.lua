@@ -1,7 +1,7 @@
 local class = require("class")
 local ncdk = require("ncdk")
 local NoteChart = require("ncdk.NoteChart")
-local UnifiedMetaData = require("notechart.UnifiedMetaData")
+local Chartmeta = require("notechart.Chartmeta")
 local enums = require("bms.enums")
 local BMS = require("bms.BMS")
 local EncodingConverter = require("notechart.EncodingConverter")
@@ -87,19 +87,18 @@ function NoteChartImporter:import()
 	local bms = self.bms
 	local header = bms.header
 	local title, name = splitTitle(header["TITLE"])
-	noteChart.metaData = UnifiedMetaData({
+	noteChart.chartmeta = Chartmeta({
 		format = "bms",
 		title = title,
 		artist = header["ARTIST"],
 		name = name,
 		level = tonumber(header["PLAYLEVEL"]),
-		stagePath = header["STAGEFILE"],
-		noteCount = self.noteCount,
-		length = self.totalLength,
-		bpm = bms.baseTempo or 0,
-		inputMode = tostring(noteChart.inputMode),
-		minTime = self.minTime,
-		maxTime = self.maxTime
+		stage_path = header["STAGEFILE"],
+		notes_count = self.notes_count,
+		duration = self.totalLength,
+		tempo = bms.baseTempo or 0,
+		inputmode = tostring(noteChart.inputMode),
+		start_time = self.minTime,
 	})
 
 	self.noteCharts = {noteChart}
@@ -197,7 +196,7 @@ end
 function NoteChartImporter:processData()
 	local longNoteData = {}
 
-	self.noteCount = 0
+	self.notes_count = 0
 
 	self.minTimePoint = nil
 	self.maxTimePoint = nil
@@ -281,7 +280,7 @@ function NoteChartImporter:processData()
 						channelInfo.name ~= "BGA"
 					then
 						if noteData.noteType ~= "LongNoteEnd" then
-							self.noteCount = self.noteCount + 1
+							self.notes_count = self.notes_count + 1
 						end
 
 						if not self.minTimePoint or timePoint < self.minTimePoint then
