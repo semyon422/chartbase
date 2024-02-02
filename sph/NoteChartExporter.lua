@@ -16,7 +16,7 @@ local headerLines = {
 	{"audio", "audio_path"},
 	{"background", "background_path"},
 	{"preview", "preview_time"},
-	{"input", "inputMode"},
+	{"input", "inputmode"},
 }
 
 local noteTypeMap = {
