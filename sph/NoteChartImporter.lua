@@ -174,15 +174,15 @@ function NoteChartImporter:setMetadata()
 		tags = sph.metadata.tags,
 		name = sph.metadata.name,
 		creator = sph.metadata.creator,
-		level = sph.metadata.level,
+		level = tonumber(sph.metadata.level),
 		audio_path = sph.metadata.audio,
 		background_path = sph.metadata.background,
-		preview_time = sph.metadata.preview,
-		notes_count = self.notes_count,
-		duration = totalLength,
+		preview_time = tonumber(sph.metadata.preview),
+		notes_count = tonumber(self.notes_count),
+		duration = tonumber(totalLength),
 		tempo = 60 / avgBeatDuration,
 		inputmode = sph.metadata.input,
-		start_time = minTime,
+		start_time = tonumber(minTime),
 	})
 end
 
