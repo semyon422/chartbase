@@ -94,7 +94,7 @@ function SM:processHeaderLine(line)
 			self.parsingStop = true
 		end
 	elseif key == "BACKGROUND" then
-		self:processBackground(value)
+		-- self:processBackground(value)  -- TODO: fix this
 	end
 end
 
