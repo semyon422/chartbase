@@ -80,6 +80,7 @@ function NoteChartImporter:import()
 		name = options["difficulty"],
 		creator = options["effect"],
 		level = tonumber(options["level"]),
+		tempo = tonumber(options["t"]) or 0,
 		audio_path = self.audioFileName,
 		background_path = options["jacket"],
 		preview_time = (options["plength"] or 0) / 1000,
