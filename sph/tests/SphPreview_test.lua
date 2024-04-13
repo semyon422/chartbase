@@ -48,7 +48,7 @@ function test.complex_case(t)
 		0xFE, 0xFF,  -- -2s
 
 		-- 1100 +1/2
-		0b01100000,  -- +1/2
+		0b01010000,  -- +1/2
 		0b11000000,  -- 1000
 		0b11000001,  -- 0100
 
@@ -61,8 +61,8 @@ function test.complex_case(t)
 		0b01000000,  -- 0/1 new line
 		0b11000000,  -- 1000
 
-		-- 1000 +63/64
-		0b01111111,  -- +63/64
+		-- 1000 +23/24
+		0b01110111,  -- 23/24
 		0b11000000,  -- 1000
 
 		-- - =5 // -2 + 7
@@ -70,7 +70,7 @@ function test.complex_case(t)
 		0b00000110,  -- add 7s and set frac part to 0
 
 		-- 10 +1/2
-		0b01100000,  -- +1/2
+		0b01010000,  -- +1/2
 		0b11000000,  -- 1000
 	}
 
@@ -81,7 +81,7 @@ function test.complex_case(t)
 		{time = {1, 2}, notes = {true, true}},
 		{time = {0, 1}, notes = {}, interval = {int = -2, frac = {129, 256}}},
 		{time = {0, 1}, notes = {true}},
-		{time = {63, 64}, notes = {true}},
+		{time = {23, 24}, notes = {true}},
 		{time = {0, 1}, notes = {}, interval = {int = 5, frac = {0, 1}}},
 		{time = {1, 2}, notes = {true}},
 	})

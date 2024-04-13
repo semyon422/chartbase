@@ -22,7 +22,9 @@ SphPreview.version = 0
 		0011 1111 / set fraction to 31/32
 		0011 1111 / set fraction to 31/32 + 31/(32^2)
 		0011 1111 / set fraction to 31/32 + 31/(32^2) + 31/(32^3)
-	01.. .... / set fraction to ....../1000000 (0/64-63/64)
+	01X. .... / 0 - denominator is 2^5=32, 1 - denominator is 3*2^3=24
+
+	011. .... / 24-31 unused
 
 	1X.. .... / 0 - release, 1 - press, other bits for column (0-62) excluding 11 1111 (63)
 	1011 1111 / add 63 to previous note column (allows inputs 0-125)
@@ -31,13 +33,15 @@ SphPreview.version = 0
 ]]
 
 local function decode_byte(n)
+	local t_is_24th = bit.band(n, 0b00100000) ~= 0
 	return {
 		type = bit.band(n, 0b10000000) == 0 and "time" or "note",
 		t_abs_or_rel = bit.band(n, 0b01000000) == 0 and "abs" or "rel",
 		t_abs_add_sec_or_frac = bit.band(n, 0b00100000) == 0 and "sec" or "frac",
 		t_abs_add_sec = bit.band(n, 0b00011111) + 1,
 		t_abs_set_frac = Fraction(bit.band(n, 0b00011111), 32),
-		t_rel_set_frac = Fraction(bit.band(n, 0b00111111), 64),
+		t_is_24th = bit.band(n, 0b00100000) ~= 0,
+		t_rel_set_frac = Fraction(bit.band(n, 0b00011111), t_is_24th and 24 or 32),
 		n_is_pressed = bit.band(n, 0b01000000) ~= 0,
 		n_column = bit.band(n, 0b00111111),
 		n_add_columns = bit.band(n, 0b00111111) == 0b00111111,
@@ -110,7 +114,11 @@ function SphPreview:encode(lines)
 	local start_time
 
 	for _, line in ipairs(lines) do
-		b:uint8(0b01000000 + math.floor(64 * line.time[1] / line.time[2]))
+		if line.time[2] % 3 == 0 then
+			b:uint8(0b01100000 + math.floor(24 * line.time[1] / line.time[2]))
+		else
+			b:uint8(0b01000000 + math.floor(32 * line.time[1] / line.time[2]))
+		end
 		if line.interval then
 			if not start_time then
 				start_time = line.interval.int
