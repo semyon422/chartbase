@@ -12,6 +12,23 @@ local function bytes_to_string(t)
 	return table.concat(s)
 end
 
+---@param n number
+---@return string
+local function tobits(n)
+	local t = {}
+	for i = 1, 8 do
+		t[i] = 0
+	end
+	local i = 8
+	while n > 0 do
+		local rest = n % 2
+		t[i] = rest
+		n = (n - rest) / 2
+		i = i - 1
+	end
+	return ("0b%s"):format(table.concat(t))
+end
+
 function test.one_note(t)
 	local s = {
 		0b0, 0b0, 0b0,  -- header
@@ -28,18 +45,17 @@ end
 function test.complex_case(t)
 	local s = {
 		0b0,
-		0xFD, 0xFF,  -- -3s
+		0xFE, 0xFF,  -- -2s
 
 		-- 1100 +1/2
 		0b01100000,  -- +1/2
 		0b11000000,  -- 1000
 		0b11000001,  -- 0100
 
-		-- - =-1.49609375 // -3 + 1 + 8/16 + 1/256
+		-- - =-1.49609375 // -2 + 16/32 + 4/1024
 		0b01000000,  -- 0/1 new line
-		0b00000001,  -- add 1s and set frac part to 0
-		0b00111000,  -- set 8/16=0.5s
-		0b00100001,  -- add 1/256=0.00390625s
+		0b00110000,  -- add 16/32=0.5s
+		0b00100100,  -- add 4/1024=0.00390625s
 
 		-- 1000
 		0b01000000,  -- 0/1 new line
@@ -51,14 +67,16 @@ function test.complex_case(t)
 
 		-- - =5 // -2 + 7
 		0b01000000,  -- 0/1 new line
-		0b00000111,  -- add 7s and set frac part to 0
+		0b00000110,  -- add 7s and set frac part to 0
 
 		-- 10 +1/2
 		0b01100000,  -- +1/2
 		0b11000000,  -- 1000
 	}
 
-	local lines = SphPreview:decode(bytes_to_string(s))
+	local str = bytes_to_string(s)
+	local lines = SphPreview:decode(str)
+	-- print(stbl.encode(lines))
 	t:tdeq(lines, {
 		{time = {1, 2}, notes = {true, true}},
 		{time = {0, 1}, notes = {}, interval = {int = -2, frac = {129, 256}}},
@@ -67,6 +85,16 @@ function test.complex_case(t)
 		{time = {0, 1}, notes = {}, interval = {int = 5, frac = {0, 1}}},
 		{time = {1, 2}, notes = {true}},
 	})
+
+	local _str = SphPreview:encode(lines)
+	t:eq(_str, str)
+	-- print()
+	-- for i = 1, #str do
+	-- 	print(i, tobits(str:byte(i, i)))
+	-- end
+	-- for i = 1, #_str do
+	-- 	print(i, tobits(_str:byte(i, i)))
+	-- end
 end
 
 return test
