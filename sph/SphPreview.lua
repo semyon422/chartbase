@@ -13,8 +13,11 @@ SphPreview.version = 0
 --[[
 	header {
 		uint8		version
+		?			type: default, chord
 		int16		start time of first interval
 	}
+
+	default type:
 
 	X... .... / 0 - time, 1 - note
 	0X.. .... / 0 - abs, 1 - rel
@@ -31,6 +34,17 @@ SphPreview.version = 0
 	1011 1111 / add 63 to previous note column (allows inputs 0-125)
 
 	1111 1111 / reserved
+
+	----------------------------------------------------------------------------
+
+	chord type:
+
+	1X.. .... / 0 - release, 1 - press
+	1.X. .... / 0/1 switching value adds 5 to column allowing 5k+ modes
+		1100 0011 / press 1-2 keys
+		1001 1000 / release 4-5 keys
+		1110 0001 / press 6 key
+		1110 0001 / press 11 key
 ]]
 
 local function decode_byte(n)
