@@ -20,10 +20,10 @@ local headerLines = {
 }
 
 local noteTypeMap = {
-	ShortNote = 1,
-	LongNoteStart = 2,
-	LongNoteEnd = 3,
-	SoundNote = 4,
+	ShortNote = "1",
+	LongNoteStart = "2",
+	LongNoteEnd = "3",
+	SoundNote = "4",
 }
 
 function NoteChartExporter:new()

@@ -2,6 +2,7 @@ local class = require("class")
 local byte = require("byte_new")
 local bit = require("bit")
 local Fraction = require("ncdk.Fraction")
+local SphLines = require("sph.SphLines")
 
 ---@class sph.SphPreview
 ---@operator call: sph.SphPreview
@@ -158,6 +159,84 @@ function SphPreview:encode(lines)
 	b:seek(0)
 
 	return b:string(offset)
+end
+
+local function line_to_string(line, columns)
+	local out = {}
+	local notes = {}
+	for i = 1, columns do
+		local note = line.notes[i]
+		if note == true then
+			notes[i] = 1
+		elseif note == false then
+			notes[i] = 3
+		else
+			notes[i] = 0
+		end
+	end
+
+	table.insert(out, table.concat(notes))
+
+	if line.interval then
+		local interval = line.interval.int + line.interval.frac
+		table.insert(out, ("=%s"):format(interval))
+	end
+	if line.time[1] ~= 0 then
+		table.insert(out, ("+%s/%s"):format(line.time[1], line.time[2]))
+	end
+
+	return table.concat(out, " ")
+end
+
+---@param s string
+---@return sph.SphLines
+function SphPreview:decodeSphLines(s, columns)
+	local lines = self:decode(s)
+	local sphLines = SphLines()
+	for _, line in ipairs(lines) do
+		sphLines:decodeLine(line_to_string(line, columns))
+	end
+	sphLines:updateTime()
+	return sphLines
+end
+
+local function sph_line_to_preview_line(line, sphLines)
+	local notes = {}
+	for _, note in ipairs(line.notes) do
+		local t
+		if note.type == "1" or note.type == "2" then
+			t = true
+		elseif note.type == "3" then
+			t = false
+		end
+		notes[note.column] = t
+	end
+	local interval
+	if line.intervalSet then
+		local time = sphLines.intervals[line.intervalIndex].offset
+		local frac = time % 1
+		local int = time - frac
+		interval = {
+			int = int,
+			frac = Fraction(math.floor(frac * 1024), 1024),
+		}
+	end
+	return {
+		time = line.time % 1,
+		notes = notes,
+		interval = interval,
+	}
+end
+
+---@param sphLines sph.SphLines
+---@return string
+---@return table
+function SphPreview:encodeSphLines(sphLines)
+	local lines = {}
+	for i, line in ipairs(sphLines.lines) do
+		lines[i] = sph_line_to_preview_line(line, sphLines)
+	end
+	return self:encode(lines), lines
 end
 
 return SphPreview

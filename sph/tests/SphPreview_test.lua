@@ -69,7 +69,7 @@ function test.complex_case(t)
 		0b01000000,  -- 0/1 new line
 		0b00000110,  -- add 7s and set frac part to 0
 
-		-- 10 +1/2
+		-- 1000 +1/2
 		0b01010000,  -- +1/2
 		0b11000000,  -- 1000
 	}
@@ -88,6 +88,20 @@ function test.complex_case(t)
 
 	local _str = SphPreview:encode(lines)
 	t:eq(_str, str)
+
+	local sphLines = SphPreview:decodeSphLines(str, 4)
+	t:eq(sphLines:encode(), [[
+1100 +1/2
+- =-1.49609375
+1000
+1000 +23/24
+- =5
+1000 +1/2]])
+
+	local _str, enc_lines = SphPreview:encodeSphLines(sphLines)
+	print(stbl.encode(enc_lines))
+	t:eq(_str, str)
+
 	-- print()
 	-- for i = 1, #str do
 	-- 	print(i, tobits(str:byte(i, i)))
