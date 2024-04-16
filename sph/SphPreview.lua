@@ -12,8 +12,7 @@ SphPreview.version = 0
 
 --[[
 	header {
-		uint8		version
-		?			type: default, chord
+		uint8		version: 0 - default, 1 - compact
 		int16		start time of first interval
 	}
 
@@ -37,19 +36,19 @@ SphPreview.version = 0
 
 	----------------------------------------------------------------------------
 
-	chord type:
+	compact type:
 
 	1X.. .... / 0 - release, 1 - press
 	1.X. .... / 0/1 switching value adds 5 to column allowing 5k+ modes
 		1100 0011 / press 1-2 keys
 		1001 1000 / release 4-5 keys
 		1110 0001 / press 6 key
-		1110 0001 / press 11 key
+		1100 0001 / press 11 key
 ]]
 
-local function decode_byte(n)
+local function decode_byte(n, version)
 	local t_is_24th = bit.band(n, 0b00100000) ~= 0
-	return {
+	local bt = {
 		type = bit.band(n, 0b10000000) == 0 and "time" or "note",
 		t_abs_or_rel = bit.band(n, 0b01000000) == 0 and "abs" or "rel",
 		t_abs_add_sec_or_frac = bit.band(n, 0b00100000) == 0 and "sec" or "frac",
@@ -57,11 +56,23 @@ local function decode_byte(n)
 		t_abs_set_frac = Fraction(bit.band(n, 0b00011111), 32),
 		t_is_24th = bit.band(n, 0b00100000) ~= 0,
 		t_rel_set_frac = Fraction(bit.band(n, 0b00011111), t_is_24th and 24 or 32),
+
 		n_is_pressed = bit.band(n, 0b01000000) ~= 0,
-		n_column = bit.band(n, 0b00111111),
-		n_add_columns = bit.band(n, 0b00111111) == 0b00111111,
-		reserved_1 = n == 0b11111111,
 	}
+	if version == 0 then
+		bt.n_column = bit.band(n, 0b00111111)
+		bt.n_add_columns = bit.band(n, 0b00111111) == 0b00111111
+		bt.reserved_1 = n == 0b11111111
+	elseif version == 1 then
+		bt.n_columns_group = bit.band(n, 0b00100000) ~= 0
+		local columns = {}
+		for i = 1, 5 do
+			columns[i] = bit.band(n, bit.lshift(1, i - 1)) ~= 0
+		end
+		bt.n_columns = columns
+	end
+
+	return bt
 end
 
 function SphPreview:decode(s)
@@ -71,6 +82,8 @@ function SphPreview:decode(s)
 	local version = b:uint8()
 	local start_time = b:int16_le()
 
+	local columns_group = false
+	local g_offset = 0
 	local frac_prec = 0
 	local lines = {}
 	local line
@@ -81,6 +94,8 @@ function SphPreview:decode(s)
 		end
 		interval = nil
 		frac_prec = 0
+		columns_group = false
+		g_offset = 0
 		line = {
 			time = Fraction(0),
 			notes = {},
@@ -98,7 +113,7 @@ function SphPreview:decode(s)
 
 	while b.offset < b.size do
 		local n = b:uint8()
-		local obj = decode_byte(n)
+		local obj = decode_byte(n, version)
 		if obj.type == "time" then
 			if obj.t_abs_or_rel == "abs" then
 				update_interval()
@@ -114,16 +129,39 @@ function SphPreview:decode(s)
 				line.time = obj.t_rel_set_frac
 			end
 		elseif obj.type == "note" then
-			line.notes[obj.n_column + 1] = obj.n_is_pressed
+			if version == 0 then
+				line.notes[obj.n_column + 1] = obj.n_is_pressed
+			elseif version == 1 then
+				if obj.n_columns_group ~= columns_group then
+					g_offset = g_offset + 5
+				end
+				for i = 1, 5 do
+					if obj.n_columns[i] then
+						line.notes[i + g_offset] = obj.n_is_pressed
+					end
+				end
+			end
 		end
 	end
 
 	return lines
 end
 
-function SphPreview:encode(lines)
+local function max_index(t)
+	local max_i = 0
+	for i in pairs(t) do
+		if type(i) == "number" then
+			max_i = math.max(max_i, i)
+		end
+	end
+	return max_i
+end
+
+function SphPreview:encode(lines, version)
+	version = version or self.version
+
 	local b = byte.buffer(1e6)
-	b:uint8(self.version)
+	b:uint8(version)
 	b:int16_le(0)
 
 	local start_time
@@ -152,17 +190,56 @@ function SphPreview:encode(lines)
 				b:uint8(0b00100000 + frac2)
 			elseif frac1 ~= 0 then
 				b:uint8(0b00100000 + frac1)
+			elseif line.interval.int - start_time == 0 then  -- at least one interval command should be present
+				b:uint8(0b00100000)
 			end
 		end
-		for i = 1, 63 do
-			local note = line.notes[i]
-			if note ~= nil then
-				local bt = 0b10000000
-				if note then
-					bt = bt + 0b01000000
+		if version == 0 then
+			for i = 1, 63 do
+				local note = line.notes[i]
+				if note ~= nil then
+					local bt = 0b10000000
+					if note then
+						bt = bt + 0b01000000
+					end
+					bt = bt + i - 1
+					b:uint8(bt)
 				end
-				bt = bt + i - 1
-				b:uint8(bt)
+			end
+		elseif version == 1 then
+			local notes = line.notes
+			local max_c = max_index(notes)
+			local columns_group = false
+			local g_offset = 0
+			while g_offset < max_c do
+				local has_release, has_press = false, false
+				for i = 1, 5 do
+					if notes[i + g_offset] == false then
+						has_release = true
+					elseif notes[i + g_offset] == true then
+						has_press = true
+					end
+				end
+				if has_release then
+					local bt = 0b10000000 + (columns_group and 0b00100000 or 0)
+					for i = 1, 5 do
+						if notes[i + g_offset] == false then
+							bt = bt + bit.lshift(1, i - 1)
+						end
+					end
+					b:uint8(bt)
+				end
+				if has_press then
+					local bt = 0b11000000 + (columns_group and 0b00100000 or 0)
+					for i = 1, 5 do
+						if notes[i + g_offset] == true then
+							bt = bt + bit.lshift(1, i - 1)
+						end
+					end
+					b:uint8(bt)
+				end
+				g_offset = g_offset + 5
+				columns_group = not columns_group
 			end
 		end
 	end
@@ -243,14 +320,15 @@ local function sph_line_to_preview_line(line, sphLines)
 end
 
 ---@param sphLines sph.SphLines
+---@param version number?
 ---@return string
 ---@return table
-function SphPreview:encodeSphLines(sphLines)
+function SphPreview:encodeSphLines(sphLines, version)
 	local lines = {}
 	for i, line in ipairs(sphLines.lines) do
 		lines[i] = sph_line_to_preview_line(line, sphLines)
 	end
-	return self:encode(lines), lines
+	return self:encode(lines, version), lines
 end
 
 return SphPreview

@@ -99,7 +99,7 @@ function test.complex_case(t)
 1000 +1/2]])
 
 	local _str, enc_lines = SphPreview:encodeSphLines(sphLines)
-	print(stbl.encode(enc_lines))
+	-- print(stbl.encode(enc_lines))
 	t:eq(_str, str)
 
 	-- print()
@@ -109,6 +109,61 @@ function test.complex_case(t)
 	-- for i = 1, #_str do
 	-- 	print(i, tobits(_str:byte(i, i)))
 	-- end
+end
+
+
+function test.complex_case_2(t)
+	local s = {
+		0b1,
+		0xFE, 0xFF,  -- -2s
+
+		-- 1111111111
+		0b01000000,  -- 0/1 new line
+		0b11011111,  -- 1111100000
+		0b11111111,  -- 0000011111
+
+		-- 3000
+		0b01000000,  -- 0/1 new line
+		0b10000001,  -- 3000
+
+		-- 1300
+		0b01000000,  -- 0/1 new line
+		0b10000010,  -- 0300
+		0b11000001,  -- 1000
+
+		-- - =-2
+		0b01000000,  -- 0/1 new line
+		0b00100000,  -- add 0/1
+
+		-- - =5 // -2 + 7
+		0b01000000,  -- 0/1 new line
+		0b00000110,  -- add 7s and set frac part to 0
+	}
+
+	local str = bytes_to_string(s)
+	local lines = SphPreview:decode(str)
+	-- print(stbl.encode(lines))
+	t:tdeq(lines, {
+		{time = {0, 1}, notes = {true, true, true, true, true, true, true, true, true, true}},
+		{time = {0, 1}, notes = {false}},
+		{time = {0, 1}, notes = {true, false}},
+		{time = {0, 1}, notes = {}, interval = {int = -2, frac = {0, 1}}},
+		{time = {0, 1}, notes = {}, interval = {int = 5, frac = {0, 1}}},
+	})
+
+	local _str = SphPreview:encode(lines, 1)
+	t:eq(_str, str)
+
+	local sphLines = SphPreview:decodeSphLines(str, 10)
+	t:eq(sphLines:encode(), [[
+1111111111
+3000000000
+1300000000
+- =-2
+- =5]])
+
+	local _str, enc_lines = SphPreview:encodeSphLines(sphLines, 1)
+	t:eq(_str, str)
 end
 
 return test
