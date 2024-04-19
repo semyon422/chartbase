@@ -67,7 +67,9 @@ function NoteChartImporter:processLine(line)
 
 	local line_sounds = line.sounds or {}
 	local line_volume = line.volume or {}
-	for i, note in ipairs(line.notes) do
+	local notes = line.notes or {}
+
+	for i, note in ipairs(notes) do
 		local noteData = NoteData(timePoint)
 
 		local sound = sounds[line_sounds[i]]
@@ -100,7 +102,7 @@ function NoteChartImporter:processLine(line)
 		layerData:addNoteData(noteData, inputType, inputIndex)
 	end
 
-	for i = #line.notes + 1, #line_sounds do
+	for i = #notes + 1, #line_sounds do
 		local sound = sounds[line_sounds[i]]
 		if sound then
 			local noteData = NoteData(timePoint)
@@ -121,7 +123,7 @@ function NoteChartImporter:processLine(line)
 		layerData:insertMeasureData(timePoint, line.measure)
 	end
 
-	if #line.notes > 0 then
+	if #notes > 0 then
 		self:updateBoundaries(timePoint)
 	end
 end

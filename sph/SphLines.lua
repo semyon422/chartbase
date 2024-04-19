@@ -1,7 +1,7 @@
 local class = require("class")
 local Fraction = require("ncdk.Fraction")
-local SphNumber = require("sph.SphNumber")
-local template_key = require("sph.template_key")
+local TextSphLines = require("sph.TextSphLines")
+local SphLinesCleaner = require("sph.SphLinesCleaner")
 
 ---@class sph.SphLines
 ---@operator call: sph.SphLines
@@ -13,8 +13,8 @@ function SphLines:new()
 	self.beatOffset = -1
 	self.visualSide = 0
 	self.fraction = {0, 1}
-	self.sphNumber = SphNumber()
 	self.columns = 1
+	self.textSphLines = TextSphLines()
 end
 
 ---@param intervalOffset number
@@ -34,99 +34,28 @@ function SphLines:addInterval(intervalOffset)
 end
 
 ---@param s string
----@param n number
----@return table
-local function split_chars(s, n)
-	local chars = {}
-	for i = 1, #s, n do
-		table.insert(chars, s:sub(i, i + n - 1))
-	end
-	return chars
-end
-
----@param notes table
----@return table
-local function parse_notes(notes)
-	local out = {}
-	for i, note in ipairs(notes) do
-		if note ~= "0" then
-			table.insert(out, {
-				column = i,
-				type = note,
-			})
-		end
-	end
-	return out
-end
-
----@param sounds table
----@return table
-local function parse_sounds(sounds)
-	local out = {}
-	for i, sound in ipairs(sounds) do
-		out[i] = template_key.decode(sound)
-	end
-	return out
-end
-
----@param volume table
----@return table
-local function parse_volume(volume)
-	local out = {}
-	for i, vol in ipairs(volume) do
-		vol = tonumber(vol) or 0
-		if vol == 0 then
-			vol = 100
-		end
-		out[i] = vol / 100
-	end
-	return out
-end
-
----@param velocity string
----@return table
-local function parse_velocity(velocity)
-	local out = velocity:split(",")
-	for i = 1, 3 do
-		out[i] = tonumber(out[i]) or 1
-	end
-	return out
-end
-
----@param s string
 function SphLines:decodeLine(s)
-	local intervalOffset, fraction, visual
+	local tline = self.textSphLines:decodeLine(s)
+	self.columns = self.textSphLines.columns
+
 	local line = {}
 
-	local data, comment = s:match("^(.-) // (.+)$")
-	if not data then
-		data = s
-	end
-	line.comment = comment
+	line.comment = tline.comment
+	local intervalOffset = tline.offset
 
-	local args = data:split(" ")
-	for i = 2, #args do
-		local k, v = args[i]:match("^(.)(.*)$")
-
-		if k == "=" then
-			intervalOffset = tonumber(v)
-		elseif k == "+" then
-			fraction = self.sphNumber:decode(v)
-			self.fraction = fraction
-		elseif k == "v" then
-			visual = true
-		elseif k == "#" then
-			line.measure = self.sphNumber:decode(v)
-		elseif k == ":" then
-			line.sounds = parse_sounds(split_chars(v, 2))
-		elseif k == "." then
-			line.volume = parse_volume(split_chars(v, 2))
-		elseif k == "x" then
-			line.velocity = parse_velocity(v)
-		elseif k == "e" then
-			line.expand = tonumber(v)
-		end
+	local fraction
+	if tline.fraction then
+		fraction = tline.fraction
+		self.fraction = fraction
 	end
+
+	local visual = tline.visual
+
+	line.measure = tline.measure
+	line.sounds = tline.sounds
+	line.volume = tline.volume
+	line.velocity = tline.velocity
+	line.expand = tline.expand
 
 	if visual then
 		self.visualSide = self.visualSide + 1
@@ -143,17 +72,7 @@ function SphLines:decodeLine(s)
 		self:addInterval(intervalOffset)
 	end
 
-	if args[1] ~= "-" then
-		self.columns = math.max(self.columns, #args[1])
-		local notes = split_chars(args[1], 1)
-		line.notes = parse_notes(notes)
-	end
-
-	if not intervalOffset and not next(line) then
-		return
-	end
-
-	line.notes = line.notes or {}
+	line.notes = tline.notes
 	line.intervalIndex = math.max(#self.intervals, 1)
 	line.intervalSet = intervalOffset ~= nil
 	line.globalTime = Fraction(self.beatOffset) + self.fraction
@@ -170,42 +89,6 @@ function SphLines:updateTime()
 		local interval = intervals[line.intervalIndex]
 		line.time = line.globalTime - interval.beatOffset
 	end
-end
-
----@param f ncdk.Fraction
----@return string
-local function formatFraction(f)
-	return f[1] .. "/" .. f[2]
-end
-
----@param v table
----@return string
-local function format_velocity(v)
-	if v[3] ~= 1 then
-		return ("%s,%s,%s"):format(v[1], v[2], v[3])
-	end
-	if v[2] ~= 1 then
-		return ("%s,%s"):format(v[1], v[2])
-	end
-	return tostring(v[1])
-end
-
----@param _notes table
----@return string?
-function SphLines:getLine(_notes)
-	if not _notes or #_notes == 0 then
-		return
-	end
-	local notes = {}
-	for i = 1, self.columns do
-		notes[i] = "0"
-	end
-	for _, note in ipairs(_notes) do
-		if note.column then
-			notes[note.column] = note.type
-		end
-	end
-	return table.concat(notes)
 end
 
 function SphLines:calcIntervals()
@@ -232,123 +115,39 @@ end
 function SphLines:encode()
 	local lines = self.lines
 	local intervals = self.intervals
-
-	for _, line in ipairs(lines) do
-		if line.notes then
-			for _, note in ipairs(line.notes) do
-				if note.column then
-					self.columns = math.max(self.columns, note.column)
-				end
-			end
-		end
-	end
-
-	local lineIndex = 1
-	local line = lines[1]
-
-	local slines = {}
+	local tlines = {}
 
 	self:calcIntervals()
 	self:calcGlobalTime()
 
-	local currentTime = line.globalTime
-	local prevTime = nil
-	while line do
-		local targetTime = Fraction(currentTime:floor() + 1)
-		if line.globalTime < targetTime then
-			targetTime = line.globalTime
-		end
-		local isAtTimePoint = line.globalTime == targetTime
+	for i, line in ipairs(lines) do
+		local tline = {}
+		tline.notes = line.notes
 
-		if isAtTimePoint then
-			local str = self:getLine(line.notes)
-
-			local hasPayload =
-				str or
-				line.expand or
-				line.intervalSet or
-				line.velocity or
-				line.measure
-
-			local isNextTime = line.globalTime ~= prevTime
-			if isNextTime then
-				prevTime = line.globalTime
+		if (line.visualSide or 0) == 0 then
+			if line.intervalSet then
+				tline.offset = intervals[line.intervalIndex].offset
 			end
-
-			local visual = not isNextTime and (line.visualSide or 0) > 0
-
-			str = str or "-"
-			local dt = line.globalTime % 1
-			if not visual then
-				if line.intervalSet then
-					str = str .. " =" .. intervals[line.intervalIndex].offset
-				end
-				if dt[1] ~= 0 then
-					str = str .. " +" .. formatFraction(dt)
-				end
-			else
-				str = str .. " v"
+			local fraction = line.globalTime % 1
+			if fraction[1] ~= 0 then
+				tline.fraction = line.globalTime % 1
 			end
-			if line.expand then
-				str = str .. " e" .. tostring(line.expand)
-			end
-			if line.velocity then
-				str = str .. " x" .. format_velocity(line.velocity)
-			end
-			if line.measure then
-				local n = line.measure
-				str = str .. " #" .. (n[1] ~= 0 and formatFraction(n) or "")
-			end
-			if line.sounds and #line.sounds > 0 then
-				local out = {}
-				for i, sound in ipairs(line.sounds) do
-					out[i] = template_key.encode(sound)
-				end
-				str = str .. " :" .. table.concat(out)
-			end
-			if line.volume and #line.volume > 0 then
-				local out = {}
-				for i, vol in ipairs(line.volume) do
-					out[i] = ("%02d"):format(math.floor(vol * 100 + 0.5) % 100)
-				end
-				str = str .. " ." .. table.concat(out)
-			end
-			if line.comment and #line.comment > 0 then
-				str = str .. " // " .. line.comment
-			end
-
-			if hasPayload or dt[1] == 0 and not visual then
-				table.insert(slines, str)
-			end
-
-			lineIndex = lineIndex + 1
-			line = lines[lineIndex]
 		else
-			table.insert(slines, "-")
+			tline.visual = true
 		end
-		currentTime = targetTime
+		tline.expand = line.expand
+		tline.velocity = line.velocity
+		tline.measure = line.measure
+		tline.sounds = line.sounds
+		tline.volume = line.volume
+		tline.comment = line.comment
+		table.insert(tlines, tline)
 	end
 
-	local first, last
-	for i = 1, #slines do
-		if slines[i] ~= "-" then
-			first = i
-			break
-		end
-	end
-	for i = #slines, 1, -1 do
-		if slines[i] ~= "-" then
-			last = i
-			break
-		end
-	end
-
-	local trimmed_lines = {}
-	for i = first, last do
-		table.insert(trimmed_lines, slines[i])
-	end
-
-	return table.concat(trimmed_lines, "\n")
+	local textSphLines = TextSphLines()
+	textSphLines.columns = self.columns
+	textSphLines.lines = SphLinesCleaner:clean(tlines)
+	return textSphLines:encode()
 end
 
 return SphLines

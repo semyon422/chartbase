@@ -88,7 +88,7 @@ function test.decenc_3(t)
 	sl:updateTime()
 
 	for _, line in ipairs(sl.lines) do
-		line.notes = {}
+		line.notes = nil
 	end
 
 	t:eq(sl:encode(), table.concat(lines_out, "\n"))
@@ -171,13 +171,13 @@ function test.decenc_6(t)
 	end
 	sl:updateTime()
 
-	t:eq(#sl.lines, 3)
-	t:eq(sl.lines[2].time, Fraction(3))
+	t:eq(#sl.lines, #lines_in)
+	t:eq(sl.lines[5].time, Fraction(3))
 
 	sl:calcIntervals()
 	sl:calcGlobalTime()
 
-	t:eq(sl.lines[2].globalTime, Fraction(3))
+	t:eq(sl.lines[5].globalTime, Fraction(3))
 
 	t:eq(sl:encode(), table.concat(lines_out, "\n"))
 end
