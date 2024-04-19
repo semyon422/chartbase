@@ -95,7 +95,7 @@ end
 ---@param content string
 ---@param index number
 ---@param settings table?
----@return table?
+---@return ncdk.NoteChart?
 ---@return string?
 function NoteChartFactory:getNoteChart(path, content, index, settings)
 	local importer = self:getNoteChartImporter(path)
