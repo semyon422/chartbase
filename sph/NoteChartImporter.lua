@@ -16,11 +16,9 @@ function NoteChartImporter:new()
 	self.longNotes = {}
 end
 
-function NoteChartImporter:import()
-	local sph = self.sph
-	local content = self.content:gsub("\r[\r\n]?", "\n")
-	sph:decode(content)
-
+---@param sph sph.Sph
+function NoteChartImporter:importFromSph(sph)
+	self.sph = sph
 	local noteChart = self.noteChart
 
 	noteChart.inputMode = InputMode(sph.metadata.input)
@@ -46,6 +44,13 @@ function NoteChartImporter:import()
 	self:setMetadata()
 
 	self.noteCharts = {noteChart}
+end
+
+function NoteChartImporter:import()
+	local sph = Sph()
+	local content = self.content:gsub("\r[\r\n]?", "\n")
+	sph:decode(content)
+	self:importFromSph(sph)
 end
 
 ---@param line table
