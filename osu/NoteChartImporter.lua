@@ -336,6 +336,8 @@ function NoteChartImporter:processMeasureLines()
 		startNoteData.noteType = "LineNoteStart"
 		self.foregroundLayerData:addNoteData(startNoteData, "measure", 1)
 
+		timePoint = self.foregroundLayerData:getTimePoint(startTime / 1000, 1)
+
 		local endNoteData = ncdk.NoteData(timePoint)
 		endNoteData.noteType = "LineNoteEnd"
 		self.foregroundLayerData:addNoteData(endNoteData, "measure", 1)
