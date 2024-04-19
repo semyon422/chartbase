@@ -279,10 +279,9 @@ local function line_to_string(line, columns)
 	return table.concat(out, " ")
 end
 
----@param s string
+---@param lines table
 ---@return sph.SphLines
-function SphPreview:decodeSphLines(s, columns)
-	local lines = self:decode(s)
+function SphPreview:linesToSphLines(lines, columns)
 	local sphLines = SphLines()
 	for _, line in ipairs(lines) do
 		sphLines:decodeLine(line_to_string(line, columns))
@@ -291,8 +290,21 @@ function SphPreview:decodeSphLines(s, columns)
 	return sphLines
 end
 
-local function sph_line_to_preview_line(line, sphLines)
-	local notes = {}
+---@param s string
+---@return sph.SphLines
+function SphPreview:decodeSphLines(s, columns)
+	local lines = self:decode(s)
+	return self:linesToSphLines(lines, columns)
+end
+
+local function sph_line_to_preview_line(line, sphLines, prev_line)
+	local notes
+	if prev_line and line.visualSide > 0 then
+		notes = prev_line.notes
+	else
+		notes = {}
+	end
+
 	for _, note in ipairs(line.notes) do
 		local t
 		if note.type == "1" or note.type == "2" then
@@ -302,6 +314,11 @@ local function sph_line_to_preview_line(line, sphLines)
 		end
 		notes[note.column] = t
 	end
+
+	if line.visualSide > 0 then
+		return
+	end
+
 	local interval
 	if line.intervalSet then
 		local time = sphLines.intervals[line.intervalIndex].offset
@@ -320,15 +337,23 @@ local function sph_line_to_preview_line(line, sphLines)
 end
 
 ---@param sphLines sph.SphLines
+---@return table
+function SphPreview:sphLinesToLines(sphLines)
+	local lines = {}
+	for _, line in ipairs(sphLines.lines) do
+		local prev_line = lines[#lines]
+		local _line = sph_line_to_preview_line(line, sphLines, prev_line)
+		table.insert(lines, _line)
+	end
+	return lines
+end
+
+---@param sphLines sph.SphLines
 ---@param version number?
 ---@return string
----@return table
 function SphPreview:encodeSphLines(sphLines, version)
-	local lines = {}
-	for i, line in ipairs(sphLines.lines) do
-		lines[i] = sph_line_to_preview_line(line, sphLines)
-	end
-	return self:encode(lines, version), lines
+	local lines = self:sphLinesToLines(sphLines)
+	return self:encode(lines, version)
 end
 
 return SphPreview

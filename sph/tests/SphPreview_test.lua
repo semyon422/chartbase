@@ -36,9 +36,49 @@ function test.one_note(t)
 		0b11000000,  -- 1000
 	}
 
-	local lines = SphPreview:decode(bytes_to_string(s))
+	local str = bytes_to_string(s)
+	local lines = SphPreview:decode(str)
 	t:tdeq(lines, {
-		{time = {0, 1}, notes = {[1] = true}},
+		{time = {0, 1}, notes = {true}},
+	})
+end
+
+function test.visual_side(t)
+	local s = {
+		0b0, 0b0, 0b0,  -- header
+
+		0b01000000,  -- 0/1 new line
+		0b11000000,  -- 1000
+
+		0b01000000,  -- 0/1 new line
+		0b11000001,  -- 0100
+
+		-- - =1
+		0b01000000,  -- 0/1 new line
+		0b00000000,  -- add 1s
+
+		-- - =2
+		0b01000000,  -- 0/1 new line
+		0b00000000,  -- add 1s
+	}
+
+	local str = bytes_to_string(s)
+	local lines = SphPreview:decode(str)
+	t:tdeq(lines, {
+		{time = {0, 1}, notes = {true}},
+		{time = {0, 1}, notes = {nil, true}},
+		{time = {0, 1}, notes = {}, interval = {int = 1, frac = {0, 1}}},
+		{time = {0, 1}, notes = {}, interval = {int = 2, frac = {0, 1}}},
+	})
+
+	local sphLines = SphPreview:decodeSphLines(str, 4)
+
+	sphLines.lines[2].visualSide = 1
+	local lines1 = SphPreview:sphLinesToLines(sphLines)
+	t:tdeq(lines1, {
+		{time = {0, 1}, notes = {true, true}},
+		{time = {0, 1}, notes = {}, interval = {int = 1, frac = {0, 1}}},
+		{time = {0, 1}, notes = {}, interval = {int = 2, frac = {0, 1}}},
 	})
 end
 
@@ -98,7 +138,7 @@ function test.complex_case(t)
 - =5
 1000 +1/2]])
 
-	local _str, enc_lines = SphPreview:encodeSphLines(sphLines)
+	local _str = SphPreview:encodeSphLines(sphLines)
 	-- print(stbl.encode(enc_lines))
 	t:eq(_str, str)
 
@@ -162,7 +202,7 @@ function test.complex_case_2(t)
 - =-2
 - =5]])
 
-	local _str, enc_lines = SphPreview:encodeSphLines(sphLines, 1)
+	local _str = SphPreview:encodeSphLines(sphLines, 1)
 	t:eq(_str, str)
 end
 
