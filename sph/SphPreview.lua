@@ -50,7 +50,7 @@ SphPreview.version = 0
 ---@class sph.PreviewLine
 ---@field time ncdk.Fraction?
 ---@field notes boolean[]?
----@field interval table?
+---@field interval number?
 local PreviewLine = {}
 
 ---@param n number
@@ -63,7 +63,7 @@ local function decode_byte(n, version)
 		t_abs_or_rel = bit.band(n, 0b01000000) == 0 and "abs" or "rel",
 		t_abs_add_sec_or_frac = bit.band(n, 0b00100000) == 0 and "sec" or "frac",
 		t_abs_add_sec = bit.band(n, 0b00011111) + 1,
-		t_abs_set_frac = Fraction(bit.band(n, 0b00011111), 32),
+		t_abs_set_frac = bit.band(n, 0b00011111) / 32,
 		t_is_24th = bit.band(n, 0b00100000) ~= 0,
 		t_rel_set_frac = Fraction(bit.band(n, 0b00011111), t_is_24th and 24 or 32),
 
@@ -99,12 +99,10 @@ function SphPreview:decode(s)
 	local frac_prec = 0
 	local lines = {}
 	local line
-	local interval
 	local function next_line()
-		if interval then
-			start_time = interval.int
+		if line and line.interval then
+			start_time = line.interval
 		end
-		interval = nil
 		frac_prec = 0
 		columns_group = false
 		g_offset = 0
@@ -113,11 +111,7 @@ function SphPreview:decode(s)
 	end
 
 	local function update_interval()
-		line.interval = line.interval or {
-			int = start_time,
-			frac = Fraction(0),
-		}
-		interval = line.interval
+		line.interval = line.interval or math.floor(start_time)
 	end
 
 	local function update_notes()
@@ -131,10 +125,9 @@ function SphPreview:decode(s)
 			if obj.t_abs_or_rel == "abs" then
 				update_interval()
 				if obj.t_abs_add_sec_or_frac == "sec" then
-					interval.int = interval.int + obj.t_abs_add_sec
-					interval.frac = Fraction(0)
+					line.interval = line.interval + obj.t_abs_add_sec
 				elseif obj.t_abs_add_sec_or_frac == "frac" then
-					interval.frac = interval.frac + obj.t_abs_set_frac / (32 ^ frac_prec)
+					line.interval = line.interval + obj.t_abs_set_frac / (32 ^ frac_prec)
 					frac_prec = frac_prec + 1
 				end
 			elseif obj.t_abs_or_rel == "rel" then
@@ -187,23 +180,23 @@ function SphPreview:encode(lines, version)
 		end
 		if line.interval then
 			if not start_time then
-				start_time = line.interval.int
+				start_time = math.floor(line.interval)
 			end
-			local int_diff = line.interval.int - start_time
+			local int_diff = math.floor(line.interval) - start_time
 			while int_diff > 0 do
 				local d = math.min(int_diff, 32)
 				int_diff = int_diff - d
 				b:uint8(d - 1)
 			end
-			local frac = line.interval.frac
-			local frac1_n = (frac * 32):floor()
-			local frac2_n = (frac * 1024 - frac1_n * 32):floor()
+			local frac = line.interval % 1
+			local frac1_n = math.floor(frac * 32)
+			local frac2_n = math.floor(frac * 1024 - frac1_n * 32)
 			if frac2_n ~= 0 then
 				b:uint8(0b00100000 + frac1_n)
 				b:uint8(0b00100000 + frac2_n)
 			elseif frac1_n ~= 0 then
 				b:uint8(0b00100000 + frac1_n)
-			elseif line.interval.int - start_time == 0 then  -- at least one interval command should be present
+			elseif line.interval - start_time == 0 then  -- at least one interval command should be present
 				b:uint8(0b00100000)
 			end
 		end
@@ -284,7 +277,7 @@ local function preview_line_to_line(line)
 		_line.notes = notes
 	end
 	if line.interval then
-		_line.offset = line.interval.int + line.interval.frac
+		_line.offset = line.interval
 	end
 	return _line
 end
@@ -339,10 +332,7 @@ local function line_to_preview_line(line, prev_line)
 		local time = line.offset
 		local frac = time % 1
 		local int = time - frac
-		pline.interval = {
-			int = int,
-			frac = Fraction(math.floor(frac * 1024), 1024),
-		}
+		pline.interval = int + math.floor(frac * 1024) / 1024
 	end
 
 	pline.time = line.fraction
