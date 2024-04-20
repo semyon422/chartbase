@@ -1,5 +1,5 @@
 local class = require("class")
-local SphNumber = require("sph.SphNumber")
+local Fraction = require("ncdk.Fraction")
 local template_key = require("sph.template_key")
 
 ---@class sph.TextSphLines
@@ -9,6 +9,23 @@ local TextSphLines = class()
 function TextSphLines:new()
 	self.lines = {}
 	self.columns = 1
+end
+
+---@param s string
+---@return ncdk.Fraction?
+local function decode_fraction(s)
+	local sign = 1
+	if s:sub(1, 1) == "-" then
+		sign = -1
+		s = s:sub(2)
+	end
+
+	local n, d = s:match("^(%d+)/(%d+)$")
+	if not n or not d then
+		return
+	end
+
+	return Fraction(sign * tonumber(n), tonumber(d))
 end
 
 ---@param s string
@@ -88,11 +105,11 @@ function TextSphLines:decodeLine(s)
 		if k == "=" then
 			line.offset = tonumber(v)
 		elseif k == "+" then
-			line.fraction = SphNumber:decode(v)
+			line.fraction = decode_fraction(v)
 		elseif k == "v" then
 			line.visual = true
 		elseif k == "#" then
-			line.measure = SphNumber:decode(v)
+			line.measure = decode_fraction(v)
 		elseif k == ":" then
 			line.sounds = parse_sounds(split_chars(v, 2))
 		elseif k == "." then
@@ -135,9 +152,9 @@ end
 
 ---@param _notes table
 ---@return string?
-function TextSphLines:getLine(_notes)
+function TextSphLines:encodeNotes(_notes)
 	if not _notes or #_notes == 0 then
-		return
+		return "-"
 	end
 	local notes = {}
 	for i = 1, self.columns do
@@ -166,47 +183,47 @@ function TextSphLines:encode()
 	local slines = {}
 
 	for _, line in ipairs(self.lines) do
-		local str = self:getLine(line.notes)
+		local out = {}
+		table.insert(out, self:encodeNotes(line.notes))
 
-		str = str or "-"
 		if line.offset then
-			str = str .. " =" .. line.offset
+			table.insert(out, "=" .. line.offset)
 		end
-		if line.fraction and line.fraction[1] ~= 0 then
-			str = str .. " +" .. formatFraction(line.fraction)
+		if line.fraction then
+			table.insert(out, "+" .. formatFraction(line.fraction))
 		end
 		if line.visual then
-			str = str .. " v"
+			table.insert(out, "v")
 		end
 		if line.expand then
-			str = str .. " e" .. tostring(line.expand)
+			table.insert(out, "e" .. tostring(line.expand))
 		end
 		if line.velocity then
-			str = str .. " x" .. format_velocity(line.velocity)
+			table.insert(out, "x" .. format_velocity(line.velocity))
 		end
 		if line.measure then
 			local n = line.measure
-			str = str .. " #" .. (n[1] ~= 0 and formatFraction(n) or "")
+			table.insert(out, "#" .. (n[1] ~= 0 and formatFraction(n) or ""))
 		end
-		if line.sounds and #line.sounds > 0 then
-			local out = {}
+		if line.sounds then
+			local sounds = {}
 			for i, sound in ipairs(line.sounds) do
-				out[i] = template_key.encode(sound)
+				sounds[i] = template_key.encode(sound)
 			end
-			str = str .. " :" .. table.concat(out)
+			table.insert(out, ":" .. table.concat(sounds))
 		end
-		if line.volume and #line.volume > 0 then
-			local out = {}
+		if line.volume then
+			local volume = {}
 			for i, vol in ipairs(line.volume) do
-				out[i] = ("%02d"):format(math.floor(vol * 100 + 0.5) % 100)
+				volume[i] = ("%02d"):format(math.floor(vol * 100 + 0.5) % 100)
 			end
-			str = str .. " ." .. table.concat(out)
+			table.insert(out, "." .. table.concat(volume))
 		end
-		if line.comment and #line.comment > 0 then
-			str = str .. " // " .. line.comment
+		if line.comment then
+			table.insert(out, "// " .. line.comment)
 		end
 
-		table.insert(slines, str)
+		table.insert(slines, table.concat(out, " "))
 	end
 
 	return table.concat(slines, "\n")
