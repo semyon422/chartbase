@@ -45,10 +45,10 @@ function test.one_note(t)
 	})
 end
 
-function test.interval_1024_test(t)  -- there was a bug
+function test.offset_1024_test(t)  -- there was a bug
 	local lines = {
-		{interval = 511 / 1024},
-		{interval = 513 / 1024},
+		{offset = 511 / 1024},
+		{offset = 513 / 1024},
 	}
 
 	local str = SphPreview:encode(lines)
@@ -80,8 +80,8 @@ function test.visual_side(t)
 	t:tdeq(lines, {
 		{notes = {true}},
 		{notes = {nil, true}},
-		{interval = 1},
-		{interval = 2},
+		{offset = 1},
+		{offset = 2},
 	})
 
 	local sphLines = SphLines()
@@ -91,8 +91,8 @@ function test.visual_side(t)
 	local lines1 = SphPreview:linesToPreviewLines(sphLines:encode())
 	t:tdeq(lines1, {
 		{notes = {true, true}},
-		{interval = 1},
-		{interval = 2},
+		{offset = 1},
+		{offset = 2},
 	})
 end
 
@@ -133,10 +133,10 @@ function test.complex_case(t)
 	-- print(stbl.encode(lines))
 	t:tdeq(lines, {
 		{time = {1, 2}, notes = {true, true}},
-		{interval = -2 + 129 / 256},
+		{offset = -2 + 129 / 256},
 		{notes = {true}},
 		{time = {23, 24}, notes = {true}},
-		{interval = 5},
+		{offset = 5},
 		{time = {1, 2}, notes = {true}},
 	})
 
@@ -206,8 +206,8 @@ function test.complex_case_2(t)
 		{notes = {true, true, true, true, true, true, true, true, true, true}},
 		{notes = {false}},
 		{notes = {true, false}},
-		{interval = -2},
-		{interval = 5},
+		{offset = -2},
+		{offset = 5},
 	})
 
 	local _str = SphPreview:encode(lines, 1)

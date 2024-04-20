@@ -11,7 +11,7 @@ function SphLines:new()
 	self.intervals = {}
 	self.beatOffset = -1
 	self.visualSide = 0
-	self.fraction = {0, 1}
+	self.lineTime = {0, 1}
 end
 
 ---@param intervalOffset number
@@ -21,7 +21,7 @@ function SphLines:addInterval(intervalOffset)
 		offset = intervalOffset,
 		beats = 1,
 		beatOffset = self.beatOffset,
-		start = self.fraction
+		start = self.lineTime
 	}
 	local prev = intervals[#intervals]
 	if prev then
@@ -45,10 +45,10 @@ function SphLines:decodeLine(line)
 	pline.comment = line.comment
 	local intervalOffset = line.offset
 
-	local fraction
-	if line.fraction then
-		fraction = line.fraction
-		self.fraction = fraction
+	local lineTime
+	if line.time then
+		lineTime = line.time
+		self.lineTime = lineTime
 	end
 
 	local visual = line.visual
@@ -65,9 +65,9 @@ function SphLines:decodeLine(line)
 		self.visualSide = 0
 	end
 
-	if not fraction and not visual then
+	if not lineTime and not visual then
 		self.beatOffset = self.beatOffset + 1
-		self.fraction = nil
+		self.lineTime = nil
 	end
 
 	if intervalOffset then
@@ -82,7 +82,7 @@ function SphLines:decodeLine(line)
 
 	pline.intervalIndex = math.max(#self.intervals, 1)
 	pline.intervalSet = intervalOffset ~= nil
-	pline.globalTime = Fraction(self.beatOffset) + self.fraction
+	pline.globalTime = Fraction(self.beatOffset) + self.lineTime
 	pline.visualSide = self.visualSide
 
 	table.insert(self.protoLines, pline)
@@ -154,7 +154,7 @@ function SphLines:encode()
 
 			local visual = not isNextTime
 
-			local fraction = pline.globalTime % 1
+			local line_time = pline.globalTime % 1
 
 			local line = Line()
 
@@ -162,8 +162,8 @@ function SphLines:encode()
 				if pline.intervalSet then
 					line.offset = intervals[pline.intervalIndex].offset
 				end
-				if fraction[1] ~= 0 then
-					line.fraction = pline.globalTime % 1
+				if line_time[1] ~= 0 then
+					line.time = pline.globalTime % 1
 				end
 			else
 				line.visual = true
@@ -182,7 +182,7 @@ function SphLines:encode()
 				line.notes = pline.notes
 			end
 
-			if hasPayload or fraction[1] == 0 and not visual then
+			if hasPayload or line_time[1] == 0 and not visual then
 				table.insert(lines, line)
 			end
 

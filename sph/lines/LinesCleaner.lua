@@ -8,7 +8,7 @@ local LinesCleaner = class()
 ---@return boolean
 local function has_payload(line)
 	for k in pairs(line) do
-		if k ~= "fraction" then
+		if k ~= "time" then
 			return true
 		end
 	end
@@ -26,12 +26,12 @@ local function is_line_useful_inside(line, next_line)
 	if hp then
 		return true
 	end
-	if next_line.visual then  -- fraction in visual has no sense
-		next_line.fraction = line.fraction
+	if next_line.visual then  -- time in visual has no sense
+		next_line.time = line.time
 		next_line.visual = nil
 		return false
 	end
-	if not line.fraction then
+	if not line.time then
 		return true
 	end
 	return false

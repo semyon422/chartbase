@@ -5,7 +5,7 @@ local class = require("class")
 ---@field comment string?
 ---@field notes {column: number, type: string}[]?
 ---@field offset number?
----@field fraction ncdk.Fraction?
+---@field time ncdk.Fraction?
 ---@field visual true?
 ---@field measure ncdk.Fraction?
 ---@field sounds integer[]?

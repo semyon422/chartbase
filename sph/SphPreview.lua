@@ -50,7 +50,7 @@ SphPreview.version = 0
 ---@class sph.PreviewLine
 ---@field time ncdk.Fraction?
 ---@field notes boolean[]?
----@field interval number?
+---@field offset number?
 local PreviewLine = {}
 
 ---@param n number
@@ -100,8 +100,8 @@ function SphPreview:decode(s)
 	local lines = {}
 	local line
 	local function next_line()
-		if line and line.interval then
-			start_time = line.interval
+		if line and line.offset then
+			start_time = line.offset
 		end
 		frac_prec = 0
 		columns_group = false
@@ -110,8 +110,8 @@ function SphPreview:decode(s)
 		table.insert(lines, line)
 	end
 
-	local function update_interval()
-		line.interval = line.interval or math.floor(start_time)
+	local function update_offset()
+		line.offset = line.offset or math.floor(start_time)
 	end
 
 	local function update_notes()
@@ -123,11 +123,11 @@ function SphPreview:decode(s)
 		local obj = decode_byte(n, version)
 		if obj.type == "time" then
 			if obj.t_abs_or_rel == "abs" then
-				update_interval()
+				update_offset()
 				if obj.t_abs_add_sec_or_frac == "sec" then
-					line.interval = line.interval + obj.t_abs_add_sec
+					line.offset = line.offset + obj.t_abs_add_sec
 				elseif obj.t_abs_add_sec_or_frac == "frac" then
-					line.interval = line.interval + obj.t_abs_set_frac / (32 ^ frac_prec)
+					line.offset = line.offset + obj.t_abs_set_frac / (32 ^ frac_prec)
 					frac_prec = frac_prec + 1
 				end
 			elseif obj.t_abs_or_rel == "rel" then
@@ -178,17 +178,17 @@ function SphPreview:encode(lines, version)
 		else
 			b:uint8(0b01000000)
 		end
-		if line.interval then
+		if line.offset then
 			if not start_time then
-				start_time = math.floor(line.interval)
+				start_time = math.floor(line.offset)
 			end
-			local int_diff = math.floor(line.interval) - start_time
+			local int_diff = math.floor(line.offset) - start_time
 			while int_diff > 0 do
 				local d = math.min(int_diff, 32)
 				int_diff = int_diff - d
 				b:uint8(d - 1)
 			end
-			local frac = line.interval % 1
+			local frac = line.offset % 1
 			local frac1_n = math.floor(frac * 32)
 			local frac2_n = math.floor(frac * 1024 - frac1_n * 32)
 			if frac2_n ~= 0 then
@@ -196,7 +196,7 @@ function SphPreview:encode(lines, version)
 				b:uint8(0b00100000 + frac2_n)
 			elseif frac1_n ~= 0 then
 				b:uint8(0b00100000 + frac1_n)
-			elseif line.interval - start_time == 0 then  -- at least one interval command should be present
+			elseif line.offset - start_time == 0 then  -- at least one interval command should be present
 				b:uint8(0b00100000)
 			end
 		end
@@ -258,14 +258,14 @@ function SphPreview:encode(lines, version)
 	return b:string(offset)
 end
 
----@param line sph.PreviewLine
+---@param pline sph.PreviewLine
 ---@return sph.Line
-local function preview_line_to_line(line)
-	local _line = Line()
-	_line.fraction = line.time
-	if line.notes then
+local function preview_line_to_line(pline)
+	local line = Line()
+	line.time = pline.time
+	if pline.notes then
 		local notes = {}
-		for column, pr in pairs(line.notes) do
+		for column, pr in pairs(pline.notes) do
 			local note = {column = column}
 			if pr == true then
 				note.type = "1"
@@ -274,20 +274,20 @@ local function preview_line_to_line(line)
 			end
 			table.insert(notes, note)
 		end
-		_line.notes = notes
+		line.notes = notes
 	end
-	if line.interval then
-		_line.offset = line.interval
+	if pline.offset then
+		line.offset = pline.offset
 	end
-	return _line
+	return line
 end
 
----@param _lines sph.PreviewLine[]
+---@param plines sph.PreviewLine[]
 ---@return sph.Line[]
-function SphPreview:previewLinesToLines(_lines)
+function SphPreview:previewLinesToLines(plines)
 	local lines = {}
-	for i, line in ipairs(_lines) do
-		lines[i] = preview_line_to_line(line)
+	for i, pline in ipairs(plines) do
+		lines[i] = preview_line_to_line(pline)
 	end
 	return lines
 end
@@ -300,12 +300,12 @@ function SphPreview:decodeLines(s)
 end
 
 ---@param line sph.Line
----@param prev_line sph.PreviewLine
+---@param prev_pline sph.PreviewLine
 ---@return table?
-local function line_to_preview_line(line, prev_line)
+local function line_to_preview_line(line, prev_pline)
 	local notes
-	if prev_line and line.visual then
-		notes = prev_line.notes
+	if prev_pline and line.visual then
+		notes = prev_pline.notes
 	else
 		notes = {}
 	end
@@ -332,10 +332,10 @@ local function line_to_preview_line(line, prev_line)
 		local time = line.offset
 		local frac = time % 1
 		local int = time - frac
-		pline.interval = int + math.floor(frac * 1024) / 1024
+		pline.offset = int + math.floor(frac * 1024) / 1024
 	end
 
-	pline.time = line.fraction
+	pline.time = line.time
 
 	if line.notes then
 		pline.notes = notes
@@ -344,16 +344,16 @@ local function line_to_preview_line(line, prev_line)
 	return pline
 end
 
----@param _lines sph.Line[]
+---@param lines sph.Line[]
 ---@return sph.PreviewLine[]
-function SphPreview:linesToPreviewLines(_lines)
-	local lines = {}
-	for _, line in ipairs(_lines) do
-		local prev_line = lines[#lines]
+function SphPreview:linesToPreviewLines(lines)
+	local plines = {}
+	for _, line in ipairs(lines) do
+		local prev_line = plines[#plines]
 		local _line = line_to_preview_line(line, prev_line)
-		table.insert(lines, _line)
+		table.insert(plines, _line)
 	end
-	return lines
+	return plines
 end
 
 ---@param _lines sph.Line[]
