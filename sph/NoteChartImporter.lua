@@ -32,7 +32,7 @@ function NoteChartImporter:importFromSph(sph)
 		layerData:insertIntervalData(interval.offset, interval.beats, interval.start)
 	end
 
-	for _, line in ipairs(sph.sphLines.lines) do
+	for _, line in ipairs(sph.sphLines.protoLines) do
 		self:processLine(line)
 	end
 

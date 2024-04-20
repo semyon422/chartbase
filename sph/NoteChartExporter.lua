@@ -196,7 +196,7 @@ function NoteChartExporter:export()
 		if t._measureData then
 			line.measure = t._measureData.start
 		end
-		table.insert(sphLines.lines, line)
+		table.insert(sphLines.protoLines, line)
 	end
 
 	return sph:encode()
