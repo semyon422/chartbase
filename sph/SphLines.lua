@@ -172,9 +172,13 @@ function SphLines:encode()
 			tline.expand = line.expand
 			tline.velocity = line.velocity
 			tline.measure = line.measure
-			tline.sounds = line.sounds
-			tline.volume = line.volume
 			tline.comment = line.comment
+			if line.sounds and next(line.sounds) then
+				tline.sounds = line.sounds
+			end
+			if line.volume and next(line.volume) then
+				tline.volume = line.volume
+			end
 
 			if hasPayload or fraction[1] == 0 and not visual then
 				table.insert(tlines, tline)
