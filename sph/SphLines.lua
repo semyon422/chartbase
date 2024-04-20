@@ -1,5 +1,6 @@
 local class = require("class")
 local Fraction = require("ncdk.Fraction")
+local Line = require("sph.lines.Line")
 
 ---@class sph.SphLines
 ---@operator call: sph.SphLines
@@ -29,7 +30,7 @@ function SphLines:addInterval(intervalOffset)
 	table.insert(intervals, interval)
 end
 
----@param lines table
+---@param lines sph.Line
 function SphLines:decode(lines)
 	for _, line in ipairs(lines) do
 		self:decodeLine(line)
@@ -37,26 +38,26 @@ function SphLines:decode(lines)
 	self:updateTime()
 end
 
----@param tline table
-function SphLines:decodeLine(tline)
-	local line = {}
+---@param line sph.Line
+function SphLines:decodeLine(line)
+	local pline = {}
 
-	line.comment = tline.comment
-	local intervalOffset = tline.offset
+	pline.comment = line.comment
+	local intervalOffset = line.offset
 
 	local fraction
-	if tline.fraction then
-		fraction = tline.fraction
+	if line.fraction then
+		fraction = line.fraction
 		self.fraction = fraction
 	end
 
-	local visual = tline.visual
+	local visual = line.visual
 
-	line.measure = tline.measure
-	line.sounds = tline.sounds
-	line.volume = tline.volume
-	line.velocity = tline.velocity
-	line.expand = tline.expand
+	pline.measure = line.measure
+	pline.sounds = line.sounds
+	pline.volume = line.volume
+	pline.velocity = line.velocity
+	pline.expand = line.expand
 
 	if visual then
 		self.visualSide = self.visualSide + 1
@@ -73,18 +74,18 @@ function SphLines:decodeLine(tline)
 		self:addInterval(intervalOffset)
 	end
 
-	line.notes = tline.notes
+	pline.notes = line.notes
 
-	if not intervalOffset and not next(line) then
+	if not intervalOffset and not next(pline) then
 		return
 	end
 
-	line.intervalIndex = math.max(#self.intervals, 1)
-	line.intervalSet = intervalOffset ~= nil
-	line.globalTime = Fraction(self.beatOffset) + self.fraction
-	line.visualSide = self.visualSide
+	pline.intervalIndex = math.max(#self.intervals, 1)
+	pline.intervalSet = intervalOffset ~= nil
+	pline.globalTime = Fraction(self.beatOffset) + self.fraction
+	pline.visualSide = self.visualSide
 
-	table.insert(self.protoLines, line)
+	table.insert(self.protoLines, pline)
 end
 
 function SphLines:updateTime()
@@ -117,82 +118,81 @@ function SphLines:calcGlobalTime()
 	end
 end
 
----@return table
+---@return sph.Line[]
 function SphLines:encode()
 	local protoLines = self.protoLines
 	local intervals = self.intervals
-	local tlines = {}
+	local lines = {}
 
 	self:calcIntervals()
 	self:calcGlobalTime()
 
-	local lineIndex = 1
-	local line = protoLines[1]
+	local plineIndex = 1
+	local pline = protoLines[plineIndex]
 
-	local currentTime = line.globalTime
+	local currentTime = pline.globalTime
 	local prevTime = nil
-	while line do
+	while pline do
 		local targetTime = Fraction(currentTime:floor() + 1)
-		if line.globalTime < targetTime then
-			targetTime = line.globalTime
+		if pline.globalTime < targetTime then
+			targetTime = pline.globalTime
 		end
-		local isAtTimePoint = line.globalTime == targetTime
+		local isAtTimePoint = pline.globalTime == targetTime
 
 		if isAtTimePoint then
 			local hasPayload =
-				line.notes or
-				line.expand or
-				line.intervalSet or
-				line.velocity or
-				line.measure
+				pline.notes or
+				pline.expand or
+				pline.intervalSet or
+				pline.velocity or
+				pline.measure
 
-			local isNextTime = line.globalTime ~= prevTime
+			local isNextTime = pline.globalTime ~= prevTime
 			if isNextTime then
-				prevTime = line.globalTime
+				prevTime = pline.globalTime
 			end
 
 			local visual = not isNextTime
-			-- local visual = not isNextTime and (line.visualSide or 0) > 0
 
-			local fraction = line.globalTime % 1
+			local fraction = pline.globalTime % 1
 
-			local tline = {}
-			tline.notes = line.notes
+			local line = Line()
+			line.notes = pline.notes
 
-			if (line.visualSide or 0) == 0 then
-				if line.intervalSet then
-					tline.offset = intervals[line.intervalIndex].offset
+			if (pline.visualSide or 0) == 0 then
+				if pline.intervalSet then
+					line.offset = intervals[pline.intervalIndex].offset
 				end
 				if fraction[1] ~= 0 then
-					tline.fraction = line.globalTime % 1
+					line.fraction = pline.globalTime % 1
 				end
 			else
-				tline.visual = true
+				line.visual = true
 			end
-			tline.expand = line.expand
-			tline.velocity = line.velocity
-			tline.measure = line.measure
-			tline.comment = line.comment
-			if line.sounds and next(line.sounds) then
-				tline.sounds = line.sounds
+			line.expand = pline.expand
+			line.velocity = pline.velocity
+			line.measure = pline.measure
+			line.comment = pline.comment
+			if pline.sounds and next(pline.sounds) then
+				line.sounds = pline.sounds
 			end
-			if line.volume and next(line.volume) then
-				tline.volume = line.volume
+			if pline.volume and next(pline.volume) then
+				line.volume = pline.volume
 			end
 
 			if hasPayload or fraction[1] == 0 and not visual then
-				table.insert(tlines, tline)
+				table.insert(lines, line)
 			end
 
-			lineIndex = lineIndex + 1
-			line = protoLines[lineIndex]
+			plineIndex = plineIndex + 1
+			pline = protoLines[plineIndex]
 		else
-			table.insert(tlines, {})
+			table.insert(lines, {})
 		end
 		currentTime = targetTime
 	end
 
-	return tlines
+	return lines
 end
 
 return SphLines

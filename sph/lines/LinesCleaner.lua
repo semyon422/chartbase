@@ -4,14 +4,20 @@ local class = require("class")
 ---@operator call: sph.LinesCleaner
 local LinesCleaner = class()
 
+---@param line sph.Line
+---@return boolean
 local function has_payload(line)
 	for k in pairs(line) do
 		if k ~= "fraction" then
 			return true
 		end
 	end
+	return false
 end
 
+---@param line sph.Line
+---@param next_line sph.Line
+---@return boolean
 local function is_line_useful_inside(line, next_line)
 	if not next_line then
 		return true
@@ -31,6 +37,8 @@ local function is_line_useful_inside(line, next_line)
 	return false
 end
 
+---@param lines sph.Line[]
+---@return sph.Line[]
 function LinesCleaner:clean(lines)
 	local first, last
 	for i = 1, #lines do

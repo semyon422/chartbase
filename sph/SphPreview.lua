@@ -1,8 +1,9 @@
 local class = require("class")
 local byte = require("byte_new")
+local table_util = require("table_util")
 local bit = require("bit")
 local Fraction = require("ncdk.Fraction")
-local SphLines = require("sph.SphLines")
+local Line = require("sph.lines.Line")
 
 ---@class sph.SphPreview
 ---@operator call: sph.SphPreview
@@ -46,6 +47,15 @@ SphPreview.version = 0
 		1100 0001 / press 11 key
 ]]
 
+---@class sph.PreviewLine
+---@field time ncdk.Fraction
+---@field notes boolean[]
+---@field interval table?
+local PreviewLine = {}
+
+---@param n number
+---@param version number
+---@return table
 local function decode_byte(n, version)
 	local t_is_24th = bit.band(n, 0b00100000) ~= 0
 	local bt = {
@@ -75,6 +85,8 @@ local function decode_byte(n, version)
 	return bt
 end
 
+---@param s string
+---@return sph.PreviewLine[]
 function SphPreview:decode(s)
 	local b = byte.buffer(#s)
 	b:fill(s):seek(0)
@@ -147,16 +159,9 @@ function SphPreview:decode(s)
 	return lines
 end
 
-local function max_index(t)
-	local max_i = 0
-	for i in pairs(t) do
-		if type(i) == "number" then
-			max_i = math.max(max_i, i)
-		end
-	end
-	return max_i
-end
-
+---@param lines sph.PreviewLine[]
+---@param version number?
+---@return string
 function SphPreview:encode(lines, version)
 	version = version or self.version
 
@@ -208,7 +213,7 @@ function SphPreview:encode(lines, version)
 			end
 		elseif version == 1 then
 			local notes = line.notes
-			local max_c = max_index(notes)
+			local max_c = table_util.max_index(notes)
 			local columns_group = false
 			local g_offset = 0
 			while g_offset < max_c do
@@ -252,8 +257,10 @@ function SphPreview:encode(lines, version)
 	return b:string(offset)
 end
 
+---@param line sph.PreviewLine
+---@return sph.Line
 local function preview_line_to_line(line)
-	local _line = {}
+	local _line = Line()
 	if line.time[1] ~= 0 then
 		_line.fraction = line.time
 	end
@@ -276,8 +283,8 @@ local function preview_line_to_line(line)
 	return _line
 end
 
----@param _lines table
----@return table
+---@param _lines sph.PreviewLine[]
+---@return sph.Line[]
 function SphPreview:previewLinesToLines(_lines)
 	local lines = {}
 	for i, line in ipairs(_lines) do
@@ -287,12 +294,15 @@ function SphPreview:previewLinesToLines(_lines)
 end
 
 ---@param s string
----@return table
+---@return sph.Line[]
 function SphPreview:decodeLines(s)
 	local lines = self:decode(s)
 	return self:previewLinesToLines(lines)
 end
 
+---@param line sph.Line
+---@param prev_line sph.PreviewLine
+---@return table?
 local function line_to_preview_line(line, prev_line)
 	local notes
 	if prev_line and line.visual then
@@ -334,8 +344,8 @@ local function line_to_preview_line(line, prev_line)
 	}
 end
 
----@param _lines table
----@return table
+---@param _lines sph.Line[]
+---@return sph.PreviewLine[]
 function SphPreview:linesToPreviewLines(_lines)
 	local lines = {}
 	for _, line in ipairs(_lines) do
@@ -346,7 +356,7 @@ function SphPreview:linesToPreviewLines(_lines)
 	return lines
 end
 
----@param _lines table
+---@param _lines sph.Line[]
 ---@param version number?
 ---@return string
 function SphPreview:encodeLines(_lines, version)

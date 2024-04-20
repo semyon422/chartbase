@@ -1,9 +1,11 @@
 local class = require("class")
 local Fraction = require("ncdk.Fraction")
 local template_key = require("sph.lines.template_key")
+local Line = require("sph.lines.Line")
 
 ---@class sph.TextLines
 ---@operator call: sph.TextLines
+---@field lines sph.Line[]
 local TextLines = class()
 
 function TextLines:new()
@@ -12,7 +14,7 @@ function TextLines:new()
 end
 
 ---@param s string
----@return ncdk.Fraction?
+---@return ncdk.Fraction
 local function decode_fraction(s)
 	local sign = 1
 	if s:sub(1, 1) == "-" then
@@ -89,8 +91,9 @@ local function parse_velocity(velocity)
 end
 
 ---@param s string
+---@return sph.Line
 function TextLines:decodeLine(s)
-	local line = {}
+	local line = Line()
 
 	local data, comment = s:match("^(.-) // (.+)$")
 	if not data then
