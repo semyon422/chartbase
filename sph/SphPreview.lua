@@ -91,7 +91,6 @@ function SphPreview:decode(s)
 	local function next_line()
 		if interval then
 			start_time = interval.int
-			print("next line, interval", interval.int)
 		end
 		interval = nil
 		frac_prec = 0
@@ -109,7 +108,6 @@ function SphPreview:decode(s)
 			int = start_time,
 			frac = Fraction(0),
 		}
-		print("upd", line.interval, line.interval.int, start_time)
 		interval = line.interval
 	end
 
@@ -122,7 +120,6 @@ function SphPreview:decode(s)
 				if obj.t_abs_add_sec_or_frac == "sec" then
 					interval.int = interval.int + obj.t_abs_add_sec
 					interval.frac = Fraction(0)
-					print("add", interval.int)
 				elseif obj.t_abs_add_sec_or_frac == "frac" then
 					interval.frac = interval.frac + obj.t_abs_set_frac / (32 ^ frac_prec)
 					frac_prec = frac_prec + 1
