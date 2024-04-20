@@ -91,6 +91,7 @@ function SphPreview:decode(s)
 	local function next_line()
 		if interval then
 			start_time = interval.int
+			print("next line, interval", interval.int)
 		end
 		interval = nil
 		frac_prec = 0
@@ -108,6 +109,7 @@ function SphPreview:decode(s)
 			int = start_time,
 			frac = Fraction(0),
 		}
+		print("upd", line.interval, line.interval.int, start_time)
 		interval = line.interval
 	end
 
@@ -120,6 +122,7 @@ function SphPreview:decode(s)
 				if obj.t_abs_add_sec_or_frac == "sec" then
 					interval.int = interval.int + obj.t_abs_add_sec
 					interval.frac = Fraction(0)
+					print("add", interval.int)
 				elseif obj.t_abs_add_sec_or_frac == "frac" then
 					interval.frac = interval.frac + obj.t_abs_set_frac / (32 ^ frac_prec)
 					frac_prec = frac_prec + 1
@@ -183,13 +186,13 @@ function SphPreview:encode(lines, version)
 				b:uint8(d - 1)
 			end
 			local frac = line.interval.frac
-			local frac1 = math.floor(32 * frac[1] / frac[2])
-			local frac2 = math.floor(1024 * frac[1] / frac[2])
-			if frac2 ~= 0 then
-				b:uint8(0b00100000 + frac1)
-				b:uint8(0b00100000 + frac2)
-			elseif frac1 ~= 0 then
-				b:uint8(0b00100000 + frac1)
+			local frac1_n = (frac * 32):floor()
+			local frac2_n = (frac * 1024 - frac1_n * 32):floor()
+			if frac2_n ~= 0 then
+				b:uint8(0b00100000 + frac1_n)
+				b:uint8(0b00100000 + frac2_n)
+			elseif frac1_n ~= 0 then
+				b:uint8(0b00100000 + frac1_n)
 			elseif line.interval.int - start_time == 0 then  -- at least one interval command should be present
 				b:uint8(0b00100000)
 			end

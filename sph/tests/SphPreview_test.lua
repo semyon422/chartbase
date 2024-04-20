@@ -45,6 +45,17 @@ function test.one_note(t)
 	})
 end
 
+function test.interval_1024_test(t)  -- there was a bug
+	local lines = {
+		{interval = {frac = Fraction(511, 1024), int = 0}, notes = {}, time = {0, 1}},
+		{interval = {frac = Fraction(513, 1024), int = 0}, notes = {}, time = {0, 1}},
+	}
+
+	local str = SphPreview:encode(lines)
+	local _lines = SphPreview:decode(str)
+	t:tdeq(_lines, lines)
+end
+
 function test.visual_side(t)
 	local s = {
 		0b0, 0b0, 0b0,  -- header
