@@ -1,20 +1,16 @@
 local class = require("class")
 local Fraction = require("ncdk.Fraction")
-local TextLines = require("sph.lines.TextLines")
-local LinesCleaner = require("sph.lines.LinesCleaner")
 
 ---@class sph.SphLines
 ---@operator call: sph.SphLines
 local SphLines = class()
 
 function SphLines:new()
-	self.lines = {}
+	self.protoLines = {}
 	self.intervals = {}
 	self.beatOffset = -1
 	self.visualSide = 0
 	self.fraction = {0, 1}
-	self.columns = 1
-	self.textLines = TextLines()
 end
 
 ---@param intervalOffset number
@@ -33,11 +29,16 @@ function SphLines:addInterval(intervalOffset)
 	table.insert(intervals, interval)
 end
 
----@param s string
-function SphLines:decodeLine(s)
-	local tline = self.textLines:decodeLine(s)
-	self.columns = self.textLines.columns
+---@param lines table
+function SphLines:decode(lines)
+	for _, line in ipairs(lines) do
+		self:decodeLine(line)
+	end
+	self:updateTime()
+end
 
+---@param tline table
+function SphLines:decodeLine(tline)
 	local line = {}
 
 	line.comment = tline.comment
@@ -73,19 +74,24 @@ function SphLines:decodeLine(s)
 	end
 
 	line.notes = tline.notes
+
+	if not intervalOffset and not next(line) then
+		return
+	end
+
 	line.intervalIndex = math.max(#self.intervals, 1)
 	line.intervalSet = intervalOffset ~= nil
 	line.globalTime = Fraction(self.beatOffset) + self.fraction
 	line.visualSide = self.visualSide
 
-	table.insert(self.lines, line)
+	table.insert(self.protoLines, line)
 end
 
 function SphLines:updateTime()
-	local lines = self.lines
+	local protoLines = self.protoLines
 	local intervals = self.intervals
 
-	for _, line in ipairs(lines) do
+	for _, line in ipairs(protoLines) do
 		local interval = intervals[line.intervalIndex]
 		line.time = line.globalTime - interval.beatOffset
 	end
@@ -102,52 +108,87 @@ function SphLines:calcIntervals()
 end
 
 function SphLines:calcGlobalTime()
-	local lines = self.lines
+	local protoLines = self.protoLines
 	local intervals = self.intervals
 
-	for _, line in ipairs(lines) do
+	for _, line in ipairs(protoLines) do
 		local interval = intervals[line.intervalIndex]
 		line.globalTime = line.time + interval.beatOffset
 	end
 end
 
----@return string
+---@return table
 function SphLines:encode()
-	local lines = self.lines
+	local protoLines = self.protoLines
 	local intervals = self.intervals
 	local tlines = {}
 
 	self:calcIntervals()
 	self:calcGlobalTime()
 
-	for i, line in ipairs(lines) do
-		local tline = {}
-		tline.notes = line.notes
+	local lineIndex = 1
+	local line = protoLines[1]
 
-		if (line.visualSide or 0) == 0 then
-			if line.intervalSet then
-				tline.offset = intervals[line.intervalIndex].offset
-			end
-			local fraction = line.globalTime % 1
-			if fraction[1] ~= 0 then
-				tline.fraction = line.globalTime % 1
-			end
-		else
-			tline.visual = true
+	local currentTime = line.globalTime
+	local prevTime = nil
+	while line do
+		local targetTime = Fraction(currentTime:floor() + 1)
+		if line.globalTime < targetTime then
+			targetTime = line.globalTime
 		end
-		tline.expand = line.expand
-		tline.velocity = line.velocity
-		tline.measure = line.measure
-		tline.sounds = line.sounds
-		tline.volume = line.volume
-		tline.comment = line.comment
-		table.insert(tlines, tline)
+		local isAtTimePoint = line.globalTime == targetTime
+
+		if isAtTimePoint then
+			local hasPayload =
+				line.notes or
+				line.expand or
+				line.intervalSet or
+				line.velocity or
+				line.measure
+
+			local isNextTime = line.globalTime ~= prevTime
+			if isNextTime then
+				prevTime = line.globalTime
+			end
+
+			local visual = not isNextTime
+			-- local visual = not isNextTime and (line.visualSide or 0) > 0
+
+			local fraction = line.globalTime % 1
+
+			local tline = {}
+			tline.notes = line.notes
+
+			if (line.visualSide or 0) == 0 then
+				if line.intervalSet then
+					tline.offset = intervals[line.intervalIndex].offset
+				end
+				if fraction[1] ~= 0 then
+					tline.fraction = line.globalTime % 1
+				end
+			else
+				tline.visual = true
+			end
+			tline.expand = line.expand
+			tline.velocity = line.velocity
+			tline.measure = line.measure
+			tline.sounds = line.sounds
+			tline.volume = line.volume
+			tline.comment = line.comment
+
+			if hasPayload or fraction[1] == 0 and not visual then
+				table.insert(tlines, tline)
+			end
+
+			lineIndex = lineIndex + 1
+			line = protoLines[lineIndex]
+		else
+			table.insert(tlines, {})
+		end
+		currentTime = targetTime
 	end
 
-	local textLines = TextLines()
-	textLines.columns = self.columns
-	textLines.lines = LinesCleaner:clean(tlines)
-	return textLines:encode()
+	return tlines
 end
 
 return SphLines

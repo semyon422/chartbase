@@ -252,76 +252,74 @@ function SphPreview:encode(lines, version)
 	return b:string(offset)
 end
 
-local function line_to_string(line, columns)
-	local out = {}
-	local notes = {}
-	for i = 1, columns do
-		local note = line.notes[i]
-		if note == true then
-			notes[i] = 1
-		elseif note == false then
-			notes[i] = 3
-		else
-			notes[i] = 0
-		end
-	end
-
-	table.insert(out, table.concat(notes))
-
-	if line.interval then
-		local interval = line.interval.int + line.interval.frac
-		table.insert(out, ("=%s"):format(interval))
-	end
+local function preview_line_to_line(line)
+	local _line = {}
 	if line.time[1] ~= 0 then
-		table.insert(out, ("+%s/%s"):format(line.time[1], line.time[2]))
+		_line.fraction = line.time
 	end
-
-	return table.concat(out, " ")
+	if next(line.notes) then
+		local notes = {}
+		for column, pr in pairs(line.notes) do
+			local note = {column = column}
+			if pr == true then
+				note.type = "1"
+			elseif pr == false then
+				note.type = "3"
+			end
+			table.insert(notes, note)
+		end
+		_line.notes = notes
+	end
+	if line.interval then
+		_line.offset = line.interval.int + line.interval.frac
+	end
+	return _line
 end
 
----@param lines table
----@return sph.SphLines
-function SphPreview:linesToSphLines(lines, columns)
-	local sphLines = SphLines()
-	for _, line in ipairs(lines) do
-		sphLines:decodeLine(line_to_string(line, columns))
+---@param _lines table
+---@return table
+function SphPreview:previewLinesToLines(_lines)
+	local lines = {}
+	for i, line in ipairs(_lines) do
+		lines[i] = preview_line_to_line(line)
 	end
-	sphLines:updateTime()
-	return sphLines
+	return lines
 end
 
 ---@param s string
----@return sph.SphLines
-function SphPreview:decodeSphLines(s, columns)
+---@return table
+function SphPreview:decodeLines(s)
 	local lines = self:decode(s)
-	return self:linesToSphLines(lines, columns)
+	return self:previewLinesToLines(lines)
 end
 
-local function sph_line_to_preview_line(line, sphLines, prev_line)
+local function line_to_preview_line(line, prev_line)
 	local notes
-	if prev_line and line.visualSide > 0 then
+	if prev_line and line.visual then
 		notes = prev_line.notes
 	else
 		notes = {}
 	end
 
-	for _, note in ipairs(line.notes) do
-		local t
-		if note.type == "1" or note.type == "2" then
-			t = true
-		elseif note.type == "3" then
-			t = false
+	if line.notes then
+		for _, note in ipairs(line.notes) do
+			local t
+			if note.type == "1" or note.type == "2" then
+				t = true
+			elseif note.type == "3" then
+				t = false
+			end
+			notes[note.column] = t
 		end
-		notes[note.column] = t
 	end
 
-	if line.visualSide > 0 then
+	if line.visual then
 		return
 	end
 
 	local interval
-	if line.intervalSet then
-		local time = sphLines.intervals[line.intervalIndex].offset
+	if line.offset then
+		local time = line.offset
 		local frac = time % 1
 		local int = time - frac
 		interval = {
@@ -330,29 +328,29 @@ local function sph_line_to_preview_line(line, sphLines, prev_line)
 		}
 	end
 	return {
-		time = line.time % 1,
+		time = line.fraction or Fraction(),
 		notes = notes,
 		interval = interval,
 	}
 end
 
----@param sphLines sph.SphLines
+---@param _lines table
 ---@return table
-function SphPreview:sphLinesToLines(sphLines)
+function SphPreview:linesToPreviewLines(_lines)
 	local lines = {}
-	for _, line in ipairs(sphLines.lines) do
+	for _, line in ipairs(_lines) do
 		local prev_line = lines[#lines]
-		local _line = sph_line_to_preview_line(line, sphLines, prev_line)
+		local _line = line_to_preview_line(line, prev_line)
 		table.insert(lines, _line)
 	end
 	return lines
 end
 
----@param sphLines sph.SphLines
+---@param _lines table
 ---@param version number?
 ---@return string
-function SphPreview:encodeSphLines(sphLines, version)
-	local lines = self:sphLinesToLines(sphLines)
+function SphPreview:encodeLines(_lines, version)
+	local lines = self:linesToPreviewLines(_lines)
 	return self:encode(lines, version)
 end
 

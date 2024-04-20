@@ -1,5 +1,7 @@
 local class = require("class")
 local SphLines = require("sph.SphLines")
+local TextLines = require("sph.lines.TextLines")
+local LinesCleaner = require("sph.lines.LinesCleaner")
 local template_key = require("sph.lines.template_key")
 
 ---@class sph.Sph
@@ -10,6 +12,7 @@ function Sph:new()
 	self.metadata = {}
 	self.sounds = {}
 	self.sphLines = SphLines()
+	self.textLines = TextLines()
 	self.section = ""
 end
 
@@ -33,7 +36,7 @@ function Sph:decodeLine(line)
 			self.sounds[template_key.decode(t)] = v
 		end
 	elseif self.section == "notes" then
-		self.sphLines:decodeLine(line)
+		self.textLines:decodeLine(line)
 	end
 end
 
@@ -42,7 +45,7 @@ function Sph:decode(s)
 	for _, line in ipairs(s:split("\n")) do
 		self:decodeLine(line)
 	end
-	self.sphLines:updateTime()
+	self.sphLines:decode(self.textLines.lines)
 end
 
 local headerLines = {
@@ -90,7 +93,11 @@ function Sph:encode()
 	end
 
 	table.insert(lines, "# notes")
-	table.insert(lines, self.sphLines:encode())
+
+	local textLines = TextLines()
+	textLines.lines = LinesCleaner:clean(self.sphLines:encode())
+
+	table.insert(lines, textLines:encode())
 	table.insert(lines, "")
 
 	return table.concat(lines, "\n")

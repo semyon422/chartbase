@@ -22,7 +22,7 @@ local function decode_fraction(s)
 
 	local n, d = s:match("^(%d+)/(%d+)$")
 	if not n or not d then
-		return
+		return Fraction()
 	end
 
 	return Fraction(sign * tonumber(n), tonumber(d))
@@ -135,6 +135,9 @@ end
 ---@param f ncdk.Fraction
 ---@return string
 local function formatFraction(f)
+	if f[1] == 0 then
+		return ""
+	end
 	return f[1] .. "/" .. f[2]
 end
 
@@ -202,8 +205,7 @@ function TextLines:encode()
 			table.insert(out, "x" .. format_velocity(line.velocity))
 		end
 		if line.measure then
-			local n = line.measure
-			table.insert(out, "#" .. (n[1] ~= 0 and formatFraction(n) or ""))
+			table.insert(out, "#" .. formatFraction(line.measure))
 		end
 		if line.sounds then
 			local sounds = {}

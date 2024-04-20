@@ -20,9 +20,9 @@ local function is_line_useful_inside(line, next_line)
 	if hp then
 		return true
 	end
-	if next_line.visual then
+	if next_line.visual then  -- fraction in visual has no sense
 		next_line.fraction = line.fraction
-		next_line.visual = false
+		next_line.visual = nil
 		return false
 	end
 	if not line.fraction then

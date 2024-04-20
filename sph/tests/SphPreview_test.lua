@@ -1,4 +1,6 @@
 local SphPreview = require("sph.SphPreview")
+local SphLines = require("sph.SphLines")
+local TextLines = require("sph.lines.TextLines")
 local Fraction = require("ncdk.Fraction")
 local stbl = require("stbl")
 
@@ -71,10 +73,11 @@ function test.visual_side(t)
 		{time = {0, 1}, notes = {}, interval = {int = 2, frac = {0, 1}}},
 	})
 
-	local sphLines = SphPreview:decodeSphLines(str, 4)
+	local sphLines = SphLines()
+	sphLines:decode(SphPreview:decodeLines(str))
 
-	sphLines.lines[2].visualSide = 1
-	local lines1 = SphPreview:sphLinesToLines(sphLines)
+	sphLines.protoLines[2].visualSide = 1
+	local lines1 = SphPreview:linesToPreviewLines(sphLines:encode())
 	t:tdeq(lines1, {
 		{time = {0, 1}, notes = {true, true}},
 		{time = {0, 1}, notes = {}, interval = {int = 1, frac = {0, 1}}},
@@ -129,8 +132,13 @@ function test.complex_case(t)
 	local _str = SphPreview:encode(lines)
 	t:eq(_str, str)
 
-	local sphLines = SphPreview:decodeSphLines(str, 4)
-	t:eq(sphLines:encode(), [[
+	local sphLines = SphLines()
+	sphLines:decode(SphPreview:decodeLines(str))
+
+	local tl = TextLines()
+	tl.lines = sphLines:encode()
+	tl.columns = 4
+	t:eq(tl:encode(), [[
 1100 +1/2
 - =-1.49609375
 1000
@@ -138,7 +146,7 @@ function test.complex_case(t)
 - =5
 1000 +1/2]])
 
-	local _str = SphPreview:encodeSphLines(sphLines)
+	local _str = SphPreview:encodeLines(sphLines:encode())
 	-- print(stbl.encode(enc_lines))
 	t:eq(_str, str)
 
@@ -194,15 +202,20 @@ function test.complex_case_2(t)
 	local _str = SphPreview:encode(lines, 1)
 	t:eq(_str, str)
 
-	local sphLines = SphPreview:decodeSphLines(str, 10)
-	t:eq(sphLines:encode(), [[
+	local sphLines = SphLines()
+	sphLines:decode(SphPreview:decodeLines(str))
+
+	local tl = TextLines()
+	tl.lines = sphLines:encode()
+	tl.columns = 10
+	t:eq(tl:encode(), [[
 1111111111
 3000000000
 1300000000
 - =-2
 - =5]])
 
-	local _str = SphPreview:encodeSphLines(sphLines, 1)
+	local _str = SphPreview:encodeLines(sphLines:encode(), 1)
 	t:eq(_str, str)
 end
 
