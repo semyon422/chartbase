@@ -41,14 +41,14 @@ function test.one_note(t)
 	local str = bytes_to_string(s)
 	local lines = SphPreview:decode(str)
 	t:tdeq(lines, {
-		{time = {0, 1}, notes = {true}},
+		{notes = {true}},
 	})
 end
 
 function test.interval_1024_test(t)  -- there was a bug
 	local lines = {
-		{interval = {frac = Fraction(511, 1024), int = 0}, notes = {}, time = {0, 1}},
-		{interval = {frac = Fraction(513, 1024), int = 0}, notes = {}, time = {0, 1}},
+		{interval = {frac = Fraction(511, 1024), int = 0}},
+		{interval = {frac = Fraction(513, 1024), int = 0}},
 	}
 
 	local str = SphPreview:encode(lines)
@@ -78,10 +78,10 @@ function test.visual_side(t)
 	local str = bytes_to_string(s)
 	local lines = SphPreview:decode(str)
 	t:tdeq(lines, {
-		{time = {0, 1}, notes = {true}},
-		{time = {0, 1}, notes = {nil, true}},
-		{time = {0, 1}, notes = {}, interval = {int = 1, frac = {0, 1}}},
-		{time = {0, 1}, notes = {}, interval = {int = 2, frac = {0, 1}}},
+		{notes = {true}},
+		{notes = {nil, true}},
+		{interval = {int = 1, frac = {0, 1}}},
+		{interval = {int = 2, frac = {0, 1}}},
 	})
 
 	local sphLines = SphLines()
@@ -90,9 +90,9 @@ function test.visual_side(t)
 	sphLines.protoLines[2].visualSide = 1
 	local lines1 = SphPreview:linesToPreviewLines(sphLines:encode())
 	t:tdeq(lines1, {
-		{time = {0, 1}, notes = {true, true}},
-		{time = {0, 1}, notes = {}, interval = {int = 1, frac = {0, 1}}},
-		{time = {0, 1}, notes = {}, interval = {int = 2, frac = {0, 1}}},
+		{notes = {true, true}},
+		{interval = {int = 1, frac = {0, 1}}},
+		{interval = {int = 2, frac = {0, 1}}},
 	})
 end
 
@@ -133,10 +133,10 @@ function test.complex_case(t)
 	-- print(stbl.encode(lines))
 	t:tdeq(lines, {
 		{time = {1, 2}, notes = {true, true}},
-		{time = {0, 1}, notes = {}, interval = {int = -2, frac = {129, 256}}},
-		{time = {0, 1}, notes = {true}},
+		{interval = {int = -2, frac = {129, 256}}},
+		{notes = {true}},
 		{time = {23, 24}, notes = {true}},
-		{time = {0, 1}, notes = {}, interval = {int = 5, frac = {0, 1}}},
+		{interval = {int = 5, frac = {0, 1}}},
 		{time = {1, 2}, notes = {true}},
 	})
 
@@ -203,11 +203,11 @@ function test.complex_case_2(t)
 	local lines = SphPreview:decode(str)
 	-- print(stbl.encode(lines))
 	t:tdeq(lines, {
-		{time = {0, 1}, notes = {true, true, true, true, true, true, true, true, true, true}},
-		{time = {0, 1}, notes = {false}},
-		{time = {0, 1}, notes = {true, false}},
-		{time = {0, 1}, notes = {}, interval = {int = -2, frac = {0, 1}}},
-		{time = {0, 1}, notes = {}, interval = {int = 5, frac = {0, 1}}},
+		{notes = {true, true, true, true, true, true, true, true, true, true}},
+		{notes = {false}},
+		{notes = {true, false}},
+		{interval = {int = -2, frac = {0, 1}}},
+		{interval = {int = 5, frac = {0, 1}}},
 	})
 
 	local _str = SphPreview:encode(lines, 1)

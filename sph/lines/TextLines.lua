@@ -159,7 +159,7 @@ end
 ---@param _notes table
 ---@return string?
 function TextLines:encodeNotes(_notes)
-	if not _notes or #_notes == 0 then
+	if not _notes then
 		return "-"
 	end
 	local notes = {}

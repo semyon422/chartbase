@@ -8,7 +8,7 @@ function test.decenc_1(t)
 	local lines = {
 		"-",
 		"0100 =0.01 +1/2 v e0.5 x1.1,1.2 #1/4 :01 .02 // comment",
-		"0100 + # : .",
+		"0000 + # : .",
 	}
 	for _, line in ipairs(lines) do
 		tl:decodeLine(line)

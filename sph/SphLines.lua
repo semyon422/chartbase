@@ -157,7 +157,6 @@ function SphLines:encode()
 			local fraction = pline.globalTime % 1
 
 			local line = Line()
-			line.notes = pline.notes
 
 			if (pline.visualSide or 0) == 0 then
 				if pline.intervalSet then
@@ -178,6 +177,9 @@ function SphLines:encode()
 			end
 			if pline.volume and next(pline.volume) then
 				line.volume = pline.volume
+			end
+			if pline.notes and next(pline.notes) then
+				line.notes = pline.notes
 			end
 
 			if hasPayload or fraction[1] == 0 and not visual then
