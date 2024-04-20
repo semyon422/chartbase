@@ -1,7 +1,7 @@
 local class = require("class")
 local Fraction = require("ncdk.Fraction")
-local TextSphLines = require("sph.TextSphLines")
-local SphLinesCleaner = require("sph.SphLinesCleaner")
+local TextLines = require("sph.lines.TextLines")
+local LinesCleaner = require("sph.lines.LinesCleaner")
 
 ---@class sph.SphLines
 ---@operator call: sph.SphLines
@@ -14,7 +14,7 @@ function SphLines:new()
 	self.visualSide = 0
 	self.fraction = {0, 1}
 	self.columns = 1
-	self.textSphLines = TextSphLines()
+	self.textLines = TextLines()
 end
 
 ---@param intervalOffset number
@@ -35,8 +35,8 @@ end
 
 ---@param s string
 function SphLines:decodeLine(s)
-	local tline = self.textSphLines:decodeLine(s)
-	self.columns = self.textSphLines.columns
+	local tline = self.textLines:decodeLine(s)
+	self.columns = self.textLines.columns
 
 	local line = {}
 
@@ -144,10 +144,10 @@ function SphLines:encode()
 		table.insert(tlines, tline)
 	end
 
-	local textSphLines = TextSphLines()
-	textSphLines.columns = self.columns
-	textSphLines.lines = SphLinesCleaner:clean(tlines)
-	return textSphLines:encode()
+	local textLines = TextLines()
+	textLines.columns = self.columns
+	textLines.lines = LinesCleaner:clean(tlines)
+	return textLines:encode()
 end
 
 return SphLines

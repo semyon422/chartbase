@@ -1,8 +1,8 @@
 local class = require("class")
 
----@class sph.SphLinesCleaner
----@operator call: sph.SphLinesCleaner
-local SphLinesCleaner = class()
+---@class sph.LinesCleaner
+---@operator call: sph.LinesCleaner
+local LinesCleaner = class()
 
 local function has_payload(line)
 	for k in pairs(line) do
@@ -31,7 +31,7 @@ local function is_line_useful_inside(line, next_line)
 	return false
 end
 
-function SphLinesCleaner:clean(lines)
+function LinesCleaner:clean(lines)
 	local first, last
 	for i = 1, #lines do
 		if has_payload(lines[i]) then
@@ -58,4 +58,4 @@ function SphLinesCleaner:clean(lines)
 	return _lines
 end
 
-return SphLinesCleaner
+return LinesCleaner

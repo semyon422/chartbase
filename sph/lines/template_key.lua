@@ -58,4 +58,20 @@ function template_key.decode(s)
 	return out
 end
 
+-- tests
+
+local values = {
+	{0, "00"},
+	{1, "01"},
+	{template_key.base - 1, "0#"},
+	{template_key.base, "10"},
+	{template_key.base ^ 2 - 2, "#$"},
+	{template_key.base ^ 2 - 1, "##"},
+}
+
+for _, d in ipairs(values) do
+	assert(template_key.encode(d[1]) == d[2])
+	assert(template_key.decode(d[2]) == d[1])
+end
+
 return template_key

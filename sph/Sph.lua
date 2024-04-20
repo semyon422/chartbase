@@ -1,6 +1,6 @@
 local class = require("class")
 local SphLines = require("sph.SphLines")
-local template_key = require("sph.template_key")
+local template_key = require("sph.lines.template_key")
 
 ---@class sph.Sph
 ---@operator call: sph.Sph

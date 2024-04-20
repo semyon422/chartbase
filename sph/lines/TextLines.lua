@@ -1,12 +1,12 @@
 local class = require("class")
 local Fraction = require("ncdk.Fraction")
-local template_key = require("sph.template_key")
+local template_key = require("sph.lines.template_key")
 
----@class sph.TextSphLines
----@operator call: sph.TextSphLines
-local TextSphLines = class()
+---@class sph.TextLines
+---@operator call: sph.TextLines
+local TextLines = class()
 
-function TextSphLines:new()
+function TextLines:new()
 	self.lines = {}
 	self.columns = 1
 end
@@ -89,7 +89,7 @@ local function parse_velocity(velocity)
 end
 
 ---@param s string
-function TextSphLines:decodeLine(s)
+function TextLines:decodeLine(s)
 	local line = {}
 
 	local data, comment = s:match("^(.-) // (.+)$")
@@ -152,7 +152,7 @@ end
 
 ---@param _notes table
 ---@return string?
-function TextSphLines:encodeNotes(_notes)
+function TextLines:encodeNotes(_notes)
 	if not _notes or #_notes == 0 then
 		return "-"
 	end
@@ -169,7 +169,7 @@ function TextSphLines:encodeNotes(_notes)
 end
 
 ---@return string
-function TextSphLines:encode()
+function TextLines:encode()
 	for _, line in ipairs(self.lines) do
 		if line.notes then
 			for _, note in ipairs(line.notes) do
@@ -229,4 +229,4 @@ function TextSphLines:encode()
 	return table.concat(slines, "\n")
 end
 
-return TextSphLines
+return TextLines
