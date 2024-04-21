@@ -276,8 +276,9 @@ function SphPreview:encode(lines, version)
 end
 
 ---@param pline sph.PreviewLine
+---@param long_notes table
 ---@return sph.Line
-local function preview_line_to_line(pline)
+local function preview_line_to_line(pline, long_notes)
 	local line = Line()
 	line.time = pline.time
 	if pline.notes then
@@ -285,9 +286,11 @@ local function preview_line_to_line(pline)
 		for column, pr in pairs(pline.notes) do
 			local note = {column = column}
 			if pr == true then
+				long_notes[column] = note
 				note.type = "1"
 			elseif pr == false then
 				note.type = "3"
+				long_notes[column].type = "2"
 			end
 			table.insert(notes, note)
 		end
@@ -302,9 +305,10 @@ end
 ---@param plines sph.PreviewLine[]
 ---@return sph.Line[]
 function SphPreview:previewLinesToLines(plines)
+	local long_notes = {}
 	local lines = {}
 	for i, pline in ipairs(plines) do
-		lines[i] = preview_line_to_line(pline)
+		lines[i] = preview_line_to_line(pline, long_notes)
 	end
 	return lines
 end
