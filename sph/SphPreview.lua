@@ -19,13 +19,13 @@ SphPreview.version = 0
 
 	default type:
 
-	X... .... / 0 - time, 1 - note
-	0X.. .... / 0 - abs, 1 - rel
-	00X. .... / 0 - add seconds, 1 - set fraction
-		0001 1111 / add 32 seconds (1-32)
-		0011 1111 / set fraction to 31/32
-		0011 1111 / set fraction to 31/32 + 31/(32^2)
-		0011 1111 / set fraction to 31/32 + 31/(32^2) + 31/(32^3)
+	X... .... / 0 - offset/time, 1 - note
+	0X.. .... / 0 - offset, 1 - time
+	00X. .... / 0 - add integer seconds, 1 - add fraction seconds
+		000. .... / add integer seconds (1-32)
+		000. .... / add integer seconds (1-32)*32
+		000. .... / add integer seconds (1-32)*32*32
+		001Q WE.. .... .... / add QWE int seconds (0-7), add .../1024 seconds
 	01X. .... / 0 - denominator is 2^5=32, 1 - denominator is 3*2^3=24
 
 	011. .... / 24-31 unused
@@ -62,10 +62,11 @@ local function decode_byte(n, version)
 		type = bit.band(n, 0b10000000) == 0 and "time" or "note",
 		t_abs_or_rel = bit.band(n, 0b01000000) == 0 and "abs" or "rel",
 		t_abs_add_sec_or_frac = bit.band(n, 0b00100000) == 0 and "sec" or "frac",
-		t_abs_add_sec = bit.band(n, 0b00011111) + 1,
-		t_abs_set_frac = bit.band(n, 0b00011111) / 32,
-		t_is_24th = bit.band(n, 0b00100000) ~= 0,
-		t_rel_set_frac = Fraction(bit.band(n, 0b00011111), t_is_24th and 24 or 32),
+		offset_i = bit.band(n, 0b00011111),
+		offset_f_int = bit.rshift(bit.band(n, 0b00011100), 2),
+		offset_f_left = bit.lshift(bit.band(n, 0b00000011), 8),
+		offset_f_right = bit.band(n, 0b11111111),
+		time = Fraction(bit.band(n, 0b00011111), t_is_24th and 24 or 32),
 
 		n_is_pressed = bit.band(n, 0b01000000) ~= 0,
 	}
@@ -94,50 +95,47 @@ function SphPreview:decode(s)
 	local version = b:uint8()
 	local start_time = b:int16_le()
 
-	local columns_group = false
-	local g_offset = 0
-	local frac_prec = 0
+	local g_offset, int_prec, columns_group
 	local lines = {}
 	local line
 	local function next_line()
 		if line and line.offset then
-			start_time = line.offset
+			start_time = math.floor(line.offset)
 		end
-		frac_prec = 0
-		columns_group = false
 		g_offset = 0
+		int_prec = 0
+		columns_group = false
 		line = {}
 		table.insert(lines, line)
 	end
 
-	local function update_offset()
-		line.offset = line.offset or math.floor(start_time)
-	end
-
-	local function update_notes()
-		line.notes = line.notes or {}
-	end
+	local frac_part = false
 
 	while b.offset < b.size do
 		local n = b:uint8()
 		local obj = decode_byte(n, version)
-		if obj.type == "time" then
+		if frac_part then
+			frac_part = false
+			line.offset = line.offset + obj.offset_f_right / 1024
+		elseif obj.type == "time" then
 			if obj.t_abs_or_rel == "abs" then
-				update_offset()
+				line.offset = line.offset or start_time
 				if obj.t_abs_add_sec_or_frac == "sec" then
-					line.offset = line.offset + obj.t_abs_add_sec
+					line.offset = line.offset + obj.offset_i * (32 ^ int_prec)
+					int_prec = int_prec + 1
 				elseif obj.t_abs_add_sec_or_frac == "frac" then
-					line.offset = line.offset + obj.t_abs_set_frac / (32 ^ frac_prec)
-					frac_prec = frac_prec + 1
+					line.offset = line.offset + obj.offset_f_int
+					line.offset = line.offset + obj.offset_f_left / 1024
+					frac_part = true
 				end
 			elseif obj.t_abs_or_rel == "rel" then
 				next_line()
-				if obj.t_rel_set_frac[1] ~= 0 then
-					line.time = obj.t_rel_set_frac
+				if obj.time[1] ~= 0 then
+					line.time = obj.time
 				end
 			end
 		elseif obj.type == "note" then
-			update_notes()
+			line.notes = line.notes or {}
 			if version == 0 then
 				line.notes[obj.n_column + 1] = obj.n_is_pressed
 			elseif version == 1 then
@@ -166,7 +164,7 @@ function SphPreview:encode(lines, version)
 	b:uint8(version)
 	b:int16_le(0)
 
-	local start_time
+	local start_time, real_start_time
 
 	for _, line in ipairs(lines) do
 		if line.time then
@@ -179,26 +177,45 @@ function SphPreview:encode(lines, version)
 			b:uint8(0b01000000)
 		end
 		if line.offset then
-			if not start_time then
-				start_time = math.floor(line.offset)
+			if not real_start_time then
+				real_start_time = math.floor(line.offset)
+				start_time = real_start_time
 			end
-			local int_diff = math.floor(line.offset) - start_time
-			while int_diff > 0 do
-				local d = math.min(int_diff, 32)
-				int_diff = int_diff - d
-				b:uint8(d - 1)
+			local diff = line.offset - start_time
+			if diff == 0 then
+				b:uint8(0)
+			elseif diff % 1 == 0 then
+				while diff > 0 do
+					local d = diff % 32
+					diff = diff - d
+					diff = diff / 32
+					b:uint8(d)
+				end
+			else
+				local int_diff = math.floor(line.offset) - start_time
+				local frac_int_part = 0
+				if int_diff <= 7 then
+					frac_int_part = int_diff
+				elseif int_diff <= 31 then
+					b:uint8(int_diff)
+				elseif int_diff <= 38 then
+					b:uint8(31)
+					frac_int_part = int_diff - 31
+				else
+					while int_diff > 0 do
+						local d = int_diff % 32
+						int_diff = int_diff - d
+						int_diff = int_diff / 32
+						b:uint8(d)
+					end
+				end
+				local frac = line.offset % 1 * 1024
+				local frac_left = bit.rshift(frac, 8)
+				local frac_right = bit.band(frac, 0xFF)
+				b:uint8(0b00100000 + bit.lshift(frac_int_part, 2) + frac_left)
+				b:uint8(frac_right)
 			end
-			local frac = line.offset % 1
-			local frac1_n = math.floor(frac * 32)
-			local frac2_n = math.floor(frac * 1024 - frac1_n * 32)
-			if frac2_n ~= 0 then
-				b:uint8(0b00100000 + frac1_n)
-				b:uint8(0b00100000 + frac2_n)
-			elseif frac1_n ~= 0 then
-				b:uint8(0b00100000 + frac1_n)
-			elseif line.offset - start_time == 0 then  -- at least one interval command should be present
-				b:uint8(0b00100000)
-			end
+			start_time = math.floor(line.offset)
 		end
 		local notes = line.notes
 		if notes and version == 0 then
@@ -252,7 +269,7 @@ function SphPreview:encode(lines, version)
 
 	local offset = b.offset
 	b:seek(1)
-	b:int16_le(start_time)
+	b:int16_le(real_start_time)
 	b:seek(0)
 
 	return b:string(offset)

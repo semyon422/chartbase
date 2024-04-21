@@ -45,17 +45,6 @@ function test.one_note(t)
 	})
 end
 
-function test.offset_1024_test(t)  -- there was a bug
-	local lines = {
-		{offset = 511 / 1024},
-		{offset = 513 / 1024},
-	}
-
-	local str = SphPreview:encode(lines)
-	local _lines = SphPreview:decode(str)
-	t:tdeq(_lines, lines)
-end
-
 function test.visual_side(t)
 	local s = {
 		0b0, 0b0, 0b0,  -- header
@@ -68,11 +57,11 @@ function test.visual_side(t)
 
 		-- - =1
 		0b01000000,  -- 0/1 new line
-		0b00000000,  -- add 1s
+		0b00000001,  -- add 1s
 
 		-- - =2
 		0b01000000,  -- 0/1 new line
-		0b00000000,  -- add 1s
+		0b00000001,  -- add 1s
 	}
 
 	local str = bytes_to_string(s)
@@ -96,6 +85,71 @@ function test.visual_side(t)
 	})
 end
 
+function test.complex_offsets(t)
+	local s = {
+		0b0, 0b0, 0b0,  -- header
+
+		-- - =0
+		0b01000000,  -- 0/1 new line
+		0b00000000,  -- add 0
+
+		-- - =1
+		0b01000000,  -- 0/1 new line
+		0b00000001,  -- add 1
+
+		-- - =35
+		0b01000000,  -- 0/1 new line
+		0b00000010,  -- add 2
+		0b00000001,  -- add 32
+
+		-- - =35.5
+		0b01000000,  -- 0/1 new line
+		0b00100010,  -- add 0 + 512/1024, int diff = 0
+		0b00000000,  -- add 0/1024
+
+		-- - =36.5
+		0b01000000,  -- 0/1 new line
+		0b00100110,  -- add 1 + 512/1024, int diff <= 7
+		0b00000000,  -- add 0/1024
+
+		-- - =44.5
+		0b01000000,  -- 0/1 new line
+		0b00001000,  -- add 8
+		0b00100010,  -- add 0 + 512/1024, int diff <= 31
+		0b00000000,  -- add 0/1024
+
+		-- - =76.5
+		0b01000000,  -- 0/1 new line
+		0b00011111,  -- add 31
+		0b00100110,  -- add 1 + 512/1024, int diff <= 38
+		0b00000000,  -- add 0/1024
+
+		-- - =116.5
+		0b01000000,  -- 0/1 new line
+		0b00001000,  -- add 8
+		0b00000001,  -- add 32
+		0b00100010,  -- add 0 + 512/1024, else
+		0b00000000,  -- add 0/1024
+	}
+
+	local str = bytes_to_string(s)
+	local lines = SphPreview:decode(str)
+	-- print(stbl.encode(lines))
+	t:tdeq(lines, {
+		{offset = 0},
+		{offset = 1},
+		{offset = 35},
+		{offset = 35.5},
+		{offset = 36.5},
+		{offset = 44.5},
+		{offset = 76.5},
+		{offset = 116.5},
+	})
+
+	local _str = SphPreview:encode(lines)
+	t:eq(_str, str)
+end
+
 function test.complex_case(t)
 	local s = {
 		0b0,
@@ -106,10 +160,10 @@ function test.complex_case(t)
 		0b11000000,  -- 1000
 		0b11000001,  -- 0100
 
-		-- - =-1.49609375 // -2 + 16/32 + 4/1024
+		-- - =-1.49609375 // -2 + 516/1024
 		0b01000000,  -- 0/1 new line
-		0b00110000,  -- add 16/32=0.5s
-		0b00100100,  -- add 4/1024=0.00390625s
+		0b00100010,  -- add 0 + 512/1024
+		0b00000100,  -- add 4/1024
 
 		-- 1000
 		0b01000000,  -- 0/1 new line
@@ -121,7 +175,7 @@ function test.complex_case(t)
 
 		-- - =5 // -2 + 7
 		0b01000000,  -- 0/1 new line
-		0b00000110,  -- add 7s and set frac part to 0
+		0b00000111,  -- add 7s and set frac part to 0
 
 		-- 1000 +1/2
 		0b01010000,  -- +1/2
@@ -192,11 +246,11 @@ function test.complex_case_2(t)
 
 		-- - =-2
 		0b01000000,  -- 0/1 new line
-		0b00100000,  -- add 0/1
+		0b00000000,  -- add 0/1
 
 		-- - =5 // -2 + 7
 		0b01000000,  -- 0/1 new line
-		0b00000110,  -- add 7s and set frac part to 0
+		0b00000111,  -- add 7s and set frac part to 0
 	}
 
 	local str = bytes_to_string(s)
