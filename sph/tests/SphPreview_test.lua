@@ -150,13 +150,56 @@ function test.complex_offsets(t)
 	t:eq(_str, str)
 end
 
+function test.complex_fractions(t)
+	local s = {
+		0b0, 0b0, 0b0,  -- header
+
+		-- -
+		0b01000000,
+
+		-- - +1/8
+		0b01000010,
+
+		-- - +1/6
+		0b01100010,
+
+		-- - +1/5
+		0b01010100,  -- 1/16, double, 5
+		0b00010000,  -- 16
+
+		-- - +1/21
+		0b01110110,  -- 1/12, double, 7
+		0b00000100,  -- 4
+
+		-- - +255/256
+		0b01011111,  -- 1/16, double, 16
+		0b11111111,  -- 255
+	}
+
+	local str = bytes_to_string(s)
+	local lines = SphPreview:decode(str)
+	t:tdeq(lines, {
+		{},
+		{time = {1, 8}},
+		{time = {1, 6}},
+		{time = {1, 5}},
+		{time = {1, 21}},
+		{time = {255, 256}},
+	})
+
+	lines[#lines].time = Fraction(511, 512)  -- will be approximated to 255/256
+
+	local _str = SphPreview:encode(lines)
+	t:eq(_str, str)
+end
+
 function test.complex_case(t)
 	local s = {
 		0b0,
 		0xFE, 0xFF,  -- -2s
 
 		-- 1100 +1/2
-		0b01010000,  -- +1/2
+		0b01001000,  -- +1/2
 		0b11000000,  -- 1000
 		0b11000001,  -- 0100
 
@@ -169,8 +212,8 @@ function test.complex_case(t)
 		0b01000000,  -- 0/1 new line
 		0b11000000,  -- 1000
 
-		-- 1000 +23/24
-		0b01110111,  -- 23/24
+		-- 1000 +11/12
+		0b01101011,  -- 11/12
 		0b11000000,  -- 1000
 
 		-- - =5 // -2 + 7
@@ -178,7 +221,7 @@ function test.complex_case(t)
 		0b00000111,  -- add 7s and set frac part to 0
 
 		-- 1000 +1/2
-		0b01010000,  -- +1/2
+		0b01001000,  -- +1/2
 		0b11000000,  -- 1000
 	}
 
@@ -189,7 +232,7 @@ function test.complex_case(t)
 		{time = {1, 2}, notes = {true, true}},
 		{offset = -2 + 129 / 256},
 		{notes = {true}},
-		{time = {23, 24}, notes = {true}},
+		{time = {11, 12}, notes = {true}},
 		{offset = 5},
 		{time = {1, 2}, notes = {true}},
 	})
@@ -207,7 +250,7 @@ function test.complex_case(t)
 1100 +1/2
 - =-1.49609375
 1000
-1000 +23/24
+1000 +11/12
 - =5
 1000 +1/2]])
 
@@ -274,7 +317,7 @@ function test.complex_case_2(t)
 	tl.lines = sphLines:encode()
 	tl.columns = 10
 	t:eq(tl:encode(), [[
-1111111111
+2211111111
 3000000000
 1300000000
 - =-2

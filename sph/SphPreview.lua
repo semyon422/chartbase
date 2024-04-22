@@ -26,9 +26,12 @@ SphPreview.version = 0
 		000. .... / add integer seconds (1-32)*32
 		000. .... / add integer seconds (1-32)*32*32
 		001Q WE.. .... .... / add QWE int seconds (0-7), add .../1024 seconds
-	01X. .... / 0 - denominator is 2^5=32, 1 - denominator is 3*2^3=24
-
-	011. .... / 24-31 unused
+	01X. .... / 0 - denominator is 16, 1 - denominator is 12
+	01.X .... / 0 - single byte, 1 - double byte
+		0100 .... / ..../16
+		0110 .... / ..../12
+		0101 :::: .... .... / ......../(16*(::::+1))
+		0111 :::: .... .... / ......../(12*(::::+1))
 
 	1X.. .... / 0 - release, 1 - press, other bits for column (0-62) excluding 11 1111 (63)
 	1011 1111 / add 63 to previous note column (allows inputs 0-125)
@@ -45,6 +48,22 @@ SphPreview.version = 0
 		1001 1000 / release 4-5 keys
 		1110 0001 / press 6 key
 		1100 0001 / press 11 key
+
+	----------------------------------------------------------------------------
+
+	the following 64 denominators can be precisely encoded
+	marked ones are encoded using a single byte, others use 2 bytes
+
+	v v v v   v   v          v           v
+	1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 18 20 21 22 24 26 27 28 30 32
+	33 36 39 40 42 44 45 48 52 54 56 60 64
+	66 72 78 80 84 88 90 96
+	104 108 112 120 128
+	132 144 156 160
+	168 176 180 192
+	208 224 240 256
+
+	other will be rounded down to 1/256
 ]]
 
 ---@class sph.PreviewLine
@@ -57,7 +76,9 @@ local PreviewLine = {}
 ---@param version number
 ---@return table
 local function decode_byte(n, version)
-	local t_is_24th = bit.band(n, 0b00100000) ~= 0
+	local t_is_12th = bit.band(n, 0b00100000) ~= 0
+	local time_den = t_is_12th and 12 or 16
+	local t_is_double = bit.band(n, 0b00010000) ~= 0
 	local bt = {
 		type = bit.band(n, 0b10000000) == 0 and "time" or "note",
 		t_abs_or_rel = bit.band(n, 0b01000000) == 0 and "abs" or "rel",
@@ -66,7 +87,11 @@ local function decode_byte(n, version)
 		offset_f_int = bit.rshift(bit.band(n, 0b00011100), 2),
 		offset_f_left = bit.lshift(bit.band(n, 0b00000011), 8),
 		offset_f_right = bit.band(n, 0b11111111),
-		time = Fraction(bit.band(n, 0b00011111), t_is_24th and 24 or 32),
+
+		t_is_double = t_is_double,
+		time_den = time_den,
+		time_single = bit.band(n, 0b00001111),
+		time_double = bit.band(n, 0b11111111),
 
 		n_is_pressed = bit.band(n, 0b01000000) ~= 0,
 	}
@@ -110,13 +135,17 @@ function SphPreview:decode(s)
 	end
 
 	local frac_part = false
+	local double_den = nil
 
 	while b.offset < b.size do
 		local n = b:uint8()
 		local obj = decode_byte(n, version)
 		if frac_part then
-			frac_part = false
 			line.offset = line.offset + obj.offset_f_right / 1024
+			frac_part = false
+		elseif double_den then
+			line.time = Fraction(obj.time_double, double_den)
+			double_den = nil
 		elseif obj.type == "time" then
 			if obj.t_abs_or_rel == "abs" then
 				line.offset = line.offset or start_time
@@ -130,8 +159,10 @@ function SphPreview:decode(s)
 				end
 			elseif obj.t_abs_or_rel == "rel" then
 				next_line()
-				if obj.time[1] ~= 0 then
-					line.time = obj.time
+				if obj.t_is_double then
+					double_den = (obj.time_single + 1) * obj.time_den
+				elseif obj.time_single ~= 0 then
+					line.time = Fraction(obj.time_single, obj.time_den)
 				end
 			end
 		elseif obj.type == "note" then
@@ -168,10 +199,21 @@ function SphPreview:encode(lines, version)
 
 	for _, line in ipairs(lines) do
 		if line.time then
-			if line.time[2] % 3 == 0 then
-				b:uint8(0b01100000 + math.floor(24 * line.time[1] / line.time[2]))
-			else
-				b:uint8(0b01000000 + math.floor(32 * line.time[1] / line.time[2]))
+			local den_16 = (line.time * 16)[2]
+			local den_12 = (line.time * 12)[2]
+			if 16 % line.time[2] == 0 then  -- 1,2,4,8,16
+				b:uint8(0b01000000 + math.floor(16 * line.time[1] / line.time[2]))
+			elseif 12 % line.time[2] == 0 then  -- 3,6,12
+				b:uint8(0b01100000 + math.floor(12 * line.time[1] / line.time[2]))
+			elseif den_16 <= 16 then  -- exact 1/(16*den_16)
+				b:uint8(0b01010000 + (den_16 - 1))
+				b:uint8(16 * den_16 * line.time[1] / line.time[2])
+			elseif den_12 <= 16 then  -- exact 1/(12*den_12)
+				b:uint8(0b01110000 + (den_12 - 1))
+				b:uint8(12 * den_12 * line.time[1] / line.time[2])
+			else  -- 1/256 approximation
+				b:uint8(0b01011111)
+				b:uint8(math.floor(256 * line.time[1] / line.time[2]))
 			end
 		else
 			b:uint8(0b01000000)
