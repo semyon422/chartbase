@@ -1,12 +1,9 @@
-local NoteChartImporter = require("sph.NoteChartImporter")
-local NoteChartExporter = require("sph.NoteChartExporter")
+local ChartDecoder = require("sph.ChartDecoder")
+local ChartEncoder = require("sph.ChartEncoder")
 
 local test = {}
 
-function test.impexp_1(t)
-	local nci = NoteChartImporter()
-	local nce = NoteChartExporter()
-
+function test.basic(t)
 	local chart = [[
 # metadata
 title Title
@@ -27,6 +24,7 @@ input 4key
 1000
 0100 +1/2 x1.1 #1/2
 0004 v e0.5
+0004 v x1.1
 1000 x1.05 :0001020304 .001020
 0100 +1/2 // comment
 0010 x1.1,1.2,1.3
@@ -35,11 +33,11 @@ input 4key
 - =1.01
 ]]
 
-	nci.content = chart
-	nci:import()
+	local dec = ChartDecoder()
+	local enc = ChartEncoder()
 
-	nce.noteChart = nci.noteCharts[1]
-	local expected = nce:export()
+	dec:decode(chart)
+	local expected = enc:encode(dec.chart)
 
 	t:eq(expected, chart)
 end

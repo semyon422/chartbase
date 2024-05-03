@@ -76,7 +76,7 @@ function test.visual_side(t)
 	local sphLines = SphLines()
 	sphLines:decode(SphPreview:decodeLines(str))
 
-	sphLines.protoLines[2].visualSide = 1
+	sphLines.protoLines[2].visual = true
 	local lines1 = SphPreview:linesToPreviewLines(sphLines:encode())
 	t:tdeq(lines1, {
 		{notes = {true, true}},
