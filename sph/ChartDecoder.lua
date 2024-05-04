@@ -1,4 +1,4 @@
-local class = require("class")
+local IChartDecoder = require("notechart.IChartDecoder")
 local Chart = require("ncdk2.Chart")
 local Sph = require("sph.Sph")
 local Note = require("ncdk2.notes.Note")
@@ -11,9 +11,9 @@ local InputMode = require("ncdk.InputMode")
 local Fraction = require("ncdk.Fraction")
 local Chartmeta = require("notechart.Chartmeta")
 
----@class sph.ChartDecoder
+---@class sph.ChartDecoder: chartbase.IChartDecoder
 ---@operator call: sph.ChartDecoder
-local ChartDecoder = class()
+local ChartDecoder = IChartDecoder + {}
 
 function ChartDecoder:new()
 	self.notes_count = 0
@@ -21,13 +21,16 @@ function ChartDecoder:new()
 end
 
 ---@param s string
+---@return ncdk2.Chart[]
 function ChartDecoder:decode(s)
 	local sph = Sph()
 	sph:decode(s:gsub("\r[\r\n]?", "\n"))
-	self:decodeSph(sph)
+	local chart = self:decodeSph(sph)
+	return {chart}
 end
 
 ---@param sph sph.Sph
+---@return ncdk2.Chart
 function ChartDecoder:decodeSph(sph)
 	self.sph = sph
 
@@ -41,10 +44,6 @@ function ChartDecoder:decodeSph(sph)
 	chart.layers.main = layer
 	self.layer = layer
 
-	-- for _, interval in ipairs(sph.sphLines.intervals) do
-	-- 	layer:insertIntervalData(interval.offset, interval.beats, interval.start)
-	-- end
-
 	for _, line in ipairs(sph.sphLines.protoLines) do
 		self:processLine(line)
 	end
@@ -55,6 +54,8 @@ function ChartDecoder:decodeSph(sph)
 	chart:compute()
 
 	self:setMetadata()
+
+	return chart
 end
 
 ---@param line table

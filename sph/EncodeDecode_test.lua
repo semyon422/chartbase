@@ -4,7 +4,7 @@ local ChartEncoder = require("sph.ChartEncoder")
 local test = {}
 
 function test.basic(t)
-	local chart = [[
+	local s = [[
 # metadata
 title Title
 artist Artist
@@ -36,10 +36,7 @@ input 4key
 	local dec = ChartDecoder()
 	local enc = ChartEncoder()
 
-	dec:decode(chart)
-	local expected = enc:encode(dec.chart)
-
-	t:eq(expected, chart)
+	t:eq(enc:encode(dec:decode(s)), s)
 end
 
 return test

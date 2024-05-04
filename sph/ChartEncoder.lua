@@ -1,9 +1,9 @@
-local class = require("class")
+local IChartEncoder = require("notechart.IChartEncoder")
 local Sph = require("sph.Sph")
 
----@class sph.ChartEncoder
+---@class sph.ChartEncoder: chartbase.IChartEncoder
 ---@operator call: sph.ChartEncoder
-local ChartEncoder = class()
+local ChartEncoder = IChartEncoder + {}
 
 local headerLines = {
 	{"title", "title"},
@@ -147,9 +147,10 @@ function ChartEncoder:getSounds(_notes)
 	return sounds, volume
 end
 
----@param chart ncdk2.Chart
+---@param charts ncdk2.Chart[]
 ---@return string
-function ChartEncoder:encode(chart)
+function ChartEncoder:encode(charts)
+	local chart = charts[1]
 	self.chart = chart
 
 	local sph = Sph()
