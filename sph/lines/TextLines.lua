@@ -16,18 +16,12 @@ end
 ---@param s string
 ---@return ncdk.Fraction
 local function decode_fraction(s)
-	local sign = 1
-	if s:sub(1, 1) == "-" then
-		sign = -1
-		s = s:sub(2)
-	end
-
 	local n, d = s:match("^(%d+)/(%d+)$")
 	if not n or not d then
 		return Fraction()
 	end
 
-	return Fraction(sign * tonumber(n), tonumber(d))
+	return Fraction(tonumber(n), tonumber(d))
 end
 
 ---@param s string
@@ -41,7 +35,7 @@ local function split_chars(s, n)
 	return chars
 end
 
----@param notes table
+---@param notes sph.LineNote[]
 ---@return table
 local function parse_notes(notes)
 	local out = {}
@@ -56,9 +50,10 @@ local function parse_notes(notes)
 	return out
 end
 
----@param sounds table
+---@param sounds string[]
 ---@return table
 local function parse_sounds(sounds)
+	---@type number[]
 	local out = {}
 	for i, sound in ipairs(sounds) do
 		out[i] = template_key.decode(sound)
@@ -66,9 +61,10 @@ local function parse_sounds(sounds)
 	return out
 end
 
----@param volume table
----@return table
+---@param volume string[]
+---@return number[]
 local function parse_volume(volume)
+	---@type number[]
 	local out = {}
 	for i, vol in ipairs(volume) do
 		vol = tonumber(vol) or 0
@@ -81,11 +77,13 @@ local function parse_volume(volume)
 end
 
 ---@param velocity string
----@return table
+---@return number[]
 local function parse_velocity(velocity)
-	local out = velocity:split(",")
+	local vel = velocity:split(",")
+	---@type number[]
+	local out = {}
 	for i = 1, 3 do
-		out[i] = tonumber(out[i]) or 1
+		out[i] = tonumber(vel[i]) or 1
 	end
 	return out
 end
@@ -156,12 +154,13 @@ local function format_velocity(v)
 	return tostring(v[1])
 end
 
----@param _notes table
+---@param _notes sph.LineNote[]
 ---@return string?
 function TextLines:encodeNotes(_notes)
 	if not _notes then
 		return "-"
 	end
+	---@type string[]
 	local notes = {}
 	for i = 1, self.columns do
 		notes[i] = "0"
@@ -211,6 +210,7 @@ function TextLines:encode()
 			table.insert(out, "#" .. formatFraction(line.measure))
 		end
 		if line.sounds then
+			---@type string[]
 			local sounds = {}
 			for i, sound in ipairs(line.sounds) do
 				sounds[i] = template_key.encode(sound)
@@ -218,6 +218,7 @@ function TextLines:encode()
 			table.insert(out, ":" .. table.concat(sounds))
 		end
 		if line.volume then
+			---@type string[]
 			local volume = {}
 			for i, vol in ipairs(line.volume) do
 				volume[i] = ("%02d"):format(math.floor(vol * 100 + 0.5) % 100)

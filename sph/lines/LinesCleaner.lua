@@ -7,6 +7,7 @@ local LinesCleaner = class()
 ---@param line sph.Line
 ---@return boolean
 local function has_payload(line)
+	---@cast line {[string]: any}
 	for k in pairs(line) do
 		if k ~= "time" then
 			return true
@@ -40,7 +41,7 @@ end
 ---@param lines sph.Line[]
 ---@return sph.Line[]
 function LinesCleaner:clean(lines)
-	local first, last
+	local first, last = 1, #lines
 	for i = 1, #lines do
 		if has_payload(lines[i]) then
 			first = i

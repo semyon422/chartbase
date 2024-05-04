@@ -15,6 +15,7 @@ end
 local chars = "0123456789" .. table.concat(a_z) .. table.concat(A_Z) .. ".-:+=^!/*?&<>()[]{}@%$#"
 assert(#chars == template_key.base)
 
+---@type {[string]: integer}
 local char_index = {}
 for i = 1, base do
 	char_index[chars:sub(i, i)] = i
