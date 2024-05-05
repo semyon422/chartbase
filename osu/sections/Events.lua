@@ -25,13 +25,6 @@ function Events:new()
 	self.samples = {}
 end
 
----@param lines string[]
-function Events:decode(lines)
-	for _, line in ipairs(lines) do
-		self:decodeLine(line)
-	end
-end
-
 local quoted_pattern = '^"?(.-)"?$'
 
 ---@param line string
