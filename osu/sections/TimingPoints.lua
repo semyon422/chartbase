@@ -77,7 +77,7 @@ function TimingPoints:encode()
 	local out = {}
 
 	for _, p in ipairs(self.points) do
-		table.insert(out, ("%s,%s,%s,%s,%s,%s,%s,%s"):format(
+		table.insert(out, ("%.16g,%.16g,%s,%s,%s,%s,%s,%s"):format(
 			p.offset,
 			p.beatLength,
 			p.timeSignature,
@@ -88,6 +88,11 @@ function TimingPoints:encode()
 			p.effectFlags
 		))
 	end
+
+	-- osu adds \r\n at the end of each timing point
+	-- and one new line before each section
+	-- that is why there is additional empty line
+	table.insert(out, "")
 
 	return out
 end

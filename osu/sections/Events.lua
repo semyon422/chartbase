@@ -11,6 +11,8 @@ local table_util = require("table_util")
 ---@field samples osu.EventSample[]
 local Events = Section + {}
 
+Events.add_comments = false
+
 local EventTypes = {
 	Background = 0,
 	Video = 1,
@@ -21,7 +23,9 @@ local EventTypes = {
 	Animation = 6,
 }
 
-function Events:new()
+---@param add_comments boolean
+function Events:new(add_comments)
+	self.add_comments = add_comments
 	self.samples = {}
 end
 
@@ -29,10 +33,6 @@ local quoted_pattern = '^"?(.-)"?$'
 
 ---@param line string
 function Events:decodeLine(line)
-	if #line == 0 or line:find("^ ") or line:find("^_") or line:find("^//") then
-		return
-	end
-
 	---@type string[]
 	local split = line:split(",")
 
@@ -60,12 +60,28 @@ end
 function Events:encode()
 	local out = {}
 
+	local add_comments = self.add_comments
+
+	if add_comments then
+		table.insert(out, "//Background and Video events")
+	end
 	if self.background then
 		table.insert(out, ('%s,0,"%s",0,0'):format(EventTypes.Background, self.background))
 	end
 	if self.video then
 		table.insert(out, ('%s,%s,"%s"'):format(EventTypes.Video, self.video.time, self.video.name))
 	end
+
+	if add_comments then
+		table.insert(out, "//Break Periods")
+		table.insert(out, "//Storyboard Layer 0 (Background)")
+		table.insert(out, "//Storyboard Layer 1 (Fail)")
+		table.insert(out, "//Storyboard Layer 2 (Pass)")
+		table.insert(out, "//Storyboard Layer 3 (Foreground)")
+		table.insert(out, "//Storyboard Layer 4 (Overlay)")
+		table.insert(out, "//Storyboard Sound Samples")
+	end
+
 	for _, s in ipairs(self.samples) do
 		table.insert(out, ('%s,%s,%s,"%s",%s'):format(EventTypes.Sample, s.time, 0, s.name, s.volume))
 	end

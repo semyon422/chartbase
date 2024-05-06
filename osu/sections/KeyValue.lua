@@ -7,7 +7,7 @@ local KeyValue = Section + {}
 
 KeyValue.space = false
 
----@param space boolean?
+---@param space boolean
 function KeyValue:new(space)
 	self.space = space
 	self.entries = {}
