@@ -1,7 +1,14 @@
 local Section = require("osu.sections.Section")
 local bit = require("bit")
 
----@class osu.HitObject
+---@class osu.Addition
+---@field sampleSet number
+---@field addSampleSet number
+---@field customSample number
+---@field volume number
+---@field sampleFile string
+
+---@class osu.HitObject: osu.Addition
 ---@field x number
 ---@field y number
 ---@field time number
@@ -15,11 +22,6 @@ local bit = require("bit")
 ---@field sounds number[]?
 ---@field ss number[]?
 ---@field ssa number[]?
----@field sampleSet number
----@field addSampleSet number
----@field customSample number
----@field volume number
----@field sampleFile string
 
 ---@alias osu.Vector2 number[]
 

@@ -1,0 +1,33 @@
+local Sounds = require("osu.Sounds")
+
+local test = {}
+
+---@param s string
+---@return osu.Addition
+local function dec_add(s)  -- s:a:c:v:f
+	local split = s:split(":")
+	return {
+		sampleSet = tonumber(split[1]),
+		addSampleSet = tonumber(split[2]),
+		customSample = tonumber(split[3]),
+		volume = tonumber(split[4]),
+		sampleFile = split[5],
+	}
+end
+
+---@param s string
+---@return osu.ControlPoint
+local function dec_tp(s)  -- 0,0,0,s,c,v,0,0
+	local split = s:split(",")
+	return {
+		sampleSet = tonumber(split[1]),
+		customSamples = tonumber(split[2]),
+		volume = tonumber(split[3]),
+	}
+end
+
+function test.basic(t)
+	t:tdeq(Sounds:decode(0, dec_add("0:0:0:0:"), dec_tp("1,0,100")), {{"normal-hitnormal", 100}})
+end
+
+return test
