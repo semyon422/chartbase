@@ -29,6 +29,7 @@ local ProtoNote = class()
 ---@field protoTempos osu.ProtoTempo[]
 ---@field protoVelocities osu.ProtoVelocity[]
 ---@field protoNotes osu.ProtoNote[]
+---@field keymode number
 local Osu = class()
 
 ---@param rawOsu osu.RawOsu
@@ -40,6 +41,7 @@ function Osu:new(rawOsu)
 end
 
 function Osu:decode()
+	self.keymode = math.floor(self.rawOsu.sections.Difficulty.entries.CircleSize)
 	self:decodeTimingPoints()
 	self:decodeHitObjects()
 end
@@ -74,7 +76,7 @@ end
 
 function Osu:decodeHitObjects()
 	local mode = tonumber(self.rawOsu.sections.General.entries.Mode)
-	local keymode = math.floor(self.rawOsu.sections.Difficulty.entries.CircleSize)
+	local keymode = self.keymode
 
 	local points = self.rawOsu.sections.TimingPoints.points
 	local p_i = 1
