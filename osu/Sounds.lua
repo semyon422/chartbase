@@ -84,11 +84,9 @@ function Sounds:decode(soundType, addition, point)
 	---@type osu.Sound[]
 	local real_sounds = {}
 
-	local is_keysound = false
 	if addition.sampleFile and addition.sampleFile ~= "" then
 		real_sounds[1] = {addition.sampleFile, real_volume}
-		is_keysound = true
-		return real_sounds
+		return real_sounds, true
 	end
 
 	local sampleSetId = 0
@@ -124,7 +122,7 @@ function Sounds:decode(soundType, addition, point)
 		})
 	end
 
-	return real_sounds
+	return real_sounds, false
 end
 
 return Sounds

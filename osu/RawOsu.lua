@@ -4,9 +4,18 @@ local Events = require("osu.sections.Events")
 local TimingPoints = require("osu.sections.TimingPoints")
 local HitObjects = require("osu.sections.HitObjects")
 
+---@class osu.Sections
+---@field General osu.KeyValue
+---@field Editor osu.KeyValue
+---@field Metadata osu.KeyValue
+---@field Difficulty osu.KeyValue
+---@field Events osu.Events
+---@field TimingPoints osu.TimingPoints
+---@field HitObjects osu.HitObjects
+
 ---@class osu.RawOsu
 ---@operator call: osu.RawOsu
----@field sections osu.Section[]
+---@field sections osu.Sections
 local RawOsu = class()
 
 --[[

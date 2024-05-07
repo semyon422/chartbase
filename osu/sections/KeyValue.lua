@@ -2,10 +2,52 @@ local Section = require("osu.sections.Section")
 
 ---@class osu.KeyValue: osu.Section
 ---@operator call: osu.KeyValue
----@field entries {[1]: string, [2]: string}[]
+---@field entries {[string]: string}
 local KeyValue = Section + {}
 
 KeyValue.space = false
+
+KeyValue.order = {
+	"AudioFilename",
+	"AudioLeadIn",
+	"PreviewTime",
+	"Countdown",
+	"SampleSet",
+	"StackLeniency",
+	"Mode",
+	"LetterboxInBreaks",
+	"StoryFireInFront",
+	"UseSkinSprites",
+	"AlwaysShowPlayfield",
+	"OverlayPosition",
+	"SkinPreference",
+	"EpilepsyWarning",
+	"CountdownOffset",
+	"SpecialStyle",
+	"WidescreenStoryboard",
+	"SamplesMatchPlaybackRate",
+	"Bookmarks",
+	"DistanceSpacing",
+	"BeatDivisor",
+	"GridSize",
+	"TimelineZoom",
+	"Title",
+	"TitleUnicode",
+	"Artist",
+	"ArtistUnicode",
+	"Creator",
+	"Version",
+	"Source",
+	"Tags",
+	"BeatmapID",
+	"BeatmapSetID",
+	"HPDrainRate",
+	"CircleSize",
+	"OverallDifficulty",
+	"ApproachRate",
+	"SliderMultiplier",
+	"SliderTickRate",
+}
 
 ---@param space boolean
 function KeyValue:new(space)
@@ -17,7 +59,7 @@ end
 function KeyValue:decodeLine(line)
 	local key, value = line:match("^(%a+):%s?(.*)")
 	if key then
-		table.insert(self.entries, {key, value})
+		self.entries[key] = value
 	end
 end
 
@@ -26,12 +68,13 @@ function KeyValue:encode()
 	local out = {}
 
 	local space = self.space and " " or ""
-	for _, entry in ipairs(self.entries) do
-		table.insert(out, ("%s:%s%s"):format(
-			entry[1],
-			space,
-			entry[2]
-		))
+
+	local entries = self.entries
+	for _, k in ipairs(self.order) do
+		local entry = entries[k]
+		if entry then
+			table.insert(out, ("%s:%s%s"):format(k, space, entry))
+		end
 	end
 
 	return out
