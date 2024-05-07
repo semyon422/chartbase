@@ -1,0 +1,24 @@
+local ChartFactory = require("notechart.ChartFactory")
+
+local test = {}
+
+local test_chart = [[
+# metadata
+title Title
+artist Artist
+audio audio.mp3
+input 4key
+
+# notes
+1000 =0
+- =1
+]]
+
+function test.basic(t)
+	local cf = ChartFactory()
+
+	local charts = cf:getCharts("chart.sph", test_chart)
+	t:eq(#charts, 1)
+end
+
+return test
