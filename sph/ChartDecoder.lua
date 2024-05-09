@@ -1,7 +1,7 @@
 local IChartDecoder = require("notechart.IChartDecoder")
 local Chart = require("ncdk2.Chart")
 local Sph = require("sph.Sph")
-local Note = require("ncdk2.notes.Note")
+local Note = require("notechart.Note")
 local Velocity = require("ncdk2.visual.Velocity")
 local Expand = require("ncdk2.visual.Expand")
 local Measure = require("ncdk2.to.Measure")
@@ -97,8 +97,8 @@ function ChartDecoder:processLine(line)
 			longNotes[col] = note
 		elseif t == "3" and longNotes[col] then
 			note.noteType = "LongNoteEnd"
-			note.startNoteData = longNotes[col]
-			longNotes[col].endNoteData = note
+			note.startNote = longNotes[col]
+			longNotes[col].endNote = note
 			longNotes[col].noteType = "LongNoteStart"
 			longNotes[col] = nil
 		elseif t == "4" then
