@@ -170,7 +170,7 @@ function ChartEncoder:encodeSph(chart)
 	local point_notes = {}
 	self.point_notes = point_notes
 
-	for _, vp in ipairs(layer.visualPoints) do
+	for _, vp in ipairs(layer.visual.points) do
 		point_notes[vp] = {}
 	end
 
@@ -190,7 +190,7 @@ function ChartEncoder:encodeSph(chart)
 
 	---@type ncdk.Fraction
 	local prev_time
-	for _, vp in ipairs(layer.visualPoints) do
+	for _, vp in ipairs(layer.visual.points) do
 		local t = vp.point
 		---@cast t -ncdk2.Point, +ncdk2.IntervalPoint
 

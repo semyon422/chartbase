@@ -64,7 +64,7 @@ function ChartDecoder:processLine(line)
 	local sounds = self.sph.sounds
 
 	local point = layer:getPoint(line.globalTime)
-	local visualPoint = layer:newVisualPoint(point)
+	local visualPoint = layer.visual:newPoint(point)
 
 	if line.offset then
 		point._interval = Interval(line.offset)
@@ -152,7 +152,7 @@ function ChartDecoder:addAudio()
 	self.chart.layers.audio = layer
 
 	local point = layer:getPoint(Fraction(0))
-	local vp = layer:newVisualPoint(point)
+	local vp = layer.visual:newPoint(point)
 
 	local note = Note(vp)
 	note.sounds = {{sph.metadata.audio, 1}}
