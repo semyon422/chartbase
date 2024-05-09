@@ -148,9 +148,14 @@ end
 ---@param charts ncdk2.Chart[]
 ---@return string
 function ChartEncoder:encode(charts)
-	local chart = charts[1]
-	self.chart = chart
+	local sph = self:encodeSph(charts[1])
+	return sph:encode()
+end
 
+---@param chart ncdk2.Chart
+---@return sph.Sph
+function ChartEncoder:encodeSph(chart)
+	self.chart = chart
 	self.columns = chart.inputMode:getColumns()
 
 	local sph = Sph()
@@ -222,7 +227,7 @@ function ChartEncoder:encode(charts)
 		table.insert(sphLines.protoLines, line)
 	end
 
-	return sph:encode()
+	return sph
 end
 
 return ChartEncoder
