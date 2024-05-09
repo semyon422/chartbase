@@ -99,7 +99,7 @@ function ChartDecoder:addAudio()
 	note.stream = true
 	self.chart.resourceList:add("sound", audioFileName, {audioFileName})
 
-	layer.notes:addNote(note, "auto", 0)
+	layer.notes:insert(note, 0)
 end
 
 function ChartDecoder:decodeTempos()
@@ -126,10 +126,10 @@ function ChartDecoder:decodeNotes()
 	for _, proto_note in ipairs(self.osu.protoNotes) do
 		local a, b = self:getNotes(proto_note)
 		if a then
-			layer.notes:addNote(a, "key", proto_note.column)
+			layer.notes:insert(a, proto_note.column)
 		end
 		if b then
-			layer.notes:addNote(b, "key", proto_note.column)
+			layer.notes:insert(b, proto_note.column)
 		end
 	end
 end

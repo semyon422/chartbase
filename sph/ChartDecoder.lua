@@ -38,7 +38,6 @@ function ChartDecoder:decodeSph(sph)
 	self.chart = chart
 
 	chart.inputMode = InputMode(sph.metadata.input)
-	self.inputMap = chart.inputMode:getInputMap()
 
 	local layer = IntervalLayer()
 	chart.layers.main = layer
@@ -61,7 +60,6 @@ end
 ---@param line table
 function ChartDecoder:processLine(line)
 	local layer = self.layer
-	local inputMap = self.inputMap
 	local longNotes = self.longNotes
 	local sounds = self.sph.sounds
 
@@ -88,7 +86,6 @@ function ChartDecoder:processLine(line)
 		end
 
 		local col = _note.column
-		local inputType, inputIndex = unpack(inputMap[col])
 
 		local t = _note.type
 		if t == "1" then
@@ -108,9 +105,10 @@ function ChartDecoder:processLine(line)
 			note.noteType = "SoundNote"
 		end
 
-		layer.notes:addNote(note, inputType, inputIndex)
+		layer.notes:insert(note, col)
 	end
 
+	local colums = self.chart.inputMode:getColumns()
 	for i = #notes + 1, #line_sounds do
 		local sound = sounds[line_sounds[i]]
 		if sound then
@@ -118,7 +116,7 @@ function ChartDecoder:processLine(line)
 			note.noteType = "SoundNote"
 			note.sounds = {{sound, line_volume[i] or 1}}
 			self.chart.resourceList:add("sound", sound, {sound})
-			layer.notes:addNote(note, "auto", i)
+			layer.notes:insert(note, colums + i - #notes)
 		end
 	end
 
@@ -162,7 +160,7 @@ function ChartDecoder:addAudio()
 	self.chart.resourceList:add("sound", sph.metadata.audio, {sph.metadata.audio})
 
 	note.noteType = "SoundNote"
-	layer.notes:addNote(note, "auto", 0)
+	layer.notes:insert(note, 1)
 end
 
 function ChartDecoder:setMetadata()

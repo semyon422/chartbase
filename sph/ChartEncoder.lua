@@ -75,14 +75,13 @@ function ChartEncoder:createSoundListAndMap()
 	self.sounds_map = sounds_map
 end
 
----@param _notes {[string]: ncdk2.Note}}
+---@param _notes {[number]: ncdk2.Note}}
 ---@return table
 function ChartEncoder:getNotes(_notes)
 	local notes = {}
-	for input, note in pairs(_notes) do
-		local column = self.inputMap[input]
+	for column, note in pairs(_notes) do
 		local t = noteTypeMap[note.noteType]
-		if column and t then
+		if column <= self.columns and t then
 			table.insert(notes, {
 				column = column,
 				type = t,
@@ -103,20 +102,19 @@ local function sortSound(a, b)
 	return a.column < b.column
 end
 
----@param _notes {[string]: ncdk2.Note}}
+---@param _notes {[number]: ncdk2.Note}}
 ---@return table
 ---@return table
 function ChartEncoder:getSounds(_notes)
 	local sounds_map = self.sounds_map
 
 	local notes = {}
-	for input, note in pairs(_notes) do
-		local column = self.inputMap[input]
+	for column, note in pairs(_notes) do
 		local nds = note.sounds and note.sounds[1]
 		local nsound = nds and nds[1]
 		local nvolume = nds and nds[2]
 		table.insert(notes, {
-			column = column or math.huge,
+			column = column,
 			sound = sounds_map[nsound] or 0,
 			volume = nvolume or 1,
 		})
@@ -153,18 +151,17 @@ function ChartEncoder:encode(charts)
 	local chart = charts[1]
 	self.chart = chart
 
+	self.columns = chart.inputMode:getColumns()
+
 	local sph = Sph()
 	local sphLines = sph.sphLines
 
 	sph.metadata = self:getMetadata()
 
-	local inputMode = chart.inputMode
-	self.inputMap = inputMode:getInputMap()
-
 	local layer = chart.layers.main
 	self.layer = layer
 
-	---@type {[ncdk2.VisualPoint]: {[string]: ncdk2.Note}}
+	---@type {[ncdk2.VisualPoint]: {[number]: ncdk2.Note}}
 	local point_notes = {}
 	self.point_notes = point_notes
 
@@ -172,17 +169,14 @@ function ChartEncoder:encode(charts)
 		point_notes[vp] = {}
 	end
 
-	for inputType, r in pairs(layer.notes.data) do
-		for inputIndex, notes in pairs(r) do
-			for _, note in ipairs(notes) do
-				local key = inputType .. inputIndex
-				local vp = note.visualPoint
-				local nds = point_notes[vp]
-				if nds[key] then
-					error("can not assign NoteData, input already used: " .. key)
-				end
-				nds[key] = note
+	for column, notes in layer.notes:iter() do
+		for _, note in ipairs(notes) do
+			local vp = note.visualPoint
+			local nds = point_notes[vp]
+			if nds[column] then
+				error("can not assign NoteData, column already used: " .. column)
 			end
+			nds[column] = note
 		end
 	end
 
