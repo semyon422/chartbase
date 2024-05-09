@@ -1,27 +1,36 @@
 local TempoRange = {}
 
----@param noteChart ncdk.NoteChart
-function TempoRange:find(noteChart, minTime, maxTime)
+---@param chart ncdk2.Chart
+function TempoRange:find(chart, minTime, maxTime)
 	local lastTime = minTime
+
+	---@type {[number]: number}
 	local durations = {}
 
-	for _, layerData in noteChart:getLayerDataIterator() do
-		for tempoDataIndex = 1, layerData:getTempoDataCount() do
-			local tempoData = layerData:getTempoData(tempoDataIndex)
-			local nextTempoData = layerData:getTempoData(tempoDataIndex + 1)
-
-			local startTime = lastTime
-			local endTime
-			if not nextTempoData then
-				endTime = maxTime
-			else
-				endTime = math.min(maxTime, nextTempoData.timePoint.absoluteTime)
-			end
-			lastTime = endTime
-
-			local tempo = tempoData.tempo
-			durations[tempo] = (durations[tempo] or 0) + endTime - startTime
+	---@type ncdk2.AbsolutePoint[]
+	local tempoPoints = {}
+	local pointList = chart.layers.main:getPointList()
+	for _, point in ipairs(pointList) do
+		---@type ncdk2.Tempo
+		local tempo = point._tempo
+		if tempo then
+			table.insert(tempoPoints, point)
 		end
+	end
+	for i = 1, #tempoPoints do
+		local tempo = assert(tempoPoints[i]._tempo)
+		local nextPoint = tempoPoints[i + 1]
+		local nextTempo = nextPoint._tempo
+
+		local startTime = lastTime
+		local endTime = maxTime
+		if nextTempo then
+			endTime = math.min(maxTime, nextPoint.absoluteTime)
+		end
+		lastTime = endTime
+
+		local _tempo = tempo.tempo
+		durations[_tempo] = (durations[_tempo] or 0) + endTime - startTime
 	end
 
 	local longestDuration = 0
