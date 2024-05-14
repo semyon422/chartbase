@@ -24,6 +24,7 @@ function ChartDecoder:decode(s)
 	local rawOsu = RawOsu()
 	local osu = Osu(rawOsu)
 	rawOsu:decode(s)
+	osu:decode()
 	local chart = self:decodeOsu(osu)
 	return {chart}
 end
@@ -105,7 +106,7 @@ end
 function ChartDecoder:decodeTempos()
 	local layer = self.layer
 	for _, proto_tempo in ipairs(self.osu.protoTempos) do
-		local point = layer:getPoint(proto_tempo.offset)
+		local point = layer:getPoint(proto_tempo.offset / 1000)
 		point._tempo = Tempo(proto_tempo.tempo)
 		-- do something with proto_tempo.signature
 	end
@@ -114,7 +115,7 @@ end
 function ChartDecoder:decodeVelocities()
 	local layer = self.layer
 	for _, proto_velocity in ipairs(self.osu.protoVelocities) do
-		local point = layer:getPoint(proto_velocity.offset)
+		local point = layer:getPoint(proto_velocity.offset / 1000)
 		local visualPoint = layer.visual:newPoint(point)
 		visualPoint._velocity = Velocity(proto_velocity.velocity)
 	end
@@ -150,8 +151,8 @@ end
 ---@return ncdk2.Note?
 ---@return ncdk2.Note?
 function ChartDecoder:getNotes(proto_note)
-	local startTime = proto_note.time
-	local endTime = proto_note.endTime
+	local startTime = proto_note.time and proto_note.time / 1000
+	local endTime = proto_note.endTime and proto_note.endTime / 1000
 
 	local startIsNan = startTime ~= startTime
 	local endIsNan = endTime ~= endTime
