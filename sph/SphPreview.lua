@@ -368,7 +368,7 @@ end
 local function line_to_preview_line(line, prev_pline)
 	local notes
 	if prev_pline and line.visual then
-		notes = prev_pline.notes
+		notes = prev_pline.notes or {}
 	else
 		notes = {}
 	end
