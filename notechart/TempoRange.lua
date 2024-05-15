@@ -20,7 +20,7 @@ function TempoRange:find(chart, minTime, maxTime)
 	for i = 1, #tempoPoints do
 		local tempo = assert(tempoPoints[i]._tempo)
 		local nextPoint = tempoPoints[i + 1]
-		local nextTempo = nextPoint._tempo
+		local nextTempo = nextPoint and nextPoint._tempo
 
 		local startTime = lastTime
 		local endTime = maxTime
