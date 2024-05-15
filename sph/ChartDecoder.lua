@@ -147,6 +147,10 @@ end
 
 function ChartDecoder:addAudio()
 	local sph = self.sph
+	local audio = sph.metadata.audio
+	if not audio then
+		return
+	end
 
 	local layer = IntervalLayer()
 	self.chart.layers.audio = layer
@@ -155,9 +159,9 @@ function ChartDecoder:addAudio()
 	local vp = layer.visual:newPoint(point)
 
 	local note = Note(vp)
-	note.sounds = {{sph.metadata.audio, 1}}
+	note.sounds = {{audio, 1}}
 	note.stream = true
-	self.chart.resourceList:add("sound", sph.metadata.audio, {sph.metadata.audio})
+	self.chart.resourceList:add("sound", audio, {audio})
 
 	note.noteType = "SoundNote"
 	layer.notes:insert(note, 1)
