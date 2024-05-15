@@ -47,20 +47,58 @@ function Osu:decode()
 end
 
 function Osu:decodeTimingPoints()
-	for _, p in ipairs(self.rawOsu.sections.TimingPoints.points) do
-		if p.timingChange then
+	local points = self.rawOsu.sections.TimingPoints.points
+	for _, p in ipairs(points) do
+		p.timingChange = p.beatLength >= 0  -- real timingChange
+	end
+
+	---@type {[number]: {beatLength: number?, velocity: number?, signature: number?}}
+	local filtered_points = {}
+
+	---@type {[number]: boolean}, {[number]: boolean}
+	local red_points, green_points = {}, {}
+
+	for i = #points, 1, -1 do
+		local p = points[i]
+		local offset = p.offset
+		if p.timingChange and not red_points[offset] then
+			red_points[offset] = true
+			filtered_points[offset] = filtered_points[offset] or {}
+			filtered_points[offset].beatLength = p.beatLength
+			filtered_points[offset].signature = p.signature
+		elseif not p.timingChange and not green_points[offset] then
+			green_points[offset] = true
+			filtered_points[offset] = filtered_points[offset] or {}
+			filtered_points[offset].velocity = math.min(math.max(0.1, math.abs(-100 / p.beatLength)), 10)
+		end
+	end
+
+	for offset, fp in pairs(filtered_points) do
+		local velocity = fp.velocity
+		if fp.beatLength then
 			table.insert(self.protoTempos, ProtoTempo({
-				offset = p.offset,
-				tempo = 60000 / p.beatLength,
-				signature = p.timeSignature,
+				offset = offset,
+				tempo = 60000 / fp.beatLength,
+				signature = fp.signature,
 			}))
-		else
+			if not velocity then
+				velocity = 1
+			end
+		end
+		if velocity then
 			table.insert(self.protoVelocities, ProtoVelocity({
-				offset = p.offset,
-				velocity = math.min(math.max(0.1, math.abs(-100 / p.beatLength)), 10),
+				offset = offset,
+				velocity = velocity,
 			}))
 		end
 	end
+
+	table.sort(self.protoTempos, function(a, b)
+		return a.offset < b.offset
+	end)
+	table.sort(self.protoVelocities, function(a, b)
+		return a.offset < b.offset
+	end)
 end
 
 local function get_taiko_type(soundType)

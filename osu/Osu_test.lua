@@ -18,6 +18,8 @@ CircleSize:4
 [TimingPoints]
 0,500,4,2,0,70,1,0
 1000,-200,4,2,0,80,0,0
+2000,500,4,2,0,70,1,0
+2000,-50,4,2,0,80,0,0
 
 
 [HitObjects]
@@ -33,8 +35,16 @@ function test.basic(t)
 	raw_osu:decode(test_chart)
 	osu:decode()
 
+	t:eq(#osu.protoTempos, 2)
 	t:eq(osu.protoTempos[1].tempo, 120)
-	t:eq(osu.protoVelocities[1].velocity, 0.5)
+	t:eq(osu.protoTempos[2].tempo, 120)
+
+	t:eq(#osu.protoVelocities, 3)
+	t:eq(osu.protoVelocities[1].velocity, 1)
+	t:eq(osu.protoVelocities[2].velocity, 0.5)
+	t:eq(osu.protoVelocities[3].velocity, 2)
+
+	t:eq(#osu.protoNotes, 2)
 	t:eq(osu.protoNotes[1].column, 3)
 	t:eq(osu.protoNotes[2].column, 1)
 end
