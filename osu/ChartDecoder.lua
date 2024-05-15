@@ -74,18 +74,18 @@ function ChartDecoder:setMetadata()
 		background_path = self.osu.rawOsu.sections.Events.background,
 		preview_time = general.PreviewTime / 1000,
 		notes_count = self.notes_count,
-		duration = self.totalLength,
+		duration = self.totalLength or 1000,
 		inputmode = tostring(self.chart.inputMode),
-		start_time = self.minTime,
-		tempo = self.primaryBPM,
-		tempo_avg = self.primaryBPM,
-		tempo_min = self.minTempo,
-		tempo_max = self.maxTempo,
+		start_time = self.minTime or 0,
+		tempo = self.osu.primaryTempo,
+		tempo_avg = self.osu.primaryTempo,
+		tempo_min = self.osu.minTempo,
+		tempo_max = self.osu.maxTempo,
 	})
 end
 
 function ChartDecoder:addAudio()
-	local audioFileName = self.osu.rawOsu.sections.General.entries.AudioFileName
+	local audioFileName = self.osu.rawOsu.sections.General.entries.AudioFilename
 	if not audioFileName or audioFileName == "virtual" then
 		return
 	end

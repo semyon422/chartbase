@@ -24,6 +24,8 @@ local ProtoVelocity = class()
 ---@field keysound boolean
 local ProtoNote = class()
 
+---@alias osu.FilteredPoint {offset: number, beatLength: number?, velocity: number?, signature: number?}
+
 ---@class osu.Osu
 ---@operator call: osu.Osu
 ---@field protoTempos osu.ProtoTempo[]
@@ -42,8 +44,8 @@ end
 
 function Osu:decode()
 	self.keymode = math.floor(self.rawOsu.sections.Difficulty.entries.CircleSize)
-	self:decodeTimingPoints()
 	self:decodeHitObjects()
+	self:decodeTimingPoints()
 end
 
 function Osu:decodeTimingPoints()
@@ -52,7 +54,7 @@ function Osu:decodeTimingPoints()
 		p.timingChange = p.beatLength >= 0  -- real timingChange
 	end
 
-	---@type {[number]: {beatLength: number?, velocity: number?, signature: number?}}
+	---@type {[number]: osu.FilteredPoint}
 	local filtered_points = {}
 
 	---@type {[number]: boolean}, {[number]: boolean}
@@ -63,15 +65,25 @@ function Osu:decodeTimingPoints()
 		local offset = p.offset
 		if p.timingChange and not red_points[offset] then
 			red_points[offset] = true
-			filtered_points[offset] = filtered_points[offset] or {}
+			filtered_points[offset] = filtered_points[offset] or {offset = offset}
 			filtered_points[offset].beatLength = p.beatLength
 			filtered_points[offset].signature = p.signature
 		elseif not p.timingChange and not green_points[offset] then
 			green_points[offset] = true
-			filtered_points[offset] = filtered_points[offset] or {}
+			filtered_points[offset] = filtered_points[offset] or {offset = offset}
 			filtered_points[offset].velocity = math.min(math.max(0.1, math.abs(-100 / p.beatLength)), 10)
 		end
 	end
+
+	---@type osu.FilteredPoint[]
+	local filtered_points_list = {}
+	for _, fp in pairs(filtered_points) do
+		table.insert(filtered_points_list, fp)
+	end
+	table.sort(filtered_points_list, function(a, b)
+		return a.offset < b.offset
+	end)
+	self:updatePrimaryTempo(filtered_points_list)
 
 	for offset, fp in pairs(filtered_points) do
 		local velocity = fp.velocity
@@ -101,6 +113,66 @@ function Osu:decodeTimingPoints()
 	end)
 end
 
+---@param filtered_points osu.FilteredPoint[]
+function Osu:updatePrimaryTempo(filtered_points)
+	---@type {offset: number, beatLength: number}[]
+	local tempo_points = {}
+	for _, p in ipairs(filtered_points) do
+		if p.beatLength then
+			table.insert(tempo_points, {
+				offset = p.offset,
+				beatLength = p.beatLength,
+			})
+		end
+	end
+
+	local lastTime = self.maxTime
+	local current_bl = 0
+
+	---@type {[number]: number}
+	local durations = {}
+
+	local min_bl = math.huge
+	local max_bl = -math.huge
+
+	for i = #tempo_points, 1, -1 do
+		local p = tempo_points[i]
+
+		local beatLength = p.beatLength
+		current_bl = beatLength
+		min_bl = math.min(min_bl, current_bl)
+		max_bl = math.max(max_bl, current_bl)
+
+		if p.offset < lastTime then
+			durations[current_bl] = (durations[current_bl] or 0) + (lastTime - (i == 1 and 0 or p.offset))
+			lastTime = p.offset
+		end
+	end
+
+	local longestDuration = 0
+	local average = 0
+
+	for beatLength, duration in pairs(durations) do
+		if duration > longestDuration then
+			longestDuration = duration
+			average = beatLength
+		end
+	end
+
+	if longestDuration == 0 then
+		self.primaryBeatLength = 0
+		self.primaryTempo = 0
+		self.minTempo = 0
+		self.maxTempo = 0
+		return
+	end
+
+	self.primaryBeatLength = average
+	self.primaryTempo = 60000 / average
+	self.minTempo = 60000 / max_bl
+	self.maxTempo = 60000 / min_bl
+end
+
 local function get_taiko_type(soundType)
 	local column, is_double = 0, false
 	if bit.band(soundType, 10) ~= 0 then  -- 2 | 8
@@ -113,6 +185,7 @@ local function get_taiko_type(soundType)
 end
 
 function Osu:decodeHitObjects()
+	self.maxTime = 0
 	local mode = tonumber(self.rawOsu.sections.General.entries.Mode)
 	local keymode = self.keymode
 
@@ -142,6 +215,8 @@ function Osu:decodeHitObjects()
 			sounds = sounds,
 			keysound = keysound,
 		})
+
+		self.maxTime = math.max(self.maxTime, obj.time)
 	end
 end
 
