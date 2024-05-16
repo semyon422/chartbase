@@ -79,9 +79,10 @@ end
 ---@return table
 function ChartEncoder:getNotes(_notes)
 	local notes = {}
-	for column, note in pairs(_notes) do
+	for input, note in pairs(_notes) do
 		local t = noteTypeMap[note.noteType]
-		if column <= self.columns and t then
+		local column = self.inputMap[input]
+		if self.inputMap[input] and t then
 			table.insert(notes, {
 				column = column,
 				type = t,
@@ -109,10 +110,11 @@ function ChartEncoder:getSounds(_notes)
 	local sounds_map = self.sounds_map
 
 	local notes = {}
-	for column, note in pairs(_notes) do
+	for input, note in pairs(_notes) do
 		local nds = note.sounds and note.sounds[1]
 		local nsound = nds and nds[1]
 		local nvolume = nds and nds[2]
+		local column = self.inputMap[input] or self.columns + 1
 		table.insert(notes, {
 			column = column,
 			sound = sounds_map[nsound] or 0,
@@ -157,6 +159,7 @@ end
 function ChartEncoder:encodeSph(chart)
 	self.chart = chart
 	self.columns = chart.inputMode:getColumns()
+	self.inputMap = chart.inputMode:getInputMap()
 
 	local sph = Sph()
 	local sphLines = sph.sphLines

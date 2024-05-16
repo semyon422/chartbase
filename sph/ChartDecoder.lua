@@ -63,6 +63,8 @@ function ChartDecoder:processLine(line)
 	local longNotes = self.longNotes
 	local sounds = self.sph.sounds
 
+	local inputMap = self.chart.inputMode:getInputMap()
+
 	local point = layer:getPoint(line.globalTime)
 	local visualPoint = layer.visual:newPoint(point)
 
@@ -105,10 +107,10 @@ function ChartDecoder:processLine(line)
 			note.noteType = "SoundNote"
 		end
 
-		layer.notes:insert(note, col)
+		local input = inputMap[col]
+		layer.notes:insert(note, input[1] .. input[2])
 	end
 
-	local colums = self.chart.inputMode:getColumns()
 	for i = #notes + 1, #line_sounds do
 		local sound = sounds[line_sounds[i]]
 		if sound then
@@ -116,7 +118,7 @@ function ChartDecoder:processLine(line)
 			note.noteType = "SoundNote"
 			note.sounds = {{sound, line_volume[i] or 1}}
 			self.chart.resourceList:add("sound", sound, {sound})
-			layer.notes:insert(note, colums + i - #notes)
+			layer.notes:insert(note, "auto" .. (i - #notes))
 		end
 	end
 
@@ -164,7 +166,7 @@ function ChartDecoder:addAudio()
 	self.chart.resourceList:add("sound", audio, {audio})
 
 	note.noteType = "SoundNote"
-	layer.notes:insert(note, 1)
+	layer.notes:insert(note, "audio")
 end
 
 function ChartDecoder:setMetadata()
