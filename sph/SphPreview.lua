@@ -364,21 +364,27 @@ end
 
 ---@param line sph.Line
 ---@param prev_pline sph.PreviewLine
+---@param long_notes table
 ---@return table?
-local function line_to_preview_line(line, prev_pline)
+local function line_to_preview_line(line, prev_pline, long_notes)
 	local notes
-	if prev_pline and line.visual then
-		notes = prev_pline.notes or {}
-	else
-		notes = {}
-	end
-
 	if line.notes then
+		if prev_pline and line.visual then
+			prev_pline.notes = prev_pline.notes or {}
+			notes = prev_pline.notes
+		else
+			notes = {}
+		end
 		for _, note in ipairs(line.notes) do
 			local t
-			if note.type == "1" or note.type == "2" then
+			if note.type == "1" then
+				t = true
+			elseif note.type == "2" then
+				long_notes[note.column] = true
 				t = true
 			elseif note.type == "3" then
+				assert(long_notes[note.column])
+				long_notes[note.column] = nil
 				t = false
 			end
 			notes[note.column] = t
@@ -410,10 +416,11 @@ end
 ---@param lines sph.Line[]
 ---@return sph.PreviewLine[]
 function SphPreview:linesToPreviewLines(lines)
+	local long_notes = {}
 	local plines = {}
 	for _, line in ipairs(lines) do
 		local prev_line = plines[#plines]
-		local _line = line_to_preview_line(line, prev_line)
+		local _line = line_to_preview_line(line, prev_line, long_notes)
 		table.insert(plines, _line)
 	end
 	return plines

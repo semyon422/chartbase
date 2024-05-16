@@ -327,4 +327,30 @@ function test.complex_case_2(t)
 	t:eq(_str, str)
 end
 
+function test.visual_merge(t)
+	local _lines = {
+		{offset=0},
+		{notes={{column=1,type="1"}},visual=true},
+		{notes={{column=2,type="1"}},visual=true},
+		{notes={{column=3,type="1"}}},
+		{},
+	}
+
+	local plines = SphPreview:linesToPreviewLines(_lines)
+	t:tdeq(plines, {
+		{notes={true,true},offset=0},
+		{notes={nil,nil,true}},
+		{},
+	})
+
+	local str = SphPreview:encodeLines(_lines, 1)
+	local lines = SphPreview:decodeLines(str)
+
+	t:tdeq(lines, {  -- no visual lines after decode
+		{notes={{column=1,type="1"},{column=2,type="1"}},offset=0},
+		{notes={{column=3,type="1"}}},
+		{},
+	})
+end
+
 return test
