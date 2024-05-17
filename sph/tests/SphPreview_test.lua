@@ -327,6 +327,18 @@ function test.complex_case_2(t)
 	t:eq(_str, str)
 end
 
+function test.columns_group_1(t)
+	local lines = {
+		{notes = {true, nil, nil, nil, nil, true, nil, nil, nil, nil, true}},
+		{notes = {true, false, true, false, true, false, true, false, true, false}},
+	}
+
+	local _str = SphPreview:encode(lines, 1)
+	local _lines = SphPreview:decode(_str)
+
+	t:tdeq(_lines, lines)
+end
+
 function test.visual_merge(t)
 	local _lines = {
 		{offset=0},

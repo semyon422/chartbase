@@ -172,6 +172,7 @@ function SphPreview:decode(s)
 			elseif version == 1 then
 				if obj.n_columns_group ~= columns_group then
 					g_offset = g_offset + 5
+					columns_group = obj.n_columns_group
 				end
 				for i = 1, 5 do
 					if obj.n_columns[i] then
