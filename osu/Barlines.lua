@@ -1,0 +1,39 @@
+local class = require("class")
+
+---@class osu.Barlines
+---@operator call: osu.Barlines
+local Barlines = class()
+
+---@param tempo_points osu.FilteredPoint[]
+---@param lastTime number
+---@return number[]
+function Barlines:generate(tempo_points, lastTime)
+	local start = tempo_points[1].offset
+	if start >= 0 then
+		local measure_length = tempo_points[1].beatLength * tempo_points[1].signature
+		start = start - math.ceil(start / measure_length) * measure_length
+	end
+
+	---@type number[]
+	local barlines = {}
+	for i = 1, #tempo_points do
+		local beatTime = tempo_points[i].offset
+		if i == 1 then
+			beatTime = start
+		end
+
+		local timeEnd = lastTime + 1
+
+		if i < #tempo_points then
+			timeEnd = tempo_points[i + 1].offset - 1
+		end
+
+		while beatTime < timeEnd do
+			table.insert(barlines, beatTime)
+			beatTime = beatTime + tempo_points[i].beatLength * tempo_points[i].signature
+		end
+	end
+	return barlines
+end
+
+return Barlines

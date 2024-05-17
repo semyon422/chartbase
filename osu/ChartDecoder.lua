@@ -48,6 +48,7 @@ function ChartDecoder:decodeOsu(osu)
 	self:decodeTempos()
 	self:decodeVelocities()
 	self:decodeNotes()
+	self:decodeBarlines()
 
 	self:addAudio()
 
@@ -192,6 +193,25 @@ function ChartDecoder:getNotes(proto_note)
 	startNote.endNote = endNote
 
 	return startNote, endNote
+end
+
+function ChartDecoder:decodeBarlines()
+	local layer = self.layer
+
+	for _, offset in ipairs(self.osu.barlines) do
+		local point = layer:getPoint(offset / 1000)
+
+		local a = Note(layer.visual:newPoint(point))
+		a.noteType = "LineNoteStart"
+		layer.notes:insert(a, "measure1")
+
+		local b = Note(layer.visual:newPoint(point))
+		b.noteType = "LineNoteEnd"
+		layer.notes:insert(b, "measure1")
+
+		a.endNote = b
+		b.startNote = a
+	end
 end
 
 return ChartDecoder

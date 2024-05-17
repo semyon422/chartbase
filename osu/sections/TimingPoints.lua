@@ -59,7 +59,7 @@ function TimingPoints:decodeLine(line)
 		return
 	end
 
-	point.timeSignature = splitn[3] == 0 and 4 or splitn[3] or 4
+	point.timeSignature = math.floor(splitn[3] == 0 and 4 or splitn[3] or 4)
 	point.sampleSet = splitn[4] or 0
 	point.customSamples = splitn[5] or 0
 	point.volume = splitn[6] or self.sampleVolume

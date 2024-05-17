@@ -1,5 +1,6 @@
 local class = require("class")
 local Sounds = require("osu.Sounds")
+local Barlines = require("osu.Barlines")
 
 ---@class osu.ProtoTempo
 ---@operator call: osu.ProtoTempo
@@ -67,7 +68,7 @@ function Osu:decodeTimingPoints()
 			red_points[offset] = true
 			filtered_points[offset] = filtered_points[offset] or {offset = offset}
 			filtered_points[offset].beatLength = p.beatLength
-			filtered_points[offset].signature = p.signature
+			filtered_points[offset].signature = p.timeSignature
 		elseif not p.timingChange and not green_points[offset] then
 			green_points[offset] = true
 			filtered_points[offset] = filtered_points[offset] or {offset = offset}
@@ -76,14 +77,17 @@ function Osu:decodeTimingPoints()
 	end
 
 	---@type osu.FilteredPoint[]
-	local filtered_points_list = {}
-	for _, fp in pairs(filtered_points) do
-		table.insert(filtered_points_list, fp)
+	local tempo_points = {}
+	for _, p in pairs(filtered_points) do
+		if p.beatLength then
+			table.insert(tempo_points, p)
+		end
 	end
-	table.sort(filtered_points_list, function(a, b)
+	table.sort(tempo_points, function(a, b)
 		return a.offset < b.offset
 	end)
-	self:updatePrimaryTempo(filtered_points_list)
+	self:updatePrimaryTempo(tempo_points)
+	self:decodeBarlines(tempo_points)
 
 	for offset, fp in pairs(filtered_points) do
 		local velocity = fp.velocity
@@ -113,18 +117,8 @@ function Osu:decodeTimingPoints()
 	end)
 end
 
----@param filtered_points osu.FilteredPoint[]
-function Osu:updatePrimaryTempo(filtered_points)
-	---@type {offset: number, beatLength: number}[]
-	local tempo_points = {}
-	for _, p in ipairs(filtered_points) do
-		if p.beatLength then
-			table.insert(tempo_points, {
-				offset = p.offset,
-				beatLength = p.beatLength,
-			})
-		end
-	end
+---@param tempo_points osu.FilteredPoint[]
+function Osu:updatePrimaryTempo(tempo_points)
 
 	local lastTime = self.maxTime
 	local current_bl = 0
@@ -218,6 +212,11 @@ function Osu:decodeHitObjects()
 
 		self.maxTime = math.max(self.maxTime, obj.time)
 	end
+end
+
+---@param tempo_points osu.FilteredPoint[]
+function Osu:decodeBarlines(tempo_points)
+	self.barlines = Barlines:generate(tempo_points, self.maxTime)
 end
 
 return Osu
