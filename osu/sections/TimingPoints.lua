@@ -34,6 +34,15 @@ function TimingPoints:new(sampleVolume, defaultSampleSet)
 	self.points = {}
 end
 
+function TimingPoints:sort()
+	table.sort(self.points, function(a, b)
+		if a.offset ~= b.offset then
+			return a.offset < b.offset
+		end
+		return a.beatLength > b.beatLength
+	end)
+end
+
 ---@param line string
 function TimingPoints:decodeLine(line)
 	---@type string[]

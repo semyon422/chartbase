@@ -43,7 +43,7 @@ function ChartDecoder:decodeOsu(osu)
 	chart.layers.main = layer
 	self.layer = layer
 
-	layer.primaryTempo = 120
+	layer.visual.primaryTempo = 120
 
 	self:decodeTempos()
 	self:decodeVelocities()
@@ -75,9 +75,9 @@ function ChartDecoder:setMetadata()
 		background_path = self.osu.rawOsu.sections.Events.background,
 		preview_time = general.PreviewTime / 1000,
 		notes_count = self.notes_count,
-		duration = self.totalLength or 1000,
+		duration = (self.osu.maxTime - self.osu.minTime) / 1000,
 		inputmode = tostring(self.chart.inputMode),
-		start_time = self.minTime or 0,
+		start_time = self.osu.minTime / 1000,
 		tempo = self.osu.primaryTempo,
 		tempo_avg = self.osu.primaryTempo,
 		tempo_min = self.osu.minTempo,

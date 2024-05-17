@@ -52,6 +52,7 @@ function RawOsu:decode(s)
 	for _, line in ipairs(s:gsub("\r\n?", "\n"):split("\n")) do
 		self:decodeLine(line)
 	end
+	self.sections.TimingPoints:sort()
 end
 
 ---@param line string

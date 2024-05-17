@@ -185,6 +185,8 @@ end
 
 function Osu:decodeHitObjects()
 	self.maxTime = 0
+	self.minTime = math.huge
+
 	local mode = tonumber(self.rawOsu.sections.General.entries.Mode)
 	local keymode = self.keymode
 
@@ -215,7 +217,19 @@ function Osu:decodeHitObjects()
 			keysound = keysound,
 		})
 
-		self.maxTime = math.max(self.maxTime, obj.time)
+		local time = obj.time
+		local endTime = obj.endTime
+		if time and time == time then  -- nan check
+			self.maxTime = math.max(self.maxTime, time)
+			self.minTime = math.min(self.minTime, time)
+		end
+		if endTime and endTime == endTime then  -- nan check
+			self.maxTime = math.max(self.maxTime, endTime)
+			self.minTime = math.min(self.minTime, endTime)
+		end
+	end
+	if self.minTime == math.huge then
+		self.minTime = 0
 	end
 end
 
