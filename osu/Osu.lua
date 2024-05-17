@@ -25,7 +25,12 @@ local ProtoVelocity = class()
 ---@field keysound boolean
 local ProtoNote = class()
 
----@alias osu.FilteredPoint {offset: number, beatLength: number?, velocity: number?, signature: number?}
+---@class osu.FilteredPoint
+---@field offset number
+---@field beatLength number?
+---@field velocity number?
+---@field signature number?
+---@field omitFirstBarLine boolean?
 
 ---@class osu.Osu
 ---@operator call: osu.Osu
@@ -69,6 +74,7 @@ function Osu:decodeTimingPoints()
 			filtered_points[offset] = filtered_points[offset] or {offset = offset}
 			filtered_points[offset].beatLength = p.beatLength
 			filtered_points[offset].signature = p.timeSignature
+			filtered_points[offset].omitFirstBarLine = p.omitFirstBarLine
 		elseif not p.timingChange and not green_points[offset] then
 			green_points[offset] = true
 			filtered_points[offset] = filtered_points[offset] or {offset = offset}
@@ -119,7 +125,6 @@ end
 
 ---@param tempo_points osu.FilteredPoint[]
 function Osu:updatePrimaryTempo(tempo_points)
-
 	local lastTime = self.maxTime
 	local current_bl = 0
 

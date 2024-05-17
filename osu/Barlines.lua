@@ -17,20 +17,25 @@ function Barlines:generate(tempo_points, lastTime)
 	---@type number[]
 	local barlines = {}
 	for i = 1, #tempo_points do
-		local beatTime = tempo_points[i].offset
+		local p = tempo_points[i]
+		local beatTime = p.offset
 		if i == 1 then
 			beatTime = start
 		end
 
 		local timeEnd = lastTime + 1
-
 		if i < #tempo_points then
 			timeEnd = tempo_points[i + 1].offset - 1
 		end
 
+		local measure_length = p.beatLength * p.signature
+		if p.omitFirstBarLine then
+			beatTime = beatTime + measure_length
+		end
+
 		while beatTime < timeEnd do
 			table.insert(barlines, beatTime)
-			beatTime = beatTime + tempo_points[i].beatLength * tempo_points[i].signature
+			beatTime = beatTime + measure_length
 		end
 	end
 	return barlines

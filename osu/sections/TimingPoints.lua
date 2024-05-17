@@ -1,3 +1,4 @@
+local bit = require("bit")
 local Section = require("osu.sections.Section")
 
 ---@class osu.ControlPoint
@@ -8,7 +9,8 @@ local Section = require("osu.sections.Section")
 ---@field customSamples number
 ---@field volume number
 ---@field timingChange boolean
----@field effectFlags number
+---@field kiai boolean
+---@field omitFirstBarLine boolean
 
 ---@class osu.TimingPoints: osu.Section
 ---@operator call: osu.TimingPoints
@@ -17,6 +19,12 @@ local TimingPoints = Section + {}
 
 TimingPoints.sampleVolume = 100
 TimingPoints.defaultSampleSet = 0
+
+local EffectFlags = {
+	None = 0,
+	Kiai = 1,
+	OmitFirstBarLine = 8,
+}
 
 ---@param sampleVolume number
 ---@param defaultSampleSet number
@@ -54,7 +62,8 @@ function TimingPoints:decodeLine(line)
 		point.customSamples = 0
 		point.volume = 100
 		point.timingChange = true
-		point.effectFlags = 0
+		point.kiai = false
+		point.omitFirstBarLine = false
 		table.insert(self.points, point)
 		return
 	end
@@ -67,7 +76,10 @@ function TimingPoints:decodeLine(line)
 	if not splitn[7] then
 		point.timingChange = true  -- can't use `or` here
 	end
-	point.effectFlags = splitn[8] or 0
+
+	local effectFlags = splitn[8] or 0
+	point.kiai = bit.band(effectFlags, EffectFlags.Kiai) ~= 0
+	point.omitFirstBarLine = bit.band(effectFlags, EffectFlags.OmitFirstBarLine) ~= 0
 
 	table.insert(self.points, point)
 end
@@ -77,6 +89,9 @@ function TimingPoints:encode()
 	local out = {}
 
 	for _, p in ipairs(self.points) do
+		local effectFlags = 0
+		effectFlags = bit.bor(effectFlags, p.kiai and EffectFlags.Kiai or 0)
+		effectFlags = bit.bor(effectFlags, p.omitFirstBarLine and EffectFlags.OmitFirstBarLine or 0)
 		table.insert(out, ("%.16g,%.16g,%s,%s,%s,%s,%s,%s"):format(
 			p.offset,
 			p.beatLength,
@@ -85,7 +100,7 @@ function TimingPoints:encode()
 			p.customSamples,
 			p.volume,
 			p.timingChange and 1 or 0,
-			p.effectFlags
+			effectFlags
 		))
 	end
 
