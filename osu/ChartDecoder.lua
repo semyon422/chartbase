@@ -37,8 +37,6 @@ function ChartDecoder:decodeOsu(osu)
 	local chart = Chart()
 	self.chart = chart
 
-	chart.inputMode = InputMode({key = osu.keymode})
-
 	local layer = AbsoluteLayer()
 	chart.layers.main = layer
 	self.layer = layer
@@ -53,7 +51,18 @@ function ChartDecoder:decodeOsu(osu)
 
 	self:addAudio()
 
-	chart.type = "bms"
+	local mode = tonumber(self.osu.rawOsu.sections.General.entries.Mode)
+	if mode == 0 then
+		chart.inputMode = InputMode({osu = 1})
+	elseif mode == 1 then
+		chart.inputMode = InputMode({key = 2})
+	elseif mode == 2 then
+		chart.inputMode = InputMode({fruits = 1})
+	elseif mode == 3 then
+		chart.inputMode = InputMode({key = osu.keymode})
+	end
+	chart.type = "osu"
+
 	chart:compute()
 
 	self:setMetadata()
