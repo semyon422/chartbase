@@ -54,6 +54,11 @@ function Osu:decode()
 	self:decodeTimingPoints()
 end
 
+---@return string
+function Osu:encode()
+	return self.rawOsu:encode()
+end
+
 function Osu:decodeTimingPoints()
 	local points = self.rawOsu.sections.TimingPoints.points
 	for _, p in ipairs(points) do

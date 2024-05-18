@@ -102,12 +102,12 @@ function TimingPoints:encode()
 		effectFlags = bit.bor(effectFlags, p.kiai and EffectFlags.Kiai or 0)
 		effectFlags = bit.bor(effectFlags, p.omitFirstBarLine and EffectFlags.OmitFirstBarLine or 0)
 		table.insert(out, ("%.16g,%.16g,%s,%s,%s,%s,%s,%s"):format(
-			p.offset,
-			p.beatLength,
-			p.timeSignature,
-			p.sampleSet,
-			p.customSamples,
-			p.volume,
+			p.offset or 0,
+			p.beatLength or 1000,
+			p.timeSignature or 4,
+			p.sampleSet or 0,
+			p.customSamples or 0,
+			p.volume or 0,
 			p.timingChange and 1 or 0,
 			effectFlags
 		))

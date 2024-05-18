@@ -41,6 +41,7 @@ local HitObjectType = {
 	Hold = 128,
 	ManiaLong = 128,
 }
+HitObjects.HitObjectType = HitObjectType
 
 local function is_type(_type, v)
 	return bit.band(_type, v) ~= 0
