@@ -27,8 +27,19 @@ local function dec_tp(s)  -- 0,0,0,s,c,v,0,0
 end
 
 function test.basic(t)
-	t:tdeq(Sounds:decode(0, dec_add("0:0:0:0:"), dec_tp("0,0,100")), {{"soft-hitnormal", 80}})
-	t:tdeq(Sounds:decode(0, dec_add("0:0:0:70:sound.wav"), dec_tp("0,0,100")), {{"sound.wav", 70}})
+	t:tdeq(Sounds:decode(0, dec_add("0:0:0:0:"), dec_tp("0,0,100")), {{
+		name = "soft-hitnormal",
+		volume = 80,
+	}})
+	t:tdeq(Sounds:decode(0, dec_add("0:0:0:0:"), dec_tp("1,2,100")), {{
+		name = "normal-hitnormal2",
+		fallback_name = "normal-hitnormal",
+		volume = 80,
+	}})
+	t:tdeq(Sounds:decode(0, dec_add("0:0:0:70:sound.wav"), dec_tp("0,0,100")), {{
+		name = "sound.wav",
+		volume = 70,
+	}})
 end
 
 return test

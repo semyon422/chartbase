@@ -3,8 +3,9 @@ local bit = require("bit")
 local table_util = require("table_util")
 
 ---@class osu.Sound
----@field [1] string name
----@field [2] number volume
+---@field name string
+---@field fallback_name string?
+---@field volume number
 
 ---@class osu.Sounds
 ---@operator call: osu.Sounds
@@ -49,6 +50,12 @@ function Sounds:getSampleSetName(id)
 	return SampleSet[id] or "normal"
 end
 
+---@param soundType number
+---@param sampleSet number
+---@param customSampleSet number
+---@param is_taiko boolean?
+---@return string
+---@return string?
 function Sounds:getSampleName(soundType, sampleSet, customSampleSet, is_taiko)
 	---@type string
 	local strSoundType = table_util.keyof(SoundType, soundType):lower()
@@ -61,17 +68,23 @@ function Sounds:getSampleName(soundType, sampleSet, customSampleSet, is_taiko)
 	local customSample = math.max(customSampleSet, 0)
 	local modePrefix = is_taiko and "taiko-" or ""
 
-	return ("%s%s-hit%s%s"):format(
+	local name = ("%s%s-hit%s"):format(
 		modePrefix,
 		strSampleSet,
-		strSoundType,
-		customSample > 0 and customSample or ""
+		strSoundType
 	)
+	if customSample == 0 then
+		return name
+	end
+
+	return name .. customSample, name
 end
 
 ---@param soundType number
 ---@param addition osu.Addition
 ---@param point osu.ControlPoint
+---@return osu.Sound[]
+---@return boolean
 function Sounds:decode(soundType, addition, point)
 	local real_volume = 100
 	if addition.volume > 0 then
@@ -85,7 +98,10 @@ function Sounds:decode(soundType, addition, point)
 	local real_sounds = {}
 
 	if addition.sampleFile and addition.sampleFile ~= "" then
-		real_sounds[1] = {addition.sampleFile, real_volume}
+		real_sounds[1] = {
+			name = addition.sampleFile,
+			volume = real_volume,
+		}
 		return real_sounds, true
 	end
 
@@ -108,17 +124,21 @@ function Sounds:decode(soundType, addition, point)
 	for _, name in ipairs(SoundOrder) do
 		local Type = SoundType[name]
 		if is_type(Type, soundType) then
+			local _name, fallback_name = self:getSampleName(Type, sampleSetId, customSample)
 			table.insert(real_sounds, {
-				self:getSampleName(Type, sampleSetId, customSample),
-				real_volume * SoundVolume[name],
+				name = _name,
+				fallback_name = fallback_name,
+				volume = real_volume * SoundVolume[name],
 			})
 		end
 	end
 
 	if #real_sounds == 0 then
+		local _name, fallback_name = self:getSampleName(SoundType.Normal, sampleSetId, customSample)
 		table.insert(real_sounds, {
-			self:getSampleName(SoundType.Normal, sampleSetId, customSample),
-			real_volume * SoundVolume.Normal,
+			name = _name,
+			fallback_name = fallback_name,
+			volume = real_volume * SoundVolume.Normal,
 		})
 	end
 

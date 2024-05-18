@@ -48,6 +48,7 @@ function ChartDecoder:decodeOsu(osu)
 	self:decodeTempos()
 	self:decodeVelocities()
 	self:decodeNotes()
+	self:decodeSamples()
 	self:decodeBarlines()
 
 	self:addAudio()
@@ -137,15 +138,31 @@ function ChartDecoder:decodeNotes()
 	end
 end
 
+function ChartDecoder:decodeSamples()
+	local layer = self.layer
+
+	for _, e in ipairs(self.osu.rawOsu.sections.Events.samples) do
+		local point = layer:getPoint(e.time / 1000)
+		local visualPoint = layer.visual:newPoint(point)
+		local note = Note(visualPoint)
+		note.noteType = "SoundNote"
+		note.sounds = {{e.name, e.volume / 100}}
+		layer.notes:insert(note, "auto")
+		self.chart.resourceList:add("sound", e.name, {e.name})
+	end
+end
+
 ---@param time number
 ---@param noteType string
+---@param sounds table?
 ---@return ncdk2.Note
-function ChartDecoder:getNote(time, noteType)
+function ChartDecoder:getNote(time, noteType, sounds)
 	local layer = self.layer
 	local point = layer:getPoint(time)
 	local visualPoint = layer.visual:newPoint(point)
 	local note = Note(visualPoint)
 	note.noteType = noteType
+	note.sounds = sounds
 	return note
 end
 
@@ -159,11 +176,18 @@ function ChartDecoder:getNotes(proto_note)
 	local startIsNan = startTime ~= startTime
 	local endIsNan = endTime ~= endTime
 
+	---@type {[1]: string, [2]: number}[]
+	local sounds = {}
+	for i, s in ipairs(proto_note.sounds) do
+		sounds[i] = {s.name, s.volume / 100}
+		self.chart.resourceList:add("sound", s.name, {s.name, s.fallback_name})
+	end
+
 	if not endTime then
 		if startIsNan then
 			return
 		end
-		return self:getNote(startTime, "ShortNote")
+		return self:getNote(startTime, "ShortNote", sounds)
 	end
 
 	if startIsNan and endIsNan then
@@ -186,7 +210,7 @@ function ChartDecoder:getNotes(proto_note)
 		lnType = "DrumrollNoteStart"
 	end
 
-	local startNote = self:getNote(startTime, lnType)
+	local startNote = self:getNote(startTime, lnType, sounds)
 	local endNote = self:getNote(endTime, "LongNoteEnd")
 
 	endNote.startNote = startNote
