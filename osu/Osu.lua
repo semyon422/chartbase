@@ -22,7 +22,6 @@ local ProtoVelocity = class()
 ---@field column number
 ---@field is_double boolean
 ---@field sounds osu.Sound[]
----@field keysound boolean
 local ProtoNote = class()
 
 ---@class osu.FilteredPoint
@@ -212,14 +211,13 @@ function Osu:decodeHitObjects()
 			column = math.max(1, math.min(keymode, math.floor(obj.x / 512 * keymode + 1)))
 		end
 
-		local sounds, keysound = Sounds:decode(obj.soundType, obj, p)
+		local sounds = Sounds:decode(obj.soundType, obj, p)
 		table.insert(self.protoNotes, {
 			time = obj.time,
 			endTime = obj.endTime,
 			column = column,
 			is_double = is_double,
 			sounds = sounds,
-			keysound = keysound,
 		})
 
 		local time = obj.time

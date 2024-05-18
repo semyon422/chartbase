@@ -26,7 +26,7 @@ local function dec_tp(s)  -- 0,0,0,s,c,v,0,0
 	}
 end
 
-function test.basic(t)
+function test.encode(t)
 	t:tdeq(Sounds:decode(0, dec_add("0:0:0:0:"), dec_tp("0,0,100")), {{
 		name = "soft-hitnormal",
 		volume = 80,
@@ -39,7 +39,47 @@ function test.basic(t)
 	t:tdeq(Sounds:decode(0, dec_add("0:0:0:70:sound.wav"), dec_tp("0,0,100")), {{
 		name = "sound.wav",
 		volume = 70,
+		is_keysound = true,
 	}})
+end
+
+function test.decode_1(t)
+	local soundType, addition = Sounds:encode({
+		{
+			name = "normal-hitnormal2",
+			fallback_name = "normal-hitnormal",
+			volume = 80,
+		},
+		{
+			name = "normal-hitclap2",
+			fallback_name = "normal-hitclap",
+			volume = 85,
+		},
+	})
+	t:eq(soundType, 9)
+	t:tdeq(addition, {
+		sampleSet = 1,
+		addSampleSet = 0,
+		customSample = 2,
+		volume = 100,
+		sampleFile = "",
+	})
+end
+
+function test.decode_2(t)
+	local soundType, addition = Sounds:encode({{
+		name = "sound.wav",
+		volume = 70,
+		is_keysound = true,
+	}})
+	t:eq(soundType, 0)
+	t:tdeq(addition, {
+		sampleSet = 0,
+		addSampleSet = 0,
+		customSample = 0,
+		volume = 70,
+		sampleFile = "sound.wav",
+	})
 end
 
 return test

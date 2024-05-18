@@ -1,11 +1,13 @@
 local class = require("class")
 local bit = require("bit")
 local table_util = require("table_util")
+local math_util = require("math_util")
 
 ---@class osu.Sound
 ---@field name string
 ---@field fallback_name string?
 ---@field volume number
+---@field is_keysound boolean?
 
 ---@class osu.Sounds
 ---@operator call: osu.Sounds
@@ -84,7 +86,6 @@ end
 ---@param addition osu.Addition
 ---@param point osu.ControlPoint
 ---@return osu.Sound[]
----@return boolean
 function Sounds:decode(soundType, addition, point)
 	local real_volume = 100
 	if addition.volume > 0 then
@@ -101,8 +102,9 @@ function Sounds:decode(soundType, addition, point)
 		real_sounds[1] = {
 			name = addition.sampleFile,
 			volume = real_volume,
+			is_keysound = true,
 		}
-		return real_sounds, true
+		return real_sounds
 	end
 
 	local sampleSetId = 0
@@ -142,7 +144,66 @@ function Sounds:decode(soundType, addition, point)
 		})
 	end
 
-	return real_sounds, false
+	return real_sounds
+end
+
+---@param s string
+---@return number
+---@return number
+---@return number
+---@return number
+function Sounds:encodeSoundName(s)
+	local is_taiko = s:find("^taiko-") ~= nil
+	if is_taiko then
+		s = s:sub(7)
+	end
+
+	local strSampleSet, strSoundType, customSampleSet = s:match("^(%a+)-hit(%a+)(%d*)$")
+	if not strSampleSet then
+		return
+	end
+	customSampleSet = tonumber(customSampleSet) or 0
+
+	strSampleSet = strSampleSet:sub(1, 1):upper() .. strSampleSet:sub(2)
+	strSoundType = strSoundType:sub(1, 1):upper() .. strSoundType:sub(2)
+
+	local sampleSet = SampleSet[strSampleSet]
+	local soundType = SoundType[strSoundType]
+
+	local volume_factor = SoundVolume[strSoundType]
+
+	return sampleSet, soundType, customSampleSet, volume_factor
+end
+
+---@param sounds osu.Sound[]
+---@return number soundType
+---@return osu.Addition addition
+function Sounds:encode(sounds)
+	local addition = {
+		addSampleSet = 0,
+		customSample = 0,
+		sampleFile = "",
+		sampleSet = 0,
+		volume = 0,
+	}
+	---@cast addition osu.Addition
+
+	local ret_soundType = 0
+
+	for _, s in ipairs(sounds) do
+		addition.volume = s.volume
+		if s.is_keysound then
+			addition.sampleFile = s.name
+			return SoundType.None, addition
+		end
+		local sampleSet, soundType, customSampleSet, volume_factor = self:encodeSoundName(s.name)
+		addition.sampleSet = sampleSet
+		addition.customSample = customSampleSet
+		addition.volume = math_util.round(s.volume / volume_factor)
+		ret_soundType = bit.bor(ret_soundType, soundType)
+	end
+
+	return ret_soundType, addition
 end
 
 return Sounds
