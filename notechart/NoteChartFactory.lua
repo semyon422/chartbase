@@ -1,9 +1,7 @@
 local bms = require("bms")
 local ksm = require("ksm")
 local o2jam = require("o2jam")
-local osu = require("osu")
-local quaver = require("quaver")
-local sph = require("sph")
+-- local quaver = require("quaver")
 local midi = require("midi")
 local stepmania = require("stepmania")
 
@@ -29,15 +27,15 @@ local UnrelatedContainerExtensions = {
 }
 
 local NoteChartImporters = {
-	osu = osu.NoteChartImporter,
-	qua = quaver.NoteChartImporter,
+	-- osu = osu.NoteChartImporter,
+	-- qua = quaver.NoteChartImporter,
 	bms = bms.NoteChartImporter,
 	bme = bms.NoteChartImporter,
 	bml = bms.NoteChartImporter,
 	pms = bms.NoteChartImporter,
 	ksh = ksm.NoteChartImporter,
 	ojn = o2jam.NoteChartImporter,
-	sph = sph.NoteChartImporter,
+	-- sph = sph.NoteChartImporter,
 	mid = midi.NoteChartImporter,
 	midi = midi.NoteChartImporter,
 	sm = stepmania.NoteChartImporter
