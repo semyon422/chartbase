@@ -54,11 +54,16 @@ end
 
 ---@param soundType number
 ---@param sampleSet number
+---@param addSampleSet number
 ---@param customSampleSet number
 ---@param is_taiko boolean?
 ---@return string
 ---@return string?
-function Sounds:getSampleName(soundType, sampleSet, customSampleSet, is_taiko)
+function Sounds:getSampleName(soundType, sampleSet, addSampleSet, customSampleSet, is_taiko)
+	if soundType ~= SoundType.Normal then
+		sampleSet = addSampleSet
+	end
+
 	---@type string
 	local strSoundType = table_util.keyof(SoundType, soundType):lower()
 
@@ -108,12 +113,15 @@ function Sounds:decode(soundType, addition, point)
 	end
 
 	local sampleSetId = 0
-	if addition.addSampleSet ~= 0 then
-		sampleSetId = addition.addSampleSet
-	elseif addition.sampleSet ~= 0 then
+	if addition.sampleSet ~= 0 then
 		sampleSetId = addition.sampleSet
 	else
 		sampleSetId = point.sampleSet
+	end
+
+	local addSampleSet = sampleSetId
+	if addition.addSampleSet ~= 0 then
+		addSampleSet = addition.addSampleSet
 	end
 
 	local customSample = 0
@@ -126,7 +134,7 @@ function Sounds:decode(soundType, addition, point)
 	for _, name in ipairs(SoundOrder) do
 		local Type = SoundType[name]
 		if is_type(Type, soundType) then
-			local _name, fallback_name = self:getSampleName(Type, sampleSetId, customSample)
+			local _name, fallback_name = self:getSampleName(Type, sampleSetId, addSampleSet, customSample)
 			table.insert(real_sounds, {
 				name = _name,
 				fallback_name = fallback_name,
@@ -136,7 +144,7 @@ function Sounds:decode(soundType, addition, point)
 	end
 
 	if #real_sounds == 0 then
-		local _name, fallback_name = self:getSampleName(SoundType.Normal, sampleSetId, customSample)
+		local _name, fallback_name = self:getSampleName(SoundType.Normal, sampleSetId, addSampleSet, customSample)
 		table.insert(real_sounds, {
 			name = _name,
 			fallback_name = fallback_name,

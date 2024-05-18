@@ -31,6 +31,10 @@ function test.encode(t)
 		name = "soft-hitnormal",
 		volume = 80,
 	}})
+	t:tdeq(Sounds:decode(8, dec_add("0:0:0:0:"), dec_tp("1,0,100")), {{
+		name = "normal-hitclap",
+		volume = 85,
+	}})
 	t:tdeq(Sounds:decode(0, dec_add("0:0:0:0:"), dec_tp("1,2,100")), {{
 		name = "normal-hitnormal2",
 		fallback_name = "normal-hitnormal",
@@ -41,6 +45,18 @@ function test.encode(t)
 		volume = 70,
 		is_keysound = true,
 	}})
+	t:tdeq(Sounds:decode(9, dec_add("1:2:3:20:"), dec_tp("0,0,100")), {
+		{
+			name = "normal-hitnormal3",
+			fallback_name = "normal-hitnormal",
+			volume = 80 * 20 / 100,
+		},
+		{
+			name = "soft-hitclap3",
+			fallback_name = "soft-hitclap",
+			volume = 85 * 20 / 100,
+		},
+	})
 end
 
 function test.decode_1(t)
