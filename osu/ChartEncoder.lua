@@ -38,27 +38,27 @@ end
 
 function ChartEncoder:encodeMetadata()
 	local chart = self.chart
-	local sections = self.rawOsu.sections
+	local rosu = self.rawOsu
 
-	sections.General.entries.AudioFilename = chart.chartmeta.audio_path
-	sections.General.entries.PreviewTime = math.floor(chart.chartmeta.preview_time * 1000)
-	sections.General.entries.Mode = 3
+	rosu.General.AudioFilename = chart.chartmeta.audio_path
+	rosu.General.PreviewTime = math.floor(chart.chartmeta.preview_time * 1000)
+	rosu.General.Mode = 3
 
-	sections.Metadata.entries.Title = chart.chartmeta.title
-	sections.Metadata.entries.Artist = chart.chartmeta.artist
-	sections.Metadata.entries.Source = chart.chartmeta.source
-	sections.Metadata.entries.Tags = chart.chartmeta.tags
-	sections.Metadata.entries.Version = chart.chartmeta.name
-	sections.Metadata.entries.Creator = chart.chartmeta.creator
+	rosu.Metadata.Title = chart.chartmeta.title
+	rosu.Metadata.Artist = chart.chartmeta.artist
+	rosu.Metadata.Source = chart.chartmeta.source
+	rosu.Metadata.Tags = chart.chartmeta.tags
+	rosu.Metadata.Version = chart.chartmeta.name
+	rosu.Metadata.Creator = chart.chartmeta.creator
 
-	sections.Difficulty.entries.CircleSize = chart.inputMode:getColumns()
+	rosu.Difficulty.CircleSize = chart.inputMode:getColumns()
 
-	sections.Events.background = chart.chartmeta.background_path
+	rosu.Events.background = chart.chartmeta.background_path
 end
 
 function ChartEncoder:encodeEventSamples()
 	local columns = self.chart.inputMode:getColumns()
-	local samples = self.rawOsu.sections.Events.samples
+	local samples = self.rawOsu.Events.samples
 	for column, notes in self.chart.layers.main.notes:iter() do
 		for _, note in ipairs(notes) do
 			if note.noteType == "auto" then
@@ -75,7 +75,7 @@ end
 function ChartEncoder:encodeHitObjects()
 	local columns = self.chart.inputMode:getColumns()
 	local inputMap = self.inputMap
-	local objs = self.rawOsu.sections.HitObjects.objects
+	local objs = self.rawOsu.HitObjects
 	for column, notes in self.chart.layers.main.notes:iter() do
 		local key = inputMap[column]
 		if key then
@@ -102,7 +102,7 @@ end
 
 function ChartEncoder:encodeTimingPoints()
 	local layer = self.chart.layers.main
-	local tpoints = self.rawOsu.sections.TimingPoints.points
+	local tpoints = self.rawOsu.TimingPoints
 	for _, p in pairs(layer.points) do
 		---@type ncdk2.Tempo
 		local tempo = p._tempo

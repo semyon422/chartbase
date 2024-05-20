@@ -4,6 +4,7 @@ local test = {}
 
 function test.basic(t)
 	local key_value = KeyValue()
+	key_value.keys = {"Title", "Artist"}
 
 	local lines = {
 		"Title:b",
@@ -11,13 +12,15 @@ function test.basic(t)
 	}
 
 	key_value:decode(lines)
-	t:eq(key_value.entries.Title, "b")
-	t:eq(key_value.entries.Artist, "d")
+	t:eq(key_value.Title, "b")
+	t:eq(key_value.Artist, "d")
 	t:tdeq(key_value:encode(), lines)
 end
 
 function test.basic_space(t)
-	local key_value = KeyValue(true)
+	local key_value = KeyValue()
+	key_value.space = true
+	key_value.keys = {"Title", "Artist"}
 
 	local lines = {
 		"Title: b",
@@ -25,8 +28,8 @@ function test.basic_space(t)
 	}
 
 	key_value:decode(lines)
-	t:eq(key_value.entries.Title, "b")
-	t:eq(key_value.entries.Artist, "d")
+	t:eq(key_value.Title, "b")
+	t:eq(key_value.Artist, "d")
 	t:tdeq(key_value:encode(), lines)
 end
 

@@ -16,7 +16,7 @@ function test.basic(t)
 	}
 
 	timing_points:decode(lines)
-	t:eq(#timing_points.points, #lines - 1)
+	t:eq(#timing_points, #lines - 1)
 	t:tdeq(timing_points:encode(), lines)
 end
 

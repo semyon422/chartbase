@@ -51,7 +51,7 @@ function ChartDecoder:decodeOsu(osu)
 
 	self:addAudio()
 
-	local mode = tonumber(self.osu.rawOsu.sections.General.entries.Mode)
+	local mode = tonumber(self.osu.rawOsu.General.Mode)
 	if mode == 0 then
 		chart.inputMode = InputMode({osu = 1})
 	elseif mode == 1 then
@@ -71,8 +71,8 @@ function ChartDecoder:decodeOsu(osu)
 end
 
 function ChartDecoder:setMetadata()
-	local general = self.osu.rawOsu.sections.General.entries
-	local metadata = self.osu.rawOsu.sections.Metadata.entries
+	local general = self.osu.rawOsu.General
+	local metadata = self.osu.rawOsu.Metadata
 	self.chart.chartmeta = Chartmeta({
 		format = "osu",
 		title = metadata.Title,
@@ -82,8 +82,8 @@ function ChartDecoder:setMetadata()
 		name = metadata.Version,
 		creator = metadata.Creator,
 		audio_path = general.AudioFilename,
-		background_path = self.osu.rawOsu.sections.Events.background,
-		preview_time = general.PreviewTime / 1000,
+		background_path = self.osu.rawOsu.Events.background,
+		preview_time = tonumber(general.PreviewTime) / 1000,
 		notes_count = self.notes_count,
 		duration = (self.osu.maxTime - self.osu.minTime) / 1000,
 		inputmode = tostring(self.chart.inputMode),
@@ -96,7 +96,7 @@ function ChartDecoder:setMetadata()
 end
 
 function ChartDecoder:addAudio()
-	local audioFileName = self.osu.rawOsu.sections.General.entries.AudioFilename
+	local audioFileName = self.osu.rawOsu.General.AudioFilename
 	if not audioFileName or audioFileName == "virtual" then
 		return
 	end
@@ -150,7 +150,7 @@ end
 function ChartDecoder:decodeSamples()
 	local layer = self.layer
 
-	for _, e in ipairs(self.osu.rawOsu.sections.Events.samples) do
+	for _, e in ipairs(self.osu.rawOsu.Events.samples) do
 		local point = layer:getPoint(e.time / 1000)
 		local visualPoint = layer.visual:newPoint(point)
 		local note = Note(visualPoint)

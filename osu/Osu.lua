@@ -48,7 +48,7 @@ function Osu:new(rawOsu)
 end
 
 function Osu:decode()
-	self.keymode = math.floor(self.rawOsu.sections.Difficulty.entries.CircleSize)
+	self.keymode = math.floor(self.rawOsu.Difficulty.CircleSize)
 	self:decodeHitObjects()
 	self:decodeTimingPoints()
 end
@@ -59,7 +59,7 @@ function Osu:encode()
 end
 
 function Osu:decodeTimingPoints()
-	local points = self.rawOsu.sections.TimingPoints.points
+	local points = self.rawOsu.TimingPoints
 	for _, p in ipairs(points) do
 		p.timingChange = p.beatLength >= 0  -- real timingChange
 	end
@@ -191,13 +191,13 @@ function Osu:decodeHitObjects()
 	self.maxTime = 0
 	self.minTime = math.huge
 
-	local mode = tonumber(self.rawOsu.sections.General.entries.Mode)
+	local mode = tonumber(self.rawOsu.General.Mode)
 	local keymode = self.keymode
 
-	local points = self.rawOsu.sections.TimingPoints.points
+	local points = self.rawOsu.TimingPoints
 	local p_i = 1
 	local p = points[p_i]
-	for _, obj in ipairs(self.rawOsu.sections.HitObjects.objects) do
+	for _, obj in ipairs(self.rawOsu.HitObjects) do
 		local next_p = points[p_i + 1]
 		if next_p and obj.time >= next_p.offset then
 			p = next_p

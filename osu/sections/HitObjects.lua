@@ -22,7 +22,7 @@ local bit = require("bit")
 
 ---@class osu.HitObjects: osu.Section
 ---@operator call: osu.HitObjects
----@field objects osu.HitObject[]
+---@field [integer] osu.HitObject
 local HitObjects = Section + {}
 
 local HitObjectType = {
@@ -40,10 +40,6 @@ HitObjects.HitObjectType = HitObjectType
 
 local function is_type(_type, v)
 	return bit.band(_type, v) ~= 0
-end
-
-function HitObjects:new()
-	self.objects = {}
 end
 
 ---@param object osu.HitObject
@@ -194,14 +190,14 @@ function HitObjects:decodeLine(line)
 		end
 	end
 
-	table.insert(self.objects, object)
+	table.insert(self, object)
 end
 
 ---@return string[]
 function HitObjects:encode()
 	local out = {}
 
-	for _, object in ipairs(self.objects) do
+	for _, object in ipairs(self) do
 		local extra = ""
 
 		if is_type(HitObjectType.Slider, object.type) then

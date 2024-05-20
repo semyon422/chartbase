@@ -7,15 +7,39 @@ osu file format v14
 
 [General]
 AudioFilename: audio.mp3
+AudioLeadIn: 0
+PreviewTime: -1
+Countdown: 0
+SampleSet: 0
+StackLeniency: 0
+Mode: 3
+LetterboxInBreaks: 0
 
 [Editor]
+DistanceSpacing: 1
 BeatDivisor: 4
+GridSize: 4
+TimelineZoom: 1
 
 [Metadata]
 Title:Example
+TitleUnicode:
+Artist:
+ArtistUnicode:
+Creator:
+Version:
+Source:
+Tags:
+BeatmapID:
+BeatmapSetID:
 
 [Difficulty]
+HPDrainRate:5
+CircleSize:4
 OverallDifficulty:10
+ApproachRate:5
+SliderMultiplier:1.4
+SliderTickRate:1
 
 [Events]
 //Background and Video events

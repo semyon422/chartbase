@@ -1,21 +1,14 @@
 local class = require("class")
-local KeyValue = require("osu.sections.KeyValue")
+local GeneralSection = require("osu.sections.GeneralSection")
+local EditorSection = require("osu.sections.EditorSection")
+local MetadataSection = require("osu.sections.MetadataSection")
+local DifficultySection = require("osu.sections.DifficultySection")
 local Events = require("osu.sections.Events")
 local TimingPoints = require("osu.sections.TimingPoints")
 local HitObjects = require("osu.sections.HitObjects")
 
----@class osu.Sections
----@field General osu.KeyValue
----@field Editor osu.KeyValue
----@field Metadata osu.KeyValue
----@field Difficulty osu.KeyValue
----@field Events osu.Events
----@field TimingPoints osu.TimingPoints
----@field HitObjects osu.HitObjects
-
 ---@class osu.RawOsu
 ---@operator call: osu.RawOsu
----@field sections osu.Sections
 local RawOsu = class()
 
 --[[
@@ -36,15 +29,13 @@ local sections_order = {
 }
 
 function RawOsu:new()
-	self.sections = {
-		General = KeyValue(true),
-		Editor = KeyValue(true),
-		Metadata = KeyValue(),
-		Difficulty = KeyValue(),
-		Events = Events(true),
-		TimingPoints = TimingPoints(),
-		HitObjects = HitObjects(),
-	}
+	self.General = GeneralSection()
+	self.Editor = EditorSection()
+	self.Metadata = MetadataSection()
+	self.Difficulty = DifficultySection()
+	self.Events = Events(true)
+	self.TimingPoints = TimingPoints()
+	self.HitObjects = HitObjects()
 end
 
 ---@param s string
@@ -52,7 +43,7 @@ function RawOsu:decode(s)
 	for _, line in ipairs(s:gsub("\r\n?", "\n"):split("\n")) do
 		self:decodeLine(line)
 	end
-	self.sections.TimingPoints:sort()
+	self.TimingPoints:sort()
 end
 
 ---@param line string
@@ -67,7 +58,7 @@ function RawOsu:decodeLine(line)
 		return
 	end
 
-	local section = self.sections[self.sectionName]
+	local section = self[self.sectionName]
 	if not section then
 		return
 	end
@@ -82,7 +73,7 @@ function RawOsu:encode()
 	for _, section_name in ipairs(sections_order) do
 		table.insert(out, "")
 		table.insert(out, ("[%s]"):format(section_name))
-		local section = self.sections[section_name]
+		local section = self[section_name]
 		for _, line in ipairs(section:encode()) do
 			table.insert(out, line)
 		end

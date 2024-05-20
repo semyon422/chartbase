@@ -14,7 +14,7 @@ local Section = require("osu.sections.Section")
 
 ---@class osu.TimingPoints: osu.Section
 ---@operator call: osu.TimingPoints
----@field points osu.ControlPoint[]
+---@field [integer] osu.ControlPoint
 local TimingPoints = Section + {}
 
 TimingPoints.sampleVolume = 100
@@ -31,11 +31,10 @@ local EffectFlags = {
 function TimingPoints:new(sampleVolume, defaultSampleSet)
 	self.sampleVolume = sampleVolume
 	self.defaultSampleSet = defaultSampleSet
-	self.points = {}
 end
 
 function TimingPoints:sort()
-	table.sort(self.points, function(a, b)
+	table.sort(self, function(a, b)
 		if a.offset ~= b.offset then
 			return a.offset < b.offset
 		end
@@ -73,7 +72,7 @@ function TimingPoints:decodeLine(line)
 		point.timingChange = true
 		point.kiai = false
 		point.omitFirstBarLine = false
-		table.insert(self.points, point)
+		table.insert(self, point)
 		return
 	end
 
@@ -90,14 +89,14 @@ function TimingPoints:decodeLine(line)
 	point.kiai = bit.band(effectFlags, EffectFlags.Kiai) ~= 0
 	point.omitFirstBarLine = bit.band(effectFlags, EffectFlags.OmitFirstBarLine) ~= 0
 
-	table.insert(self.points, point)
+	table.insert(self, point)
 end
 
 ---@return string[]
 function TimingPoints:encode()
 	local out = {}
 
-	for _, p in ipairs(self.points) do
+	for _, p in ipairs(self) do
 		local effectFlags = 0
 		effectFlags = bit.bor(effectFlags, p.kiai and EffectFlags.Kiai or 0)
 		effectFlags = bit.bor(effectFlags, p.omitFirstBarLine and EffectFlags.OmitFirstBarLine or 0)

@@ -20,7 +20,7 @@ function test.basic(t)
 
 	hit_objects:decode(lines)
 
-	t:eq(#hit_objects.objects, #lines)
+	t:eq(#hit_objects, #lines)
 	t:tdeq(hit_objects:encode(), lines)
 end
 
