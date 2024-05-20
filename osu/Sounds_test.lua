@@ -1,19 +1,7 @@
 local Sounds = require("osu.Sounds")
+local Addition = require("osu.sections.Addition")
 
 local test = {}
-
----@param s string
----@return osu.Addition
-local function dec_add(s)  -- s:a:c:v:f
-	local split = s:split(":")
-	return {
-		sampleSet = tonumber(split[1]),
-		addSampleSet = tonumber(split[2]),
-		customSample = tonumber(split[3]),
-		volume = tonumber(split[4]),
-		sampleFile = split[5],
-	}
-end
 
 ---@param s string
 ---@return osu.ControlPoint
@@ -27,25 +15,25 @@ local function dec_tp(s)  -- 0,0,0,s,c,v,0,0
 end
 
 function test.encode(t)
-	t:tdeq(Sounds:decode(0, dec_add("0:0:0:0:"), dec_tp("0,0,100")), {{
+	t:tdeq(Sounds:decode(0, Addition("0:0:0:0:"), dec_tp("0,0,100")), {{
 		name = "soft-hitnormal",
 		volume = 80,
 	}})
-	t:tdeq(Sounds:decode(8, dec_add("0:0:0:0:"), dec_tp("1,0,100")), {{
+	t:tdeq(Sounds:decode(8, Addition("0:0:0:0:"), dec_tp("1,0,100")), {{
 		name = "normal-hitclap",
 		volume = 85,
 	}})
-	t:tdeq(Sounds:decode(0, dec_add("0:0:0:0:"), dec_tp("1,2,100")), {{
+	t:tdeq(Sounds:decode(0, Addition("0:0:0:0:"), dec_tp("1,2,100")), {{
 		name = "normal-hitnormal2",
 		fallback_name = "normal-hitnormal",
 		volume = 80,
 	}})
-	t:tdeq(Sounds:decode(0, dec_add("0:0:0:70:sound.wav"), dec_tp("0,0,100")), {{
+	t:tdeq(Sounds:decode(0, Addition("0:0:0:70:sound.wav"), dec_tp("0,0,100")), {{
 		name = "sound.wav",
 		volume = 70,
 		is_keysound = true,
 	}})
-	t:tdeq(Sounds:decode(9, dec_add("1:2:3:20:"), dec_tp("0,0,100")), {
+	t:tdeq(Sounds:decode(9, Addition("1:2:3:20:"), dec_tp("0,0,100")), {
 		{
 			name = "normal-hitnormal3",
 			fallback_name = "normal-hitnormal",

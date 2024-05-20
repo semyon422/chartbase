@@ -2,6 +2,7 @@ local IChartEncoder = require("notechart.IChartEncoder")
 local Osu = require("osu.Osu")
 local RawOsu = require("osu.RawOsu")
 local HitObjects = require("osu.sections.HitObjects")
+local Addition = require("osu.sections.Addition")
 local mappings = require("osu.exportKeyMappings")
 
 ---@class osu.ChartEncoder: chartbase.IChartEncoder
@@ -86,6 +87,7 @@ function ChartEncoder:encodeHitObjects()
 					y = 192,
 					type = 1,
 					soundType = HitObjects.HitObjectType.Normal,
+					addition = Addition(),
 				}
 				if note.endNote then
 					obj.type = HitObjects.HitObjectType.ManiaLong

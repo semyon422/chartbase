@@ -1,14 +1,8 @@
 local Section = require("osu.sections.Section")
+local Addition = require("osu.sections.Addition")
 local bit = require("bit")
 
----@class osu.Addition
----@field sampleSet number
----@field addSampleSet number
----@field customSample number
----@field volume number
----@field sampleFile string
-
----@class osu.HitObject: osu.Addition
+---@class osu.HitObject
 ---@field x number
 ---@field y number
 ---@field time number
@@ -22,6 +16,7 @@ local bit = require("bit")
 ---@field sounds number[]?
 ---@field ss number[]?
 ---@field ssa number[]?
+---@field addition osu.Addition
 
 ---@alias osu.Vector2 number[]
 
@@ -49,25 +44,6 @@ end
 
 function HitObjects:new()
 	self.objects = {}
-end
-
----@param object osu.HitObject
----@param s string
----@param hold boolean?
-local function parse_addition(object, s, hold)
-	if not s or #s == 0 then
-		return
-	end
-	local addition = s:split(":")
-	local offset = hold and 1 or 0
-	if hold then
-		object.endTime = tonumber(addition[1]) or object.time
-	end
-	object.sampleSet = tonumber(addition[1 + offset]) or 0
-	object.addSampleSet = tonumber(addition[2 + offset]) or 0
-	object.customSample = tonumber(addition[3 + offset]) or 0
-	object.volume = tonumber(addition[4 + offset]) or 0
-	object.sampleFile = addition[5 + offset] or ""
 end
 
 ---@param object osu.HitObject
@@ -167,7 +143,7 @@ local function decode_osu_slider(object, split, soundType)
 	end
 
 	if #split > 10 then
-		parse_addition(object, split[11])
+		object.addition = Addition(split[11])
 	end
 
 	object.points = points
@@ -199,16 +175,23 @@ function HitObjects:decodeLine(line)
 	object.soundType = tonumber(split[5]) or 0
 
 	if is_type(HitObjectType.Normal, _type) then
-		parse_addition(object, split[6])
+		object.addition = Addition(split[6])
 	elseif is_type(HitObjectType.Slider, _type) then
 		local length = tonumber(split[8])
 		object.endTime = length and object.time + length or object.time
 		decode_osu_slider(object, split, object.soundType)
 	elseif is_type(HitObjectType.Spinner, _type) then
 		object.endTime = tonumber(split[6])
-		parse_addition(object, split[7])
+		object.addition = Addition(split[7])
 	elseif is_type(HitObjectType.Hold, _type) then
-		parse_addition(object, split[6], true)
+		local a, b = split[6]:match("^(.-):(.+)$")
+		if a then
+			object.endTime = tonumber(a)
+			object.addition = Addition(b)
+		else
+			object.endTime = tonumber(split[6])
+			object.addition = Addition()
+		end
 	end
 
 	table.insert(self.objects, object)
@@ -243,40 +226,14 @@ function HitObjects:encode()
 					extra = extra .. object.ss[i] .. ":" .. object.ssa[i] .. "|"
 				end
 				extra = extra:gsub("|$", "")
-				extra = extra .. (",%s:%s:%s:%s:%s"):format(
-					object.sampleSet,
-					object.addSampleSet,
-					object.customSample,
-					object.volume,
-					object.sampleFile
-				)
+				extra = extra .. "," .. object.addition:encode()
 			end
 		elseif is_type(HitObjectType.Spinner, object.type) then
-			extra = ("%s,%s:%s:%s:%s:%s"):format(
-				object.endTime,
-				object.sampleSet,
-				object.addSampleSet,
-				object.customSample,
-				object.volume,
-				object.sampleFile
-			)
+			extra = object.endTime .. "," .. object.addition:encode()
 		elseif is_type(HitObjectType.Normal, object.type) then
-			extra = ("%s:%s:%s:%s:%s"):format(
-				object.sampleSet,
-				object.addSampleSet,
-				object.customSample,
-				object.volume,
-				object.sampleFile
-			)
+			extra = object.addition:encode()
 		elseif is_type(HitObjectType.Hold, object.type) then
-			extra = ("%s:%s:%s:%s:%s:%s"):format(
-				object.endTime,
-				object.sampleSet,
-				object.addSampleSet,
-				object.customSample,
-				object.volume,
-				object.sampleFile
-			)
+			extra = object.endTime .. ":" .. object.addition:encode()
 		end
 
 		table.insert(out, ("%s,%s,%s,%s,%s,%s"):format(
