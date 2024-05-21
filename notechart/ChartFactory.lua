@@ -9,6 +9,7 @@ local ChartDecoders = {
 	osu = require("osu.ChartDecoder"),
 	sph = require("sph.ChartDecoder"),
 	ojn = require("o2jam.ChartDecoder"),
+	bms = require("bms.ChartDecoder"),
 }
 
 ---@param filename string
