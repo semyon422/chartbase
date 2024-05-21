@@ -8,6 +8,7 @@ local ChartFactory = class()
 local ChartDecoders = {
 	osu = require("osu.ChartDecoder"),
 	sph = require("sph.ChartDecoder"),
+	ojn = require("o2jam.ChartDecoder"),
 }
 
 ---@param filename string
