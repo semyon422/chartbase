@@ -2,6 +2,7 @@ local class = require("class")
 local ffi = require("ffi")
 local bit = require("bit")
 local byte = require("byte")
+local Fraction = require("ncdk.Fraction")
 
 ---@class o2jam.OJN
 ---@operator call: o2jam.OJN
@@ -166,7 +167,7 @@ function OJN:readChart(chart)
 		local channel = channel_names[channel_number] or "AUTO_PLAY"
 
 		for i = 0, events_count - 1 do
-			local position = i / events_count
+			local position = Fraction(i, events_count)
 			if channel == "BPM_CHANGE" or channel == "TIME_SIGNATURE" then
 				local value = buffer:float_le()
 				if value ~= 0 then

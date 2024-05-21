@@ -115,7 +115,7 @@ function ChartDecoder:process(index)
 	local measure_count = self.ojn.charts[index].measure_count
 
 	for _, event in ipairs(self.ojn.charts[index].event_list) do
-		local measureTime = Fraction(event.measure + event.position, 1000, true)
+		local measureTime = event.position + event.measure
 		local point = layer:getPoint(measureTime)
 		local next_point = layer:getPoint(measureTime + 1)
 		local visualPoint = layer.visual:newPoint(point)
