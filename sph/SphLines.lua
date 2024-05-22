@@ -2,17 +2,30 @@ local class = require("class")
 local Fraction = require("ncdk.Fraction")
 local Line = require("sph.lines.Line")
 
+---@class sph.ProtoLine
+---@field globalTime ncdk.Fraction
+---@field comment string?
+---@field visual true?
+---@field measure ncdk.Fraction?
+---@field sounds integer[]?
+---@field volume integer[]?
+---@field velocity number[]?
+---@field expand number?
+---@field notes sph.LineNote[]?
+---@field offset number?
+
 ---@class sph.SphLines
 ---@operator call: sph.SphLines
 local SphLines = class()
 
 function SphLines:new()
+	---@type sph.ProtoLine[]
 	self.protoLines = {}
 	self.beatOffset = -1
 	self.lineTime = {0, 1}
 end
 
----@param lines sph.Line
+---@param lines sph.Line[]
 function SphLines:decode(lines)
 	for _, line in ipairs(lines) do
 		self:decodeLine(line)
@@ -22,10 +35,12 @@ end
 ---@param line sph.Line
 function SphLines:decodeLine(line)
 	local pline = {}
+	---@cast pline sph.ProtoLine
 
 	pline.comment = line.comment
 	local offset = line.offset
 
+	---@type ncdk.Fraction?
 	local lineTime
 	if line.time then
 		lineTime = line.time
@@ -61,6 +76,8 @@ end
 ---@return sph.Line[]
 function SphLines:encode()
 	local protoLines = self.protoLines
+
+	---@type sph.Line[]
 	local lines = {}
 
 	local plineIndex = 1
