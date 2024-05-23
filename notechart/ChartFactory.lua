@@ -14,6 +14,7 @@ local ChartDecoders = {
 	qua = require("quaver.ChartDecoder"),
 	mid = require("midi.ChartDecoder"),
 	midi = require("midi.ChartDecoder"),
+	ksh = require("ksm.ChartDecoder"),
 }
 
 ---@param filename string
