@@ -83,8 +83,6 @@ function ChartDecoder:decodeBms(bms)
 	local chart = Chart()
 	self.chart = chart
 
-	-- chart.inputMode = InputMode({key = 7})
-
 	local layer = MeasureLayer()
 	chart.layers.main = layer
 	self.layer = layer

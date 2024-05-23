@@ -25,10 +25,7 @@ function SM:newChart()
 end
 
 ---@param noteChartString string
----@param path string
-function SM:import(noteChartString, path)
-	self.path = path
-
+function SM:import(noteChartString)
 	for _, line in ipairs(noteChartString:split("\n")) do
 		self:processLine(line:trim())
 	end
@@ -93,71 +90,7 @@ function SM:processHeaderLine(line)
 		if not line:find(";") then
 			self.parsingStop = true
 		end
-	elseif key == "BACKGROUND" then
-		-- self:processBackground(value)  -- TODO: fix this
 	end
-end
-
----@param fileName string
-function SM:processBackground(fileName)
-	if not love then
-		self.header["BACKGROUND"] = ""
-		return
-	end
-	local fs = love.filesystem
-
-	local getComparable = function(fileName)
-		local fileName = fileName:lower()
-
-		if not fileName:find("%.") then
-			return fileName
-		end
-
-		return fileName:match("(.+)%..+")
-	end
-
-	local isImage = function(fileName)
-		local imageFormats = {".jpg", ".jpeg", ".png", ".bmp", ".tga"}
-		local fileExtension = fileName:match("^.+(%..+)$")
-
-		for _, format in ipairs(imageFormats) do
-			if format == fileExtension then
-				return true
-			end
-		end
-
-		return false
-	end
-
-	local directory = self.path:match("(.*".."/"..")")
-	local exists = fs.getInfo(directory .. fileName)
-
-	if fileName ~= "" and exists then
-		self.header["BACKGROUND"] = fileName
-		return
-	end
-
-	local dirFiles = fs.getDirectoryItems(directory)
-	local possibleNames = {"background", "bg"}
-
-	if fileName ~= "" then
-		table.insert(possibleNames, 1, getComparable(fileName))
-	end
-
-	for _, itemName in ipairs(dirFiles) do
-		local comparable = getComparable(itemName)
-
-		for _, name in ipairs(possibleNames) do
-			if comparable:find(name) then
-				if isImage(itemName) then
-					self.header["BACKGROUND"] = itemName
-					return
-				end
-			end
-		end
-	end
-
-	self.header["BACKGROUND"] = ""
 end
 
 ---@param line string
@@ -210,7 +143,7 @@ function SM:processNotesLine(line)
 				measure = chart.measure,
 				offset = chart.offset,
 				noteType = noteType,
-				inputIndex = i
+				column = i,
 			})
 		end
 	end

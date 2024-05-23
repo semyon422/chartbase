@@ -10,6 +10,7 @@ local ChartDecoders = {
 	sph = require("sph.ChartDecoder"),
 	ojn = require("o2jam.ChartDecoder"),
 	bms = require("bms.ChartDecoder"),
+	sm = require("stepmania.ChartDecoder"),
 }
 
 ---@param filename string
