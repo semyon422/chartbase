@@ -88,10 +88,10 @@ function ChartDecoder:setMetadata()
 		duration = (self.osu.maxTime - self.osu.minTime) / 1000,
 		inputmode = tostring(self.chart.inputMode),
 		start_time = self.osu.minTime / 1000,
-		tempo = self.osu.primaryTempo,
-		tempo_avg = self.osu.primaryTempo,
-		tempo_min = self.osu.minTempo,
-		tempo_max = self.osu.maxTempo,
+		tempo = self.osu.primary_tempo,
+		tempo_avg = self.osu.primary_tempo,
+		tempo_min = self.osu.min_tempo,
+		tempo_max = self.osu.max_tempo,
 	})
 end
 

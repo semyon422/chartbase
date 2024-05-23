@@ -1,5 +1,6 @@
 local class = require("class")
 local Sounds = require("osu.Sounds")
+local PrimaryTempo = require("osu.PrimaryTempo")
 local Barlines = require("osu.Barlines")
 
 ---@class osu.ProtoTempo
@@ -96,8 +97,8 @@ function Osu:decodeTimingPoints()
 	table.sort(tempo_points, function(a, b)
 		return a.offset < b.offset
 	end)
-	self:updatePrimaryTempo(tempo_points)
-	self:decodeBarlines(tempo_points)
+	self.primary_tempo, self.min_tempo, self.max_tempo = PrimaryTempo:compute(tempo_points, self.maxTime)
+	self.barlines = Barlines:generate(tempo_points, self.maxTime)
 
 	for offset, fp in pairs(filtered_points) do
 		local velocity = fp.velocity
@@ -125,55 +126,6 @@ function Osu:decodeTimingPoints()
 	table.sort(self.protoVelocities, function(a, b)
 		return a.offset < b.offset
 	end)
-end
-
----@param tempo_points osu.FilteredPoint[]
-function Osu:updatePrimaryTempo(tempo_points)
-	local lastTime = self.maxTime
-	local current_bl = 0
-
-	---@type {[number]: number}
-	local durations = {}
-
-	local min_bl = math.huge
-	local max_bl = -math.huge
-
-	for i = #tempo_points, 1, -1 do
-		local p = tempo_points[i]
-
-		local beatLength = p.beatLength
-		current_bl = beatLength
-		min_bl = math.min(min_bl, current_bl)
-		max_bl = math.max(max_bl, current_bl)
-
-		if p.offset < lastTime then
-			durations[current_bl] = (durations[current_bl] or 0) + (lastTime - (i == 1 and 0 or p.offset))
-			lastTime = p.offset
-		end
-	end
-
-	local longestDuration = 0
-	local average = 0
-
-	for beatLength, duration in pairs(durations) do
-		if duration > longestDuration then
-			longestDuration = duration
-			average = beatLength
-		end
-	end
-
-	if longestDuration == 0 then
-		self.primaryBeatLength = 0
-		self.primaryTempo = 0
-		self.minTempo = 0
-		self.maxTempo = 0
-		return
-	end
-
-	self.primaryBeatLength = average
-	self.primaryTempo = 60000 / average
-	self.minTempo = 60000 / max_bl
-	self.maxTempo = 60000 / min_bl
 end
 
 local function get_taiko_type(soundType)
