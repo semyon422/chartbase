@@ -1,45 +1,37 @@
-local tablecheck = require("typecheck.tablecheck")
+local class = require("class")
 
-return tablecheck([[(
-	index: number?,
-	format: string?,
+---@class chartbase.Chartmeta
+---@field index number?
+---@field format string?
+---@field title string?
+---@field artist string?
+---@field name string?
+---@field creator string?
+---@field source string?
+---@field tags string?
+---@field audio_path string?
+---@field preview_time number?
+---@field background_path string?
+---@field stage_path string?
+---@field banner_path string?
+---@field level number?
+---@field tempo number?
+---@field tempo_avg number?
+---@field tempo_min number?
+---@field tempo_max number?
+---@field notes_count number?
+---@field duration number?
+---@field start_time number?
+---@field inputmode string
+---@field osu_beatmap_id number?
+---@field osu_beatmapset_id number?
+---@field osu_ranked_status number?
+---@field has_video boolean?
+---@field has_storyboard boolean?
+---@field has_subtitles boolean?
+---@field has_negative_speed boolean?
+---@field has_stacked_notes boolean?
+---@field breaks_count number?
+local Chartmeta = class()
 
-	title: string?,
-	artist: string?,
-	name: string?,
-	creator: string?,
-
-	source: string?,
-	tags: string?,
-
-	audio_path: string?,
-	preview_time: number?,
-
-	background_path: string?,
-	stage_path: string?,
-	banner_path: string?,
-
-	level: number?,
-	tempo: number?,
-	tempo_avg: number?,
-	tempo_min: number?,
-	tempo_max: number?,
-
-	notes_count: number?,
-	duration: number?,
-	start_time: number?,
-
-	inputmode: string,
-
-	osu_beatmap_id: number?,
-	osu_beatmapset_id: number?,
-	osu_ranked_status: number?,
-
-	has_video: boolean?,
-	has_storyboard: boolean?,
-	has_subtitles: boolean?,
-	has_negative_speed: boolean?,
-	has_stacked_notes: boolean?,
-
-	breaks_count: number?,
-)]])
+return Chartmeta
