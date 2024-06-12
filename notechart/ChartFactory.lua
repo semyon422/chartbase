@@ -31,7 +31,7 @@ end
 ---@return string?
 function ChartFactory:getCharts(filename, content)
 	---@type chartbase.IChartDecoder
-	local decoder = assert(ChartDecoders[path_util.ext(filename, true)])()
+	local decoder = assert(ChartDecoders[path_util.ext(filename, true)], filename)()
 	local status, charts = xpcall(decoder.decode, debug.traceback, decoder, content)
 	if not status then
 		return nil, charts
