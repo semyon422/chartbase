@@ -15,4 +15,9 @@ local Note = require("ncdk2.notes.Note")
 ---@field endNote notechart.Note
 local _Note = Note + {}
 
+_Note.__tostring = Note.__tostring
+_Note.__eq = Note.__eq
+_Note.__lt = Note.__lt
+_Note.__le = Note.__le
+
 return _Note
