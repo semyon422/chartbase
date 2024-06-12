@@ -82,7 +82,7 @@ function ChartEncoder:encodeHitObjects()
 			for _, note in ipairs(notes) do
 				---@type osu.HitObject
 				local obj = {
-					time = note.visualPoint.point.absoluteTime,
+					time = math.floor(note.visualPoint.point.absoluteTime * 1000),
 					x = math.floor(512 / columns * (key - 0.5)),
 					y = 192,
 					type = 1,

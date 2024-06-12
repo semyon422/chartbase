@@ -195,6 +195,13 @@ end
 
 ---@return string[]
 function HitObjects:encode()
+	table.sort(self, function(a, b)
+		if a.time ~= b.time then
+			return a.time < b.time
+		end
+		return a.x < b.x
+	end)
+
 	local out = {}
 
 	for _, object in ipairs(self) do
