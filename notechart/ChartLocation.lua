@@ -12,6 +12,18 @@ local Unrelated = table_util.invert({
 	"midi",
 })
 
+local Related = table_util.invert({
+	"osu",
+	"bms",
+	"bme",
+	"bml",
+	"pms",
+	"qua",
+	"ksh",
+	"sph",
+	"sm",
+})
+
 ---@param filename string
 ---@return boolean
 function ChartLocation:isUnrelated(filename)
@@ -21,7 +33,7 @@ end
 ---@param filename string
 ---@return boolean
 function ChartLocation:isRelated(filename)
-	return not self:isUnrelated(filename)
+	return Related[path_util.ext(filename, true)] ~= nil
 end
 
 return ChartLocation
