@@ -193,15 +193,17 @@ function HitObjects:decodeLine(line)
 	table.insert(self, object)
 end
 
----@return string[]
-function HitObjects:encode()
+function HitObjects:sort()
 	table.sort(self, function(a, b)
 		if a.time ~= b.time then
 			return a.time < b.time
 		end
 		return a.x < b.x
 	end)
+end
 
+---@return string[]
+function HitObjects:encode()
 	local out = {}
 
 	for _, object in ipairs(self) do

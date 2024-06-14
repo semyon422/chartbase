@@ -98,6 +98,7 @@ function ChartEncoder:encodeHitObjects()
 			end
 		end
 	end
+	objs:sort()
 end
 
 function ChartEncoder:encodeTimingPoints()
