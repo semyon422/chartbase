@@ -108,7 +108,7 @@ function ChartDecoder:decodeTempos()
 	local layer = self.layer
 	for _, tp in ipairs(self.qua.TimingPoints) do
 		if tp.Bpm then
-			local point = layer:getPoint(tp.StartTime / 1000)
+			local point = layer:getPoint((tp.StartTime or 0) / 1000)
 			point._tempo = Tempo(tp.Bpm)
 			-- do something with tp.Singature
 		end
@@ -118,7 +118,7 @@ end
 function ChartDecoder:decodeVelocities()
 	local layer = self.layer
 	for _, sv in ipairs(self.qua.SliderVelocities) do
-		local point = layer:getPoint(sv.StartTime / 1000)
+		local point = layer:getPoint((sv.StartTime or 0) / 1000)
 		local visualPoint = layer.visual:newPoint(point)
 		visualPoint._velocity = Velocity(sv.Multiplier)
 	end
@@ -199,7 +199,7 @@ function ChartDecoder:getTempoPoints()
 	for _, tp in ipairs(self.qua.TimingPoints) do
 		if tp.Bpm then
 			table.insert(tempo_points, {
-				offset = tp.StartTime,
+				offset = tp.StartTime or 0,
 				beatLength = 60000 / tp.Bpm,
 				signature = tp.Singature or 4,
 			})
