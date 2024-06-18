@@ -24,9 +24,14 @@ function SM:newChart()
 	table.insert(self.charts, chart)
 end
 
----@param noteChartString string
-function SM:import(noteChartString)
-	for _, line in ipairs(noteChartString:split("\n")) do
+local BOM = string.char(0xEF, 0xBB, 0xBF)
+
+---@param s string
+function SM:import(s)
+	if s:sub(1, 3) == BOM then
+		s = s:sub(4)
+	end
+	for _, line in ipairs(s:split("\n")) do
 		self:processLine(line:trim())
 	end
 end
