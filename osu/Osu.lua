@@ -188,9 +188,4 @@ function Osu:decodeHitObjects()
 	end
 end
 
----@param tempo_points osu.FilteredPoint[]
-function Osu:decodeBarlines(tempo_points)
-	self.barlines = Barlines:generate(tempo_points, self.maxTime)
-end
-
 return Osu

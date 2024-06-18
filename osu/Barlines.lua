@@ -8,6 +8,9 @@ local Barlines = class()
 ---@param lastTime number
 ---@return number[]
 function Barlines:generate(tempo_points, lastTime)
+	if #tempo_points == 0 then
+		return {}
+	end
 	local start = tempo_points[1].offset
 	if start >= 0 then
 		local measure_length = tempo_points[1].beatLength * tempo_points[1].signature

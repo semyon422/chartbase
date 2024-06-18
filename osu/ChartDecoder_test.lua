@@ -29,4 +29,20 @@ function test.basic(t)
 	local charts = dec:decode(test_chart)
 end
 
+local empty_chart = [[
+osu file format v14
+
+[General]
+Mode: 3
+PreviewTime: 0
+
+[Difficulty]
+CircleSize:4
+]]
+
+function test.empty(t)
+	local dec = ChartDecoder()
+	local charts = dec:decode(empty_chart)
+end
+
 return test
