@@ -147,6 +147,11 @@ function Osu:decodeHitObjects()
 	local keymode = self.keymode
 
 	local points = self.rawOsu.TimingPoints
+	if #points == 0 then
+		self.minTime = 0
+		return
+	end
+
 	local p_i = 1
 	local p = points[p_i]
 	for _, obj in ipairs(self.rawOsu.HitObjects) do
