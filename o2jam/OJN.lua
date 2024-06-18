@@ -157,9 +157,17 @@ local channel_names = {
 ---@param chart table
 function OJN:readChart(chart)
 	local buffer = self.buffer:seek(chart.note_offset)
-	chart.event_list = {}
+
+	local events = {}
+	chart.event_list = events
+
+	local total_events = chart.event_count
 
 	while buffer.offset < chart.note_offset_end do
+		if #events >= total_events then
+			return
+		end
+
 		local measure = buffer:int32_le()
 		local channel_number = buffer:int16_le()
 		local events_count = buffer:int16_le()
@@ -171,7 +179,7 @@ function OJN:readChart(chart)
 			if channel == "BPM_CHANGE" or channel == "TIME_SIGNATURE" then
 				local value = buffer:float_le()
 				if value ~= 0 then
-					table.insert(chart.event_list, {
+					table.insert(events, {
 						channel = channel,
 						measure = measure,
 						position = position,
@@ -206,7 +214,7 @@ function OJN:readChart(chart)
 						type_name = "RELEASE"
 					end
 
-					table.insert(chart.event_list, {
+					table.insert(events, {
 						channel = channel,
 						measure = measure,
 						position = position,
