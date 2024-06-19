@@ -403,7 +403,7 @@ local function line_to_preview_line(line, prev_pline, long_notes)
 					t = false  -- delete note at the end of LN
 				end
 			end
-			notes[note.column] = t
+			notes[column] = t
 		end
 	end
 
@@ -435,7 +435,6 @@ function SphPreview:linesToPreviewLines(lines)
 	local long_notes = {}
 	local plines = {}
 	for i, line in ipairs(lines) do
-		-- print("line " .. i .. " " .. require("stbl").encode(line))
 		local prev_line = plines[#plines]
 		local _line = line_to_preview_line(line, prev_line, long_notes)
 		table.insert(plines, _line)
