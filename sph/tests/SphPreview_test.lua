@@ -365,4 +365,100 @@ function test.visual_merge(t)
 	})
 end
 
+function test.collision_short_short(t)
+	local _lines = {
+		{notes={{column=1,type="1"}}},
+		{notes={{column=1,type="1"}},visual=true},
+	}
+
+	local plines = SphPreview:linesToPreviewLines(_lines)
+	t:tdeq(plines, {
+		{notes={true}},
+	})
+end
+
+function test.collision_short_long(t)
+	local _lines = {
+		{notes={{column=1,type="1"}}},
+		{notes={{column=1,type="2"}},visual=true},
+		{notes={{column=1,type="3"}}},
+	}
+
+	local plines = SphPreview:linesToPreviewLines(_lines)
+	t:tdeq(plines, {
+		{notes={true}},
+		{notes={false}},
+	})
+
+	local _lines = {
+		{notes={{column=1,type="2"}}},
+		{notes={{column=1,type="1"}},visual=true},
+		{notes={{column=1,type="3"}}},
+	}
+
+	local plines = SphPreview:linesToPreviewLines(_lines)
+	t:tdeq(plines, {
+		{notes={true}},
+		{notes={false}},
+	})
+end
+
+function test.collision_long_short(t)
+	local _lines = {
+		{notes={{column=1,type="2"}}},
+		{notes={{column=1,type="3"}}},
+		{notes={{column=1,type="1"}},visual=true},
+	}
+
+	local plines = SphPreview:linesToPreviewLines(_lines)
+	t:tdeq(plines, {
+		{notes={true}},
+		{notes={false}},
+	})
+
+	local _lines = {
+		{notes={{column=1,type="2"}}},
+		{notes={{column=1,type="1"}}},
+		{notes={{column=1,type="3"}},visual=true},
+	}
+
+	local plines = SphPreview:linesToPreviewLines(_lines)
+	t:tdeq(plines, {
+		{notes={true}},
+		{notes={false}},
+	})
+end
+
+function test.collision_short_inside_long(t)
+	local _lines = {
+		{notes={{column=1,type="2"}}},
+		{notes={{column=1,type="1"}}},
+		{notes={{column=1,type="3"}}},
+	}
+
+	local plines = SphPreview:linesToPreviewLines(_lines)
+	t:tdeq(plines, {
+		{notes={true}},
+		{notes={}},
+		{notes={false}},
+	})
+end
+
+function test.collision_long_inside_long(t)
+	local _lines = {
+		{notes={{column=1,type="2"}}},
+		{notes={{column=1,type="2"}}},
+		{notes={{column=1,type="3"}}},
+		{notes={{column=1,type="3"}}},
+	}
+
+	local plines = SphPreview:linesToPreviewLines(_lines)
+	t:tdeq(plines, {
+		{notes={true}},
+		{notes={}},
+		{notes={}},
+		{notes={false}},
+	})
+end
+
 return test

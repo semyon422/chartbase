@@ -377,16 +377,31 @@ local function line_to_preview_line(line, prev_pline, long_notes)
 			notes = {}
 		end
 		for _, note in ipairs(line.notes) do
-			local t
-			if note.type == "1" then
+			local column = note.column
+			long_notes[column] = long_notes[column] or 0
+			local t = notes[column]
+			if note.type == "1" and long_notes[column] == 0 then
 				t = true
 			elseif note.type == "2" then
-				long_notes[note.column] = true
-				t = true
+				long_notes[column] = long_notes[column] + 1
+				if long_notes[column] == 1 then
+					t = true
+				end
 			elseif note.type == "3" then
-				assert(long_notes[note.column])
-				long_notes[note.column] = nil
-				t = false
+				long_notes[column] = long_notes[column] - 1
+				if long_notes[column] == 0 then
+					t = false
+				end
+			end
+			local old_value = notes[column]
+			if old_value == true then
+				if t == false then
+					t = true  -- convert 0-length LN to a short note
+				end
+			elseif old_value == false then
+				if t == true then
+					t = false  -- delete note at the end of LN
+				end
 			end
 			notes[note.column] = t
 		end
@@ -419,7 +434,8 @@ end
 function SphPreview:linesToPreviewLines(lines)
 	local long_notes = {}
 	local plines = {}
-	for _, line in ipairs(lines) do
+	for i, line in ipairs(lines) do
+		-- print("line " .. i .. " " .. require("stbl").encode(line))
 		local prev_line = plines[#plines]
 		local _line = line_to_preview_line(line, prev_line, long_notes)
 		table.insert(plines, _line)
