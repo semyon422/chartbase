@@ -38,6 +38,9 @@ function ChartDecoder:decodeQua(qua)
 	chart.layers.main = layer
 	self.layer = layer
 
+	if qua.BPMDoesNotAffectScrollVelocity then
+		layer.visual.tempoMultiplyTarget = "none"
+	end
 	layer.visual.primaryTempo = 120
 
 	self:decodeTempos()
@@ -120,7 +123,7 @@ function ChartDecoder:decodeVelocities()
 	for _, sv in ipairs(self.qua.SliderVelocities) do
 		local point = layer:getPoint((sv.StartTime or 0) / 1000)
 		local visualPoint = layer.visual:newPoint(point)
-		visualPoint._velocity = Velocity(sv.Multiplier)
+		visualPoint._velocity = Velocity(sv.Multiplier or 0)
 	end
 end
 
