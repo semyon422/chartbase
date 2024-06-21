@@ -4,6 +4,7 @@ local Note = require("ncdk2.notes.Note")
 local Velocity = require("ncdk2.visual.Velocity")
 local Tempo = require("ncdk2.to.Tempo")
 local AbsoluteLayer = require("ncdk2.layers.AbsoluteLayer")
+local VisualColumns = require("ncdk2.visual.VisualColumns")
 local InputMode = require("ncdk.InputMode")
 local Chartmeta = require("notechart.Chartmeta")
 local RawOsu = require("osu.RawOsu")
@@ -40,6 +41,7 @@ function ChartDecoder:decodeOsu(osu)
 	local layer = AbsoluteLayer()
 	chart.layers.main = layer
 	self.layer = layer
+	self.visualColumns = VisualColumns(layer.visual)
 
 	layer.visual.primaryTempo = 120
 
@@ -149,10 +151,11 @@ end
 
 function ChartDecoder:decodeSamples()
 	local layer = self.layer
+	local visualColumns = self.visualColumns
 
 	for _, e in ipairs(self.osu.rawOsu.Events.samples) do
 		local point = layer:getPoint(e.time / 1000)
-		local visualPoint = layer.visual:getPoint(point)
+		local visualPoint = visualColumns:getPoint(point, "auto")
 		local note = Note(visualPoint)
 		note.noteType = "SoundNote"
 		note.sounds = {{e.name, e.volume / 100}}
@@ -162,13 +165,15 @@ function ChartDecoder:decodeSamples()
 end
 
 ---@param time number
+---@param column ncdk2.Column
 ---@param noteType string
 ---@param sounds table?
 ---@return ncdk2.Note
-function ChartDecoder:getNote(time, noteType, sounds)
+function ChartDecoder:getNote(time, column, noteType, sounds)
 	local layer = self.layer
+	local visualColumns = self.visualColumns
 	local point = layer:getPoint(time)
-	local visualPoint = layer.visual:getPoint(point)
+	local visualPoint = visualColumns:getPoint(point, column)
 	local note = Note(visualPoint)
 	note.noteType = noteType
 	note.sounds = sounds
@@ -181,6 +186,7 @@ end
 function ChartDecoder:getNotes(proto_note)
 	local startTime = proto_note.time and proto_note.time / 1000
 	local endTime = proto_note.endTime and proto_note.endTime / 1000
+	local column = "key" .. proto_note.column
 
 	local startIsNan = startTime ~= startTime
 	local endIsNan = endTime ~= endTime
@@ -196,7 +202,7 @@ function ChartDecoder:getNotes(proto_note)
 		if startIsNan then
 			return
 		end
-		return self:getNote(startTime, "ShortNote", sounds)
+		return self:getNote(startTime, column, "ShortNote", sounds)
 	end
 
 	if startIsNan and endIsNan then
@@ -204,14 +210,14 @@ function ChartDecoder:getNotes(proto_note)
 	end
 
 	if not startIsNan and endIsNan then
-		return self:getNote(startTime, "SoundNote")
+		return self:getNote(startTime, column, "SoundNote")
 	end
 	if startIsNan and not endIsNan then
-		return self:getNote(endTime, "SoundNote")
+		return self:getNote(endTime, column, "SoundNote")
 	end
 
 	if endTime < startTime then
-		return self:getNote(startTime, "ShortNote"), self:getNote(endTime, "SoundNote")
+		return self:getNote(startTime, column, "ShortNote"), self:getNote(endTime, column, "SoundNote")
 	end
 
 	local lnType = "LongNoteStart"
@@ -219,8 +225,8 @@ function ChartDecoder:getNotes(proto_note)
 		lnType = "DrumrollNoteStart"
 	end
 
-	local startNote = self:getNote(startTime, lnType, sounds)
-	local endNote = self:getNote(endTime, "LongNoteEnd")
+	local startNote = self:getNote(startTime, column, lnType, sounds)
+	local endNote = self:getNote(endTime, column, "LongNoteEnd")
 
 	endNote.startNote = startNote
 	startNote.endNote = endNote
@@ -230,15 +236,16 @@ end
 
 function ChartDecoder:decodeBarlines()
 	local layer = self.layer
+	local visualColumns = self.visualColumns
 
 	for _, offset in ipairs(self.osu.barlines) do
 		local point = layer:getPoint(offset / 1000)
 
-		local a = Note(layer.visual:getPoint(point))
+		local a = Note(visualColumns:getPoint(point, "measure1"))
 		a.noteType = "LineNoteStart"
 		layer.notes:insert(a, "measure1")
 
-		local b = Note(layer.visual:newPoint(point))
+		local b = Note(visualColumns:getPoint(point, "measure1"))
 		b.noteType = "LineNoteEnd"
 		layer.notes:insert(b, "measure1")
 
