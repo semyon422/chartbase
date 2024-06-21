@@ -141,7 +141,7 @@ function ChartDecoder:processAudio()
 	self.chart.layers.audio = audio_layer
 
 	local offset = -(tonumber(self.ksh.options.o) or 0) / 1000
-	local visualPoint = audio_layer.visual:newPoint(audio_layer:getPoint(offset))
+	local visualPoint = audio_layer.visual:getPoint(audio_layer:getPoint(offset))
 
 	local note = Note(visualPoint)
 	note.noteType = "SoundNote"
@@ -172,7 +172,7 @@ function ChartDecoder:processNotes()
 	for _, _note in ipairs(allNotes) do
 		local startMeasureTime = Fraction(_note.startLineOffset, _note.startLineCount) + _note.startMeasureOffset
 		local point = layer:getPoint(startMeasureTime)
-		local visualPoint = layer.visual:newPoint(point)
+		local visualPoint = layer.visual:getPoint(point)
 
 		local startNote = Note(visualPoint)
 		local inputType = _note.input
@@ -198,7 +198,7 @@ function ChartDecoder:processNotes()
 			end
 
 			local end_point = layer:getPoint(endMeasureTime)
-			local end_visualPoint = layer.visual:newPoint(end_point)
+			local end_visualPoint = layer.visual:getPoint(end_point)
 
 			local endNote = Note(end_visualPoint)
 			endNote.sounds = {}
@@ -233,7 +233,7 @@ function ChartDecoder:processMeasureLines()
 	for measureIndex = 0, #self.ksh.measureStrings do
 		local point = layer:getPoint(Fraction(measureIndex))
 
-		local startNote = Note(layer.visual:newPoint(point))
+		local startNote = Note(layer.visual:getPoint(point))
 		startNote.noteType = "LineNoteStart"
 		layer.notes:insert(startNote, "measure1")
 

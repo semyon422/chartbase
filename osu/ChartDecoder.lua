@@ -103,7 +103,7 @@ function ChartDecoder:addAudio()
 
 	local layer = self.layer
 	local point = layer:getPoint(0)
-	local visualPoint = layer.visual:newPoint(point)
+	local visualPoint = layer.visual:getPoint(point)
 
 	local note = Note(visualPoint)
 	note.noteType = "SoundNote"
@@ -127,7 +127,7 @@ function ChartDecoder:decodeVelocities()
 	local layer = self.layer
 	for _, proto_velocity in ipairs(self.osu.protoVelocities) do
 		local point = layer:getPoint(proto_velocity.offset / 1000)
-		local visualPoint = layer.visual:newPoint(point)
+		local visualPoint = layer.visual:getPoint(point)
 		visualPoint._velocity = Velocity(proto_velocity.velocity)
 	end
 end
@@ -152,7 +152,7 @@ function ChartDecoder:decodeSamples()
 
 	for _, e in ipairs(self.osu.rawOsu.Events.samples) do
 		local point = layer:getPoint(e.time / 1000)
-		local visualPoint = layer.visual:newPoint(point)
+		local visualPoint = layer.visual:getPoint(point)
 		local note = Note(visualPoint)
 		note.noteType = "SoundNote"
 		note.sounds = {{e.name, e.volume / 100}}
@@ -168,7 +168,7 @@ end
 function ChartDecoder:getNote(time, noteType, sounds)
 	local layer = self.layer
 	local point = layer:getPoint(time)
-	local visualPoint = layer.visual:newPoint(point)
+	local visualPoint = layer.visual:getPoint(point)
 	local note = Note(visualPoint)
 	note.noteType = noteType
 	note.sounds = sounds
@@ -234,7 +234,7 @@ function ChartDecoder:decodeBarlines()
 	for _, offset in ipairs(self.osu.barlines) do
 		local point = layer:getPoint(offset / 1000)
 
-		local a = Note(layer.visual:newPoint(point))
+		local a = Note(layer.visual:getPoint(point))
 		a.noteType = "LineNoteStart"
 		layer.notes:insert(a, "measure1")
 

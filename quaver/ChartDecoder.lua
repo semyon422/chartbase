@@ -96,7 +96,7 @@ function ChartDecoder:addAudio()
 
 	local layer = self.layer
 	local point = layer:getPoint(0)
-	local visualPoint = layer.visual:newPoint(point)
+	local visualPoint = layer.visual:getPoint(point)
 
 	local note = Note(visualPoint)
 	note.noteType = "SoundNote"
@@ -122,7 +122,7 @@ function ChartDecoder:decodeVelocities()
 	local layer = self.layer
 	for _, sv in ipairs(self.qua.SliderVelocities) do
 		local point = layer:getPoint((sv.StartTime or 0) / 1000)
-		local visualPoint = layer.visual:newPoint(point)
+		local visualPoint = layer.visual:getPoint(point)
 		visualPoint._velocity = Velocity(sv.Multiplier or 0)
 	end
 end
@@ -151,7 +151,7 @@ end
 function ChartDecoder:getNote(time, noteType, sounds)
 	local layer = self.layer
 	local point = layer:getPoint(time)
-	local visualPoint = layer.visual:newPoint(point)
+	local visualPoint = layer.visual:getPoint(point)
 	local note = Note(visualPoint)
 	note.noteType = noteType
 	note.sounds = sounds
@@ -219,7 +219,7 @@ function ChartDecoder:decodeBarlines(tempo_points)
 	for _, offset in ipairs(barlines) do
 		local point = layer:getPoint(offset / 1000)
 
-		local a = Note(layer.visual:newPoint(point))
+		local a = Note(layer.visual:getPoint(point))
 		a.noteType = "LineNoteStart"
 		layer.notes:insert(a, "measure1")
 

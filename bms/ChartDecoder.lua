@@ -253,7 +253,7 @@ function ChartDecoder:processData()
 			)
 			then
 				for _, value in ipairs(indexDataValues) do
-					local visualPoint = layer.visual:newPoint(point)
+					local visualPoint = layer.visual:getPoint(point)
 					local note = Note(visualPoint)
 
 					note.sounds = {}
@@ -333,7 +333,7 @@ function ChartDecoder:processMeasureLines()
 	for measureIndex = 0, self.bms.measureCount do
 		local point = layer:getPoint(Fraction(measureIndex))
 
-		local startNote = Note(layer.visual:newPoint(point))
+		local startNote = Note(layer.visual:getPoint(point))
 		startNote.noteType = "LineNoteStart"
 		layer.notes:insert(startNote, "measure1")
 

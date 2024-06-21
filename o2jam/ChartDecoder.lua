@@ -118,7 +118,7 @@ function ChartDecoder:process(index)
 		local measureTime = event.position + event.measure
 		local point = layer:getPoint(measureTime)
 		local next_point = layer:getPoint(measureTime + 1)
-		local visualPoint = layer.visual:newPoint(point)
+		local visualPoint = layer.visual:getPoint(point)
 		if event.measure < 0 or event.measure > measure_count * 2 then
 			-- ignore
 		elseif event.channel == "BPM_CHANGE" then
@@ -179,7 +179,7 @@ function ChartDecoder:processMeasureLines()
 	for measureIndex = 0, self.measure_count do
 		local point = layer:getPoint(Fraction(measureIndex))
 
-		local startNote = Note(layer.visual:newPoint(point))
+		local startNote = Note(layer.visual:getPoint(point))
 		startNote.noteType = "LineNoteStart"
 		layer.notes:insert(startNote, "measure1")
 

@@ -90,7 +90,7 @@ function ChartDecoder:processData(trackIndex, addedNotes)
 			chart.resourceList:add("sound", hs, {hs})
 
 			local point = layer:getPoint(Fraction(event[2], 1000, true))
-			startNote = Note(layer.visual:newPoint(point))
+			startNote = Note(layer.visual:getPoint(point))
 			startNote.sounds = {{hs, event[4]}}
 
 			if addedNotes[eventId] then

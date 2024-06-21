@@ -158,7 +158,7 @@ function ChartDecoder:addAudio()
 	self.chart.layers.audio = layer
 
 	local point = layer:getPoint(Fraction(0))
-	local vp = layer.visual:newPoint(point)
+	local vp = layer.visual:getPoint(point)
 
 	local note = Note(vp)
 	note.sounds = {{audio, 1}}
