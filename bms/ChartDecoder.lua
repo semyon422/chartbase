@@ -6,6 +6,7 @@ local Signature = require("ncdk2.to.Signature")
 local Tempo = require("ncdk2.to.Tempo")
 local Stop = require("ncdk2.to.Stop")
 local MeasureLayer = require("ncdk2.layers.MeasureLayer")
+local VisualColumns = require("ncdk2.visual.VisualColumns")
 local InputMode = require("ncdk.InputMode")
 local Fraction = require("ncdk.Fraction")
 local Chartmeta = require("notechart.Chartmeta")
@@ -86,6 +87,7 @@ function ChartDecoder:decodeBms(bms)
 	local layer = MeasureLayer()
 	chart.layers.main = layer
 	self.layer = layer
+	self.visualColumns = VisualColumns(layer.visual)
 
 	self:setInputMode()
 	self:addFirstTempo()
@@ -217,6 +219,7 @@ function ChartDecoder:setStop(timeData)
 end
 
 function ChartDecoder:processData()
+	local visualColumns = self.visualColumns
 	local longNoteData = {}
 
 	self.notes_count = 0
@@ -253,7 +256,8 @@ function ChartDecoder:processData()
 			)
 			then
 				for _, value in ipairs(indexDataValues) do
-					local visualPoint = layer.visual:getPoint(point)
+					local column = channelInfo.inputType .. channelInfo.inputIndex
+					local visualPoint = visualColumns:getPoint(point, column)
 					local note = Note(visualPoint)
 
 					note.sounds = {}
@@ -300,7 +304,7 @@ function ChartDecoder:processData()
 							longNoteData[channelIndex] = note
 						end
 					end
-					layer.notes:insert(note, channelInfo.inputType .. channelInfo.inputIndex)
+					layer.notes:insert(note, column)
 
 					if
 						channelInfo.inputType ~= "auto" and
