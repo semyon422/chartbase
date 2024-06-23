@@ -6,6 +6,7 @@ local Signature = require("ncdk2.to.Signature")
 local Tempo = require("ncdk2.to.Tempo")
 local Stop = require("ncdk2.to.Stop")
 local MeasureLayer = require("ncdk2.layers.MeasureLayer")
+local VisualColumns = require("ncdk2.visual.VisualColumns")
 local InputMode = require("ncdk.InputMode")
 local Fraction = require("ncdk.Fraction")
 local Chartmeta = require("notechart.Chartmeta")
@@ -36,6 +37,7 @@ function ChartDecoder:decodeMid(mid)
 	local layer = MeasureLayer()
 	chart.layers.main = layer
 	self.layer = layer
+	self.visualColumns = VisualColumns(layer.visual)
 
 	for _, tempo in ipairs(mid.tempos) do
 		local point = layer:getPoint(Fraction(tempo[1], 1000, true))
@@ -79,6 +81,7 @@ function ChartDecoder:processData(trackIndex, addedNotes)
 	local notes = self.mid.notes
 	local chart = self.chart
 	local layer = self.layer
+	local visualColumns = self.visualColumns
 	local notes_count = self.notes_count
 
 	local startNote
@@ -90,16 +93,18 @@ function ChartDecoder:processData(trackIndex, addedNotes)
 			chart.resourceList:add("sound", hs, {hs})
 
 			local point = layer:getPoint(Fraction(event[2], 1000, true))
-			startNote = Note(layer.visual:getPoint(point))
-			startNote.sounds = {{hs, event[4]}}
 
+			local column = "key" .. event[3]
 			if addedNotes[eventId] then
-				startNote.noteType = "SoundNote"
-				layer.notes:insert(startNote, "auto0")
-			else
-				startNote.noteType = "ShortNote"
-				layer.notes:insert(startNote, "key" .. event[3])
+				column = "auto"
 			end
+			local vp = visualColumns:getPoint(point, column)
+
+			startNote = Note(vp)
+			startNote.sounds = {{hs, event[4]}}
+			startNote.noteType = addedNotes[eventId] and "SoundNote" or "ShortNote"
+
+			layer.notes:insert(startNote, column)
 
 			-- TODO: long notes?
 

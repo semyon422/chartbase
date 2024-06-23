@@ -5,6 +5,7 @@ local Note = require("notechart.Note")
 local Signature = require("ncdk2.to.Signature")
 local Tempo = require("ncdk2.to.Tempo")
 local MeasureLayer = require("ncdk2.layers.MeasureLayer")
+local VisualColumns = require("ncdk2.visual.VisualColumns")
 local InputMode = require("ncdk.InputMode")
 local Fraction = require("ncdk.Fraction")
 local Chartmeta = require("notechart.Chartmeta")
@@ -54,6 +55,7 @@ function ChartDecoder:decodeOjn(ojn, index)
 	local layer = MeasureLayer()
 	chart.layers.main = layer
 	self.layer = layer
+	self.visualColumns = VisualColumns(layer.visual)
 
 	self:process(index)
 	self:processMeasureLines()
@@ -111,6 +113,7 @@ function ChartDecoder:process(index)
 	self.maxPoint = nil
 
 	local layer = self.layer
+	local visualColumns = self.visualColumns
 
 	local measure_count = self.ojn.charts[index].measure_count
 
@@ -118,7 +121,6 @@ function ChartDecoder:process(index)
 		local measureTime = event.position + event.measure
 		local point = layer:getPoint(measureTime)
 		local next_point = layer:getPoint(measureTime + 1)
-		local visualPoint = layer.visual:getPoint(point)
 		if event.measure < 0 or event.measure > measure_count * 2 then
 			-- ignore
 		elseif event.channel == "BPM_CHANGE" then
@@ -132,16 +134,19 @@ function ChartDecoder:process(index)
 				next_point._signature = Signature()
 			end
 		elseif event.channel:find("NOTE") or event.channel:find("AUTO") then
-			local note = Note(visualPoint)
 			if event.channel:find("AUTO") then
+				local visualPoint = visualColumns:getPoint(point, "auto")
+				local note = Note(visualPoint)
 				note.noteType = "SoundNote"
 				note.sounds = {{event.value, event.volume}}
 				layer.notes:insert(note, "auto")
 			else
+				local key = tonumber(event.channel:sub(-1, -1))
+				local visualPoint = visualColumns:getPoint(point, "key" .. key)
+				local note = Note(visualPoint)
 				if event.measure > self.measure_count then
 					self.measure_count = event.measure
 				end
-				local key = tonumber(event.channel:sub(-1, -1))
 				if long_notes[key] and event.type == "RELEASE" then
 					long_notes[key].noteType = "LongNoteStart"
 					long_notes[key].endNote = note
@@ -176,14 +181,15 @@ end
 
 function ChartDecoder:processMeasureLines()
 	local layer = self.layer
+	local visualColumns = self.visualColumns
 	for measureIndex = 0, self.measure_count do
 		local point = layer:getPoint(Fraction(measureIndex))
 
-		local startNote = Note(layer.visual:getPoint(point))
+		local startNote = Note(visualColumns:getPoint(point, "measure1"))
 		startNote.noteType = "LineNoteStart"
 		layer.notes:insert(startNote, "measure1")
 
-		local endNote = Note(layer.visual:newPoint(point))
+		local endNote = Note(visualColumns:getPoint(point, "measure1"))
 		endNote.noteType = "LineNoteEnd"
 		layer.notes:insert(endNote, "measure1")
 
