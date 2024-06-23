@@ -1,5 +1,5 @@
 local class = require("class")
-local ncdk = require("ncdk")
+local Fraction = require("ncdk.Fraction")
 local enums = require("bms.enums")
 
 ---@class bms.BMS
@@ -185,7 +185,7 @@ function BMS:processLineData(line)
 	for i = 1, messageLength do
 		local value = message:sub(2 * i - 1, 2 * i)
 		if value ~= "00" then
-			local measureTime = ncdk.Fraction(i - 1, messageLength) + measure
+			local measureTime = Fraction(i - 1, messageLength) + measure
 			local measureTimeString = tostring(measureTime)
 
 			local timeData
