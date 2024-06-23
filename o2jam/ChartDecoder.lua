@@ -129,7 +129,7 @@ function ChartDecoder:process(index)
 			end
 			point._tempo = Tempo(event.value)
 		elseif event.channel == "TIME_SIGNATURE" then
-			point._signature = Signature(Fraction:new(event.value * 4, 32768, true))
+			point._signature = Signature(Fraction(event.value * 4, 32768, true))
 			if not next_point._signature then
 				next_point._signature = Signature()
 			end
