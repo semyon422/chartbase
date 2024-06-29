@@ -12,9 +12,9 @@ function Barlines:generate(tempo_points, lastTime)
 		return {}
 	end
 	local start = tempo_points[1].offset
-	if start >= 0 then
+	if start > 0 then
 		local measure_length = tempo_points[1].beatLength * tempo_points[1].signature
-		start = start - math.ceil(start / measure_length) * measure_length
+		start = start - math.floor(start / measure_length) * measure_length
 	end
 
 	---@type number[]
