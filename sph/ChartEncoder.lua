@@ -209,7 +209,7 @@ function ChartEncoder:encodeSph(chart)
 				line.offset = t._interval.offset
 			end
 			if t._measure then
-				line.measure = t._measure.start
+				line.measure = t._measure.offset
 			end
 		end
 
