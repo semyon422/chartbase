@@ -11,6 +11,7 @@ local class = require("class")
 ---@field tags string?
 ---@field audio_path string?
 ---@field preview_time number?
+---@field audio_offset number?
 ---@field background_path string?
 ---@field stage_path string?
 ---@field banner_path string?
