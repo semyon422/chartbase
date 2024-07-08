@@ -128,11 +128,14 @@ function ChartDecoder:process(index)
 				self.tempoAtStart = true
 			end
 			point._tempo = Tempo(event.value)
+			layer.visual:getPoint(point)
 		elseif event.channel == "TIME_SIGNATURE" then
 			point._signature = Signature(Fraction(event.value * 4, 32768, true))
 			if not next_point._signature then
 				next_point._signature = Signature()
 			end
+			layer.visual:getPoint(point)
+			layer.visual:getPoint(next_point)
 		elseif event.channel:find("NOTE") or event.channel:find("AUTO") then
 			if event.channel:find("AUTO") then
 				local visualPoint = visualColumns:getPoint(point, "auto")
@@ -176,6 +179,7 @@ function ChartDecoder:process(index)
 	if not self.tempoAtStart then
 		local point = layer:getPoint(Fraction(0))
 		point._tempo = Tempo(self.ojn.bpm)
+		layer.visual:getPoint(point)
 	end
 end
 

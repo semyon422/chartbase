@@ -121,6 +121,7 @@ function ChartDecoder:decodeTempos()
 	for _, proto_tempo in ipairs(self.osu.protoTempos) do
 		local point = layer:getPoint(proto_tempo.offset / 1000)
 		point._tempo = Tempo(proto_tempo.tempo)
+		layer.visual:getPoint(point)
 		-- do something with proto_tempo.signature
 	end
 end

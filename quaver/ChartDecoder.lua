@@ -113,6 +113,7 @@ function ChartDecoder:decodeTempos()
 		if tp.Bpm then
 			local point = layer:getPoint((tp.StartTime or 0) / 1000)
 			point._tempo = Tempo(tp.Bpm)
+			layer.visual:getPoint(point)
 			-- do something with tp.Singature
 		end
 	end

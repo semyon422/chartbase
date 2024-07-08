@@ -115,6 +115,7 @@ function ChartDecoder:processTempos()
 		local measureTime = Fraction(_tempo.lineOffset, _tempo.lineCount) + _tempo.measureOffset
 		local point = layer:getPoint(measureTime)
 		point._tempo = Tempo(_tempo.tempo)
+		layer.visual:getPoint(point)
 	end
 end
 
@@ -124,6 +125,7 @@ function ChartDecoder:processSignatures()
 		local measureTime = Fraction(_signature.measureIndex)
 		local point = layer:getPoint(measureTime)
 		point._signature = Signature(Fraction(_signature.n * 4, _signature.d))
+		layer.visual:getPoint(point)
 	end
 end
 

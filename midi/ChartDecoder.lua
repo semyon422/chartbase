@@ -42,6 +42,7 @@ function ChartDecoder:decodeMid(mid)
 	for _, tempo in ipairs(mid.tempos) do
 		local point = layer:getPoint(Fraction(tempo[1], 1000, true))
 		point._tempo = Tempo(tempo[2])
+		layer.visual:getPoint(point)
 	end
 
 	chart.inputMode = InputMode({key = 88})

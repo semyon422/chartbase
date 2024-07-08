@@ -168,6 +168,7 @@ function ChartDecoder:addFirstTempo()
 	if not self.bms.tempoAtStart and self.bms.baseTempo then
 		local point = self.layer:getPoint(Fraction(0))
 		point._tempo = Tempo(self.bms.baseTempo)
+		self.layer.visual:getPoint(point)
 	end
 end
 
@@ -179,6 +180,7 @@ function ChartDecoder:setTempo(timeData)
 	local tempo = tonumber(timeData[enums.BackChannelEnum["Tempo"]][1], 16)
 	local point = self.layer:getPoint(timeData.measureTime)
 	point._tempo = Tempo(tempo)
+	self.layer.visual:getPoint(point)
 end
 
 ---@param timeData table
@@ -195,6 +197,7 @@ function ChartDecoder:setExtendedTempo(timeData)
 
 	local point = self.layer:getPoint(timeData.measureTime)
 	point._tempo = Tempo(tempo)
+	self.layer.visual:getPoint(point)
 
 	return true
 end
@@ -214,8 +217,10 @@ function ChartDecoder:setStop(timeData)
 	-- beatDuration = STOP * 4 / 192
 	local point = self.layer:getPoint(timeData.measureTime)
 	point._stop = Stop(Fraction(duration * 4, 16, false) / 192)
+	self.layer.visual:getPoint(point)
 
-	self.layer:getPoint(timeData.measureTime, true)
+	point = self.layer:getPoint(timeData.measureTime, true)
+	self.layer.visual:getPoint(point)
 end
 
 function ChartDecoder:processData()
@@ -232,10 +237,12 @@ function ChartDecoder:processData()
 	for measureIndex, value in pairs(self.bms.signature) do
 		local point = layer:getPoint(Fraction(measureIndex))
 		point._signature = Signature(Fraction(value * 4, 32768, true))
+		layer.visual:getPoint(point)
 		local next_point = layer:getPoint(Fraction(measureIndex + 1))
 		if not next_point._signature then
 			next_point._signature = Signature()
 		end
+		layer.visual:getPoint(next_point)
 	end
 
 	for _, timeData in ipairs(self.bms.timeList) do

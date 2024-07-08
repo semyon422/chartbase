@@ -164,11 +164,13 @@ function ChartDecoder:processTempo()
 		local measureTime = Fraction(bpm.beat / 4, 1000, true)
 		local point = layer:getPoint(measureTime)
 		point._tempo = Tempo(bpm.tempo)
+		layer.visual:getPoint(point)
 	end
 	for _, stop in ipairs(self.sm.stop) do
 		local measureTime = Fraction(stop.beat / 4, 1000, true)
 		local point = layer:getPoint(measureTime)
 		point._stop = Stop(stop.duration, true)
+		layer.visual:getPoint(point)
 	end
 end
 
