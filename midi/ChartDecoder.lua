@@ -101,11 +101,11 @@ function ChartDecoder:processData(trackIndex, addedNotes)
 			end
 			local vp = visualColumns:getPoint(point, column)
 
-			startNote = Note(vp)
+			startNote = Note(vp, column)
 			startNote.sounds = {{hs, event[4]}}
 			startNote.noteType = addedNotes[eventId] and "SoundNote" or "ShortNote"
 
-			layer.notes:insert(startNote, column)
+			chart.notes:insert(startNote)
 
 			-- TODO: long notes?
 

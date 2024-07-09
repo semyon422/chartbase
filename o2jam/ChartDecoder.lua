@@ -113,6 +113,7 @@ function ChartDecoder:process(index)
 	self.maxPoint = nil
 
 	local layer = self.layer
+	local chart = self.chart
 	local visualColumns = self.visualColumns
 
 	local measure_count = self.ojn.charts[index].measure_count
@@ -139,14 +140,15 @@ function ChartDecoder:process(index)
 		elseif event.channel:find("NOTE") or event.channel:find("AUTO") then
 			if event.channel:find("AUTO") then
 				local visualPoint = visualColumns:getPoint(point, "auto")
-				local note = Note(visualPoint)
+				local note = Note(visualPoint, "auto")
 				note.noteType = "SoundNote"
 				note.sounds = {{event.value, event.volume}}
-				layer.notes:insert(note, "auto")
+				chart.notes:insert(note)
 			else
 				local key = tonumber(event.channel:sub(-1, -1))
-				local visualPoint = visualColumns:getPoint(point, "key" .. key)
-				local note = Note(visualPoint)
+				local column = "key" .. key
+				local visualPoint = visualColumns:getPoint(point, column)
+				local note = Note(visualPoint, column)
 				if event.measure > self.measure_count then
 					self.measure_count = event.measure
 				end
@@ -171,7 +173,7 @@ function ChartDecoder:process(index)
 				if not self.maxPoint or point > self.maxPoint then
 					self.maxPoint = point
 				end
-				layer.notes:insert(note, "key" .. key)
+				chart.notes:insert(note)
 			end
 		end
 	end
@@ -185,17 +187,19 @@ end
 
 function ChartDecoder:processMeasureLines()
 	local layer = self.layer
+	local chart = self.chart
 	local visualColumns = self.visualColumns
+	local column = "measure1"
 	for measureIndex = 0, self.measure_count do
 		local point = layer:getPoint(Fraction(measureIndex))
 
-		local startNote = Note(visualColumns:getPoint(point, "measure1"))
+		local startNote = Note(visualColumns:getPoint(point, column), column)
 		startNote.noteType = "LineNoteStart"
-		layer.notes:insert(startNote, "measure1")
+		chart.notes:insert(startNote)
 
-		local endNote = Note(visualColumns:getPoint(point, "measure1"))
+		local endNote = Note(visualColumns:getPoint(point, column), column)
 		endNote.noteType = "LineNoteEnd"
-		layer.notes:insert(endNote, "measure1")
+		chart.notes:insert(endNote)
 
 		startNote.endNote = endNote
 		endNote.startNote = startNote

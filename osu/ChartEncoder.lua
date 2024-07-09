@@ -59,15 +59,13 @@ end
 function ChartEncoder:encodeEventSamples()
 	local columns = self.chart.inputMode:getColumns()
 	local samples = self.rawOsu.Events.samples
-	for column, notes in self.chart.layers.main.notes:iter() do
-		for _, note in ipairs(notes) do
-			if note.noteType == "auto" then
-				table.insert(samples, {
-					time = note.visualPoint.point.absoluteTime,
-					name = note.sounds[1][1],
-					volume = note.sounds[1][2],
-				})
-			end
+	for _, note in self.chart.notes:iter() do
+		if note.column == "auto" then
+			table.insert(samples, {
+				time = note.visualPoint.point.absoluteTime,
+				name = note.sounds[1][1],
+				volume = note.sounds[1][2],
+			})
 		end
 	end
 end
@@ -76,26 +74,24 @@ function ChartEncoder:encodeHitObjects()
 	local columns = self.chart.inputMode:getColumns()
 	local inputMap = self.inputMap
 	local objs = self.rawOsu.HitObjects
-	for column, notes in self.chart.layers.main.notes:iter() do
-		local key = inputMap[column]
+	for _, note in self.chart.notes:iter() do
+		local key = inputMap[note.column]
 		if key then
-			for _, note in ipairs(notes) do
-				---@type osu.HitObject
-				local obj = {
-					time = math.floor(note.visualPoint.point.absoluteTime * 1000),
-					x = math.floor(512 / columns * (key - 0.5)),
-					y = 192,
-					type = 1,
-					soundType = HitObjects.HitObjectType.Normal,
-					addition = Addition(),
-				}
-				if note.endNote then
-					obj.type = HitObjects.HitObjectType.ManiaLong
-					obj.endTime = note.endNote.visualPoint.point.absoluteTime
-				end
-				table.insert(objs, obj)
-				--- TODO: hotsounds and keysounds
+			---@type osu.HitObject
+			local obj = {
+				time = math.floor(note.visualPoint.point.absoluteTime * 1000),
+				x = math.floor(512 / columns * (key - 0.5)),
+				y = 192,
+				type = 1,
+				soundType = HitObjects.HitObjectType.Normal,
+				addition = Addition(),
+			}
+			if note.endNote then
+				obj.type = HitObjects.HitObjectType.ManiaLong
+				obj.endTime = note.endNote.visualPoint.point.absoluteTime
 			end
+			table.insert(objs, obj)
+			--- TODO: hotsounds and keysounds
 		end
 	end
 	objs:sort()

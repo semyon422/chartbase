@@ -60,6 +60,7 @@ end
 ---@param line table
 function ChartDecoder:processLine(line)
 	local layer = self.layer
+	local chart = self.chart
 	local longNotes = self.longNotes
 	local sounds = self.sph.sounds
 
@@ -79,15 +80,17 @@ function ChartDecoder:processLine(line)
 	local notes = line.notes or {}
 
 	for i, _note in ipairs(notes) do
-		local note = Note(visualPoint)
+		local col = _note.column
+		local input = inputMap[col]
+		local column = input[1] .. input[2]
+
+		local note = Note(visualPoint, column)
 
 		local sound = sounds[line_sounds[i]]
 		if sound then
 			note.sounds = {{sound, line_volume[i] or 1}}
 			self.chart.resourceList:add("sound", sound, {sound})
 		end
-
-		local col = _note.column
 
 		local t = _note.type
 		if t == "1" then
@@ -107,18 +110,18 @@ function ChartDecoder:processLine(line)
 			note.noteType = "SoundNote"
 		end
 
-		local input = inputMap[col]
-		layer.notes:insert(note, input[1] .. input[2])
+		chart.notes:insert(note)
 	end
 
 	for i = #notes + 1, #line_sounds do
 		local sound = sounds[line_sounds[i]]
 		if sound then
-			local note = Note(visualPoint)
+			local column = "auto" .. (i - #notes)
+			local note = Note(visualPoint, column)
 			note.noteType = "SoundNote"
 			note.sounds = {{sound, line_volume[i] or 1}}
 			self.chart.resourceList:add("sound", sound, {sound})
-			layer.notes:insert(note, "auto" .. (i - #notes))
+			chart.notes:insert(note)
 		end
 	end
 
@@ -158,15 +161,16 @@ function ChartDecoder:addAudio()
 	self.chart.layers.audio = layer
 
 	local point = layer:getPoint(Fraction(0))
+	point._interval = Interval(0)
 	local vp = layer.visual:getPoint(point)
 
-	local note = Note(vp)
+	local note = Note(vp, "audio")
 	note.sounds = {{audio, 1}}
 	note.stream = true
 	self.chart.resourceList:add("sound", audio, {audio})
 
 	note.noteType = "SoundNote"
-	layer.notes:insert(note, "audio")
+	self.chart.notes:insert(note)
 end
 
 function ChartDecoder:setMetadata()

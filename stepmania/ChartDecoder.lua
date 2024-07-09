@@ -113,6 +113,7 @@ end
 
 function ChartDecoder:processNotes()
 	local layer = self.layer
+	local chart = self.chart
 	self.notes_count = 0
 
 	self.minPoint = nil
@@ -124,7 +125,8 @@ function ChartDecoder:processNotes()
 		local point = layer:getPoint(measureTime)
 		local visualPoint = layer.visual:getPoint(point)
 
-		local note = Note(visualPoint)
+		local column = "key" .. _note.column
+		local note = Note(visualPoint, column)
 
 		note.sounds = {}
 		note.images = {}
@@ -146,7 +148,7 @@ function ChartDecoder:processNotes()
 			longNotes[_note.column] = nil
 		end
 
-		layer.notes:insert(note, "key" .. _note.column)
+		chart.notes:insert(note)
 
 		if not self.minPoint or point < self.minPoint then
 			self.minPoint = point
@@ -181,28 +183,30 @@ function ChartDecoder:processAudio()
 	local offset = tonumber(self.sm.header["OFFSET"]) or 0
 	local visualPoint = audio_layer.visual:getPoint(audio_layer:getPoint(offset))
 
-	local note = Note(visualPoint)
+	local note = Note(visualPoint, "audio")
 	note.noteType = "SoundNote"
 	note.sounds = {{self.sm.header["MUSIC"], 1}}
 	note.stream = true
 	note.streamOffset = offset
 	self.chart.resourceList:add("sound", self.sm.header["MUSIC"], {self.sm.header["MUSIC"]})
 
-	audio_layer.notes:insert(note, "audio")
+	self.chart.notes:insert(note)
 end
 
 function ChartDecoder:processMeasureLines()
 	local layer = self.layer
+	local chart = self.chart
+	local column = "measure1"
 	for measureIndex = 0, self.sm_chart.measure do
 		local point = layer:getPoint(Fraction(measureIndex))
 
-		local startNote = Note(layer.visual:getPoint(point))
+		local startNote = Note(layer.visual:getPoint(point), column)
 		startNote.noteType = "LineNoteStart"
-		layer.notes:insert(startNote, "measure1")
+		chart.notes:insert(startNote)
 
-		local endNote = Note(layer.visual:newPoint(point))
+		local endNote = Note(layer.visual:newPoint(point), column)
 		endNote.noteType = "LineNoteEnd"
-		layer.notes:insert(endNote, "measure1")
+		chart.notes:insert(endNote)
 
 		startNote.endNote = endNote
 		endNote.startNote = startNote

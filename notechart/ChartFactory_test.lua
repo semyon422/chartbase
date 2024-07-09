@@ -17,7 +17,7 @@ input 4key
 function test.basic(t)
 	local cf = ChartFactory()
 
-	local charts = cf:getCharts("chart.sph", test_chart)
+	local charts = assert(cf:getCharts("chart.sph", test_chart))
 	t:eq(#charts, 1)
 end
 

@@ -98,13 +98,13 @@ function ChartDecoder:addAudio()
 	local point = layer:getPoint(0)
 	local visualPoint = layer.visual:getPoint(point)
 
-	local note = Note(visualPoint)
+	local note = Note(visualPoint, "audio")
 	note.noteType = "SoundNote"
 	note.sounds = {{audioFileName, 1}}
 	note.stream = true
 	self.chart.resourceList:add("sound", audioFileName, {audioFileName})
 
-	layer.notes:insert(note, "audio")
+	self.chart.notes:insert(note)
 end
 
 function ChartDecoder:decodeTempos()
@@ -129,18 +129,17 @@ function ChartDecoder:decodeVelocities()
 end
 
 function ChartDecoder:decodeNotes()
-	local layer = self.layer
+	local chart = self.chart
 
 	self.maxTime = 0
 	self.minTime = math.huge
 	for _, obj in ipairs(self.qua.HitObjects) do
 		local a, b = self:getNotes(obj)
-		local column = "key" .. obj.Lane
 		if a then
-			layer.notes:insert(a, column)
+			chart.notes:insert(a)
 		end
 		if b then
-			layer.notes:insert(b, column)
+			chart.notes:insert(b)
 		end
 	end
 end
@@ -149,11 +148,11 @@ end
 ---@param noteType string
 ---@param sounds table?
 ---@return ncdk2.Note
-function ChartDecoder:getNote(time, noteType, sounds)
+function ChartDecoder:getNote(time, column, noteType, sounds)
 	local layer = self.layer
 	local point = layer:getPoint(time)
 	local visualPoint = layer.visual:getPoint(point)
-	local note = Note(visualPoint)
+	local note = Note(visualPoint, column)
 	note.noteType = noteType
 	note.sounds = sounds
 	return note
@@ -165,6 +164,7 @@ end
 function ChartDecoder:getNotes(obj)
 	local startTime = obj.StartTime and obj.StartTime / 1000
 	local endTime = obj.EndTime and obj.EndTime / 1000
+	local column = "key" .. obj.Lane
 
 	if startTime then
 		self.maxTime = math.max(self.maxTime, startTime)
@@ -179,15 +179,15 @@ function ChartDecoder:getNotes(obj)
 	local sounds = {}  -- TODO: fix hitsounds/keysounds
 
 	if not endTime then
-		return self:getNote(startTime, "ShortNote", sounds)
+		return self:getNote(startTime, column, "ShortNote", sounds)
 	end
 
 	if endTime < startTime then
-		return self:getNote(startTime, "ShortNote"), self:getNote(endTime, "SoundNote")
+		return self:getNote(startTime, column, "ShortNote"), self:getNote(endTime, column, "SoundNote")
 	end
 
-	local startNote = self:getNote(startTime, "LongNoteStart", sounds)
-	local endNote = self:getNote(endTime, "LongNoteEnd")
+	local startNote = self:getNote(startTime, column, "LongNoteStart", sounds)
+	local endNote = self:getNote(endTime, column, "LongNoteEnd")
 
 	endNote.startNote = startNote
 	startNote.endNote = endNote
@@ -215,18 +215,19 @@ end
 
 function ChartDecoder:decodeBarlines(tempo_points)
 	local barlines = Barlines:generate(tempo_points, self.maxTime)
-
 	local layer = self.layer
+	local chart = self.chart
+	local column = "measure1"
 	for _, offset in ipairs(barlines) do
 		local point = layer:getPoint(offset / 1000)
 
-		local a = Note(layer.visual:getPoint(point))
+		local a = Note(layer.visual:getPoint(point), column)
 		a.noteType = "LineNoteStart"
-		layer.notes:insert(a, "measure1")
+		chart.notes:insert(a)
 
-		local b = Note(layer.visual:newPoint(point))
+		local b = Note(layer.visual:newPoint(point), column)
 		b.noteType = "LineNoteEnd"
-		layer.notes:insert(b, "measure1")
+		chart.notes:insert(b)
 
 		a.endNote = b
 		b.startNote = a

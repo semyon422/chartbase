@@ -145,18 +145,19 @@ function ChartDecoder:processAudio()
 	local offset = -(tonumber(self.ksh.options.o) or 0) / 1000
 	local visualPoint = audio_layer.visual:getPoint(audio_layer:getPoint(offset))
 
-	local note = Note(visualPoint)
+	local note = Note(visualPoint, "audio")
 	note.noteType = "SoundNote"
 	note.sounds = {{audio, 1}}
 	note.stream = true
 	note.streamOffset = offset
 	self.chart.resourceList:add("sound", audio, {audio})
 
-	audio_layer.notes:insert(note, "audio")
+	self.chart.notes:insert(note)
 end
 
 function ChartDecoder:processNotes()
 	local layer = self.layer
+	local chart = self.chart
 
 	self.notes_count = 0
 
@@ -176,16 +177,18 @@ function ChartDecoder:processNotes()
 		local point = layer:getPoint(startMeasureTime)
 		local visualPoint = layer.visual:getPoint(point)
 
-		local startNote = Note(visualPoint)
 		local inputType = _note.input
 		local inputIndex = _note.lane
 		if inputType == "fx" then
 			inputIndex = _note.lane - 4
 		end
 
+		local column = inputType .. inputIndex
+		local startNote = Note(visualPoint, column)
+
 		startNote.sounds = {}
 
-		layer.notes:insert(startNote, inputType .. inputIndex)
+		chart.notes:insert(startNote)
 
 		local lastPoint = point
 		local endMeasureTime = Fraction(_note.endLineOffset, _note.endLineCount) + _note.endMeasureOffset
@@ -202,7 +205,7 @@ function ChartDecoder:processNotes()
 			local end_point = layer:getPoint(endMeasureTime)
 			local end_visualPoint = layer.visual:getPoint(end_point)
 
-			local endNote = Note(end_visualPoint)
+			local endNote = Note(end_visualPoint, column)
 			endNote.sounds = {}
 
 			if _note.input ~= "laser" then
@@ -214,7 +217,7 @@ function ChartDecoder:processNotes()
 			endNote.startNote = startNote
 			startNote.endNote = endNote
 
-			layer.notes:insert(endNote, inputType .. inputIndex)
+			chart.notes:insert(endNote)
 
 			lastPoint = end_point
 		end
@@ -232,16 +235,17 @@ end
 
 function ChartDecoder:processMeasureLines()
 	local layer = self.layer
+	local chart = self.chart
 	for measureIndex = 0, #self.ksh.measureStrings do
 		local point = layer:getPoint(Fraction(measureIndex))
 
-		local startNote = Note(layer.visual:getPoint(point))
+		local startNote = Note(layer.visual:getPoint(point), "measure1")
 		startNote.noteType = "LineNoteStart"
-		layer.notes:insert(startNote, "measure1")
+		chart.notes:insert(startNote)
 
-		local endNote = Note(layer.visual:newPoint(point))
+		local endNote = Note(layer.visual:newPoint(point), "measure1")
 		endNote.noteType = "LineNoteEnd"
-		layer.notes:insert(endNote, "measure1")
+		chart.notes:insert(endNote)
 
 		startNote.endNote = endNote
 		endNote.startNote = startNote

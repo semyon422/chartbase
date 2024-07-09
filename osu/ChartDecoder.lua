@@ -107,13 +107,13 @@ function ChartDecoder:addAudio()
 	local point = layer:getPoint(0)
 	local visualPoint = layer.visual:getPoint(point)
 
-	local note = Note(visualPoint)
+	local note = Note(visualPoint, "audio")
 	note.noteType = "SoundNote"
 	note.sounds = {{audioFileName, 1}}
 	note.stream = true
 	self.chart.resourceList:add("sound", audioFileName, {audioFileName})
 
-	layer.notes:insert(note, "audio")
+	self.chart.notes:insert(note)
 end
 
 function ChartDecoder:decodeTempos()
@@ -137,30 +137,31 @@ end
 
 function ChartDecoder:decodeNotes()
 	local layer = self.layer
+	local chart = self.chart
 
 	for _, proto_note in ipairs(self.osu.protoNotes) do
 		local a, b = self:getNotes(proto_note)
-		local column = "key" .. proto_note.column
 		if a then
-			layer.notes:insert(a, column)
+			chart.notes:insert(a)
 		end
 		if b then
-			layer.notes:insert(b, column)
+			chart.notes:insert(b)
 		end
 	end
 end
 
 function ChartDecoder:decodeSamples()
 	local layer = self.layer
+	local chart = self.chart
 	local visualColumns = self.visualColumns
 
 	for _, e in ipairs(self.osu.rawOsu.Events.samples) do
 		local point = layer:getPoint(e.time / 1000)
 		local visualPoint = visualColumns:getPoint(point, "auto")
-		local note = Note(visualPoint)
+		local note = Note(visualPoint, "auto")
 		note.noteType = "SoundNote"
 		note.sounds = {{e.name, e.volume / 100}}
-		layer.notes:insert(note, "auto")
+		chart.notes:insert(note)
 		self.chart.resourceList:add("sound", e.name, {e.name})
 	end
 end
@@ -175,7 +176,7 @@ function ChartDecoder:getNote(time, column, noteType, sounds)
 	local visualColumns = self.visualColumns
 	local point = layer:getPoint(time)
 	local visualPoint = visualColumns:getPoint(point, column)
-	local note = Note(visualPoint)
+	local note = Note(visualPoint, column)
 	note.noteType = noteType
 	note.sounds = sounds
 	return note
@@ -237,18 +238,19 @@ end
 
 function ChartDecoder:decodeBarlines()
 	local layer = self.layer
+	local chart = self.chart
 	local visualColumns = self.visualColumns
-
+	local column = "measure1"
 	for _, offset in ipairs(self.osu.barlines) do
 		local point = layer:getPoint(offset / 1000)
 
-		local a = Note(visualColumns:getPoint(point, "measure1"))
+		local a = Note(visualColumns:getPoint(point, column), column)
 		a.noteType = "LineNoteStart"
-		layer.notes:insert(a, "measure1")
+		chart.notes:insert(a)
 
-		local b = Note(visualColumns:getPoint(point, "measure1"))
+		local b = Note(visualColumns:getPoint(point, column), column)
 		b.noteType = "LineNoteEnd"
-		layer.notes:insert(b, "measure1")
+		chart.notes:insert(b)
 
 		a.endNote = b
 		b.startNote = a

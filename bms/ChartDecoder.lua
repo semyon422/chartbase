@@ -233,6 +233,7 @@ function ChartDecoder:processData()
 	self.maxPoint = nil
 
 	local layer = self.layer
+	local chart = self.chart
 
 	for measureIndex, value in pairs(self.bms.signature) do
 		local point = layer:getPoint(Fraction(measureIndex))
@@ -265,7 +266,7 @@ function ChartDecoder:processData()
 				for _, value in ipairs(indexDataValues) do
 					local column = channelInfo.inputType .. channelInfo.inputIndex
 					local visualPoint = visualColumns:getPoint(point, column)
-					local note = Note(visualPoint)
+					local note = Note(visualPoint, column)
 
 					note.sounds = {}
 					note.images = {}
@@ -311,7 +312,7 @@ function ChartDecoder:processData()
 							longNoteData[channelIndex] = note
 						end
 					end
-					layer.notes:insert(note, column)
+					chart.notes:insert(note)
 
 					if
 						channelInfo.inputType ~= "auto" and
@@ -341,16 +342,17 @@ end
 
 function ChartDecoder:processMeasureLines()
 	local layer = self.layer
+	local chart = self.chart
 	for measureIndex = 0, self.bms.measureCount do
 		local point = layer:getPoint(Fraction(measureIndex))
 
-		local startNote = Note(layer.visual:getPoint(point))
+		local startNote = Note(layer.visual:getPoint(point), "measure1")
 		startNote.noteType = "LineNoteStart"
-		layer.notes:insert(startNote, "measure1")
+		chart.notes:insert(startNote)
 
-		local endNote = Note(layer.visual:newPoint(point))
+		local endNote = Note(layer.visual:newPoint(point), "measure1")
 		endNote.noteType = "LineNoteEnd"
-		layer.notes:insert(endNote, "measure1")
+		chart.notes:insert(endNote)
 
 		startNote.endNote = endNote
 		endNote.startNote = startNote

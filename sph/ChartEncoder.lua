@@ -169,7 +169,7 @@ function ChartEncoder:encodeSph(chart)
 	local layer = chart.layers.main
 	self.layer = layer
 
-	---@type {[ncdk2.VisualPoint]: {[number]: ncdk2.Note}}
+	---@type {[ncdk2.VisualPoint]: {[ncdk2.Column]: ncdk2.Note}}
 	local point_notes = {}
 	self.point_notes = point_notes
 
@@ -177,10 +177,11 @@ function ChartEncoder:encodeSph(chart)
 		point_notes[vp] = {}
 	end
 
-	for column, notes in layer.notes:iter() do
-		for _, note in ipairs(notes) do
-			local vp = note.visualPoint
-			local nds = point_notes[vp]
+	for _, note in chart.notes:iter() do
+		local vp = note.visualPoint
+		local nds = point_notes[vp  --[[@as ncdk2.VisualPoint]]]
+		if nds then
+			local column = note.column
 			if nds[column] then
 				error("can not assign NoteData, column already used: " .. column)
 			end
