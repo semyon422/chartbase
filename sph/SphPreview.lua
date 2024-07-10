@@ -370,7 +370,7 @@ end
 local function line_to_preview_line(line, prev_pline, long_notes)
 	local notes
 	if line.notes then
-		if prev_pline and line.visual then
+		if prev_pline and line.same then
 			prev_pline.notes = prev_pline.notes or {}
 			notes = prev_pline.notes
 		else
@@ -407,7 +407,7 @@ local function line_to_preview_line(line, prev_pline, long_notes)
 		end
 	end
 
-	if line.visual then
+	if line.same then
 		return
 	end
 

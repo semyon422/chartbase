@@ -76,7 +76,7 @@ function test.visual_side(t)
 	local sphLines = SphLines()
 	sphLines:decode(SphPreview:decodeLines(str))
 
-	sphLines.protoLines[2].visual = true
+	sphLines.protoLines[2].same = true
 	local lines1 = SphPreview:linesToPreviewLines(sphLines:encode())
 	t:tdeq(lines1, {
 		{notes = {true, true}},
@@ -342,8 +342,8 @@ end
 function test.visual_merge(t)
 	local _lines = {
 		{offset=0},
-		{notes={{column=1,type="1"}},visual=true},
-		{notes={{column=2,type="1"}},visual=true},
+		{notes={{column=1,type="1"}},same=true},
+		{notes={{column=2,type="1"}},same=true},
 		{notes={{column=3,type="1"}}},
 		{},
 	}
@@ -358,7 +358,7 @@ function test.visual_merge(t)
 	local str = SphPreview:encodeLines(_lines, 1)
 	local lines = SphPreview:decodeLines(str)
 
-	t:tdeq(lines, {  -- no visual lines after decode
+	t:tdeq(lines, {  -- no same lines after decode
 		{notes={{column=1,type="1"},{column=2,type="1"}},offset=0},
 		{notes={{column=3,type="1"}}},
 		{},
@@ -368,7 +368,7 @@ end
 function test.collision_short_short(t)
 	local _lines = {
 		{notes={{column=1,type="1"}}},
-		{notes={{column=1,type="1"}},visual=true},
+		{notes={{column=1,type="1"}},same=true},
 	}
 
 	local plines = SphPreview:linesToPreviewLines(_lines)
@@ -380,7 +380,7 @@ end
 function test.collision_short_long(t)
 	local _lines = {
 		{notes={{column=1,type="1"}}},
-		{notes={{column=1,type="2"}},visual=true},
+		{notes={{column=1,type="2"}},same=true},
 		{notes={{column=1,type="3"}}},
 	}
 
@@ -392,7 +392,7 @@ function test.collision_short_long(t)
 
 	local _lines = {
 		{notes={{column=1,type="2"}}},
-		{notes={{column=1,type="1"}},visual=true},
+		{notes={{column=1,type="1"}},same=true},
 		{notes={{column=1,type="3"}}},
 	}
 
@@ -407,7 +407,7 @@ function test.collision_long_short(t)
 	local _lines = {
 		{notes={{column=1,type="2"}}},
 		{notes={{column=1,type="3"}}},
-		{notes={{column=1,type="1"}},visual=true},
+		{notes={{column=1,type="1"}},same=true},
 	}
 
 	local plines = SphPreview:linesToPreviewLines(_lines)
@@ -419,7 +419,7 @@ function test.collision_long_short(t)
 	local _lines = {
 		{notes={{column=1,type="2"}}},
 		{notes={{column=1,type="1"}}},
-		{notes={{column=1,type="3"}},visual=true},
+		{notes={{column=1,type="3"}},same=true},
 	}
 
 	local plines = SphPreview:linesToPreviewLines(_lines)

@@ -5,7 +5,8 @@ local Line = require("sph.lines.Line")
 ---@class sph.ProtoLine
 ---@field globalTime ncdk.Fraction
 ---@field comment string?
----@field visual true?
+---@field same true?
+---@field visual string?
 ---@field measure ncdk.Fraction?
 ---@field sounds integer[]?
 ---@field volume integer[]?
@@ -47,8 +48,9 @@ function SphLines:decodeLine(line)
 		self.lineTime = lineTime
 	end
 
-	local visual = line.visual
+	local same = line.same
 
+	pline.same = line.same
 	pline.visual = line.visual
 	pline.measure = line.measure
 	pline.sounds = line.sounds
@@ -56,7 +58,7 @@ function SphLines:decodeLine(line)
 	pline.velocity = line.velocity
 	pline.expand = line.expand
 
-	if not lineTime and not visual then
+	if not lineTime and not same then
 		self.beatOffset = self.beatOffset + 1
 		self.lineTime = nil
 	end
@@ -105,13 +107,13 @@ function SphLines:encode()
 				prevTime = pline.globalTime
 			end
 
-			local visual = not isNextTime
+			local same = not isNextTime
 
 			local line_time = pline.globalTime % 1
 
 			local line = Line()
 
-			if not pline.visual then
+			if not pline.same then
 				if pline.offset then
 					line.offset = pline.offset
 				end
@@ -119,8 +121,9 @@ function SphLines:encode()
 					line.time = pline.globalTime % 1
 				end
 			else
-				line.visual = true
+				line.same = true
 			end
+			line.visual = pline.visual
 			line.expand = pline.expand
 			line.velocity = pline.velocity
 			line.measure = pline.measure
@@ -135,7 +138,7 @@ function SphLines:encode()
 				line.notes = pline.notes
 			end
 
-			if hasPayload or line_time[1] == 0 and not visual then
+			if hasPayload or line_time[1] == 0 and not same then
 				table.insert(lines, line)
 			end
 

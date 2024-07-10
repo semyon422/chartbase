@@ -107,8 +107,10 @@ function TextLines:decodeLine(s)
 			line.offset = tonumber(v)
 		elseif k == "+" then
 			line.time = decode_fraction(v)
+		elseif k == "^" then
+			line.same = true
 		elseif k == "v" then
-			line.visual = true
+			line.visual = v
 		elseif k == "#" then
 			line.measure = decode_fraction(v)
 		elseif k == ":" then
@@ -197,8 +199,11 @@ function TextLines:encode()
 		if line.time then
 			table.insert(out, "+" .. formatFraction(line.time))
 		end
+		if line.same then
+			table.insert(out, "^")
+		end
 		if line.visual then
-			table.insert(out, "v")
+			table.insert(out, "v" .. line.visual)
 		end
 		if line.expand then
 			table.insert(out, "e" .. tostring(line.expand))

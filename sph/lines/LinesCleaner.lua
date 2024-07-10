@@ -27,9 +27,9 @@ local function is_line_useful_inside(line, next_line)
 	if hp then
 		return true
 	end
-	if next_line.visual then  -- time in visual has no sense
+	if next_line.same then  -- time in `same` has no sense
 		next_line.time = line.time
-		next_line.visual = nil
+		next_line.same = nil
 		return false
 	end
 	if not line.time then

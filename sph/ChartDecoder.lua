@@ -39,14 +39,11 @@ function ChartDecoder:decodeSph(sph)
 	self.chart = chart
 
 	chart.inputMode = InputMode(sph.metadata.input)
+	self.inputMap = chart.inputMode:getInputMap()
 
 	local layer = IntervalLayer()
 	chart.layers.main = layer
 	self.layer = layer
-
-	local visual = Visual()
-	layer.visuals.main = visual
-	self.visual = visual
 
 	for _, line in ipairs(sph.sphLines.protoLines) do
 		self:processLine(line)
@@ -62,15 +59,29 @@ function ChartDecoder:decodeSph(sph)
 	return chart
 end
 
+---@param name string?
+function ChartDecoder:getVisual(name)
+	name = name or ""
+	local visual = self.layer.visuals[name]
+	if visual then
+		return visual
+	end
+
+	visual = Visual()
+	self.layer.visuals[name] = visual
+
+	return visual
+end
+
 ---@param line table
 function ChartDecoder:processLine(line)
-	local visual = self.visual
 	local layer = self.layer
 	local chart = self.chart
 	local longNotes = self.longNotes
 	local sounds = self.sph.sounds
+	local inputMap = self.inputMap
 
-	local inputMap = self.chart.inputMode:getInputMap()
+	local visual = self:getVisual(line.visual)
 
 	local point = layer:getPoint(line.globalTime)
 	local visualPoint = visual:newPoint(point)

@@ -10,7 +10,8 @@ local class = require("class")
 ---@field notes sph.LineNote[]?
 ---@field offset number?
 ---@field time ncdk.Fraction?
----@field visual true?
+---@field same true?
+---@field visual string?
 ---@field measure ncdk.Fraction?
 ---@field sounds integer[]?
 ---@field volume integer[]?

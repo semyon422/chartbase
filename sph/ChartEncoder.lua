@@ -173,8 +173,10 @@ function ChartEncoder:encodeSph(chart)
 	local point_notes = {}
 	self.point_notes = point_notes
 
-	for _, vp in ipairs(layer.visuals.main.points) do
-		point_notes[vp] = {}
+	for _, visual in pairs(layer.visuals) do
+		for _, vp in ipairs(visual.points) do
+			point_notes[vp] = {}
+		end
 	end
 
 	for _, note in chart.notes:iter() do
@@ -192,43 +194,61 @@ function ChartEncoder:encodeSph(chart)
 	self:createSoundListAndMap()
 	sph.sounds = self.sounds
 
-	---@type ncdk.Fraction
-	local prev_time
-	for _, vp in ipairs(layer.visuals.main.points) do
-		local t = vp.point
+	---@type string[]
+	local visual_names = {}
+	for name in pairs(layer.visuals) do
+		table.insert(visual_names, name)
+	end
+	table.sort(visual_names)
+
+	local points = layer:getPointList()
+	for _, t in ipairs(points) do
 		---@cast t -ncdk2.Point, +ncdk2.IntervalPoint
+		local same = false
+		for _, vname in ipairs(visual_names) do
+			local visual = layer.visuals[vname]
+			local index = visual.point_index[t]
+			if index then
+				local vp = visual.points[index]
+				while vp and vp.point == t do
+					local line = {}
+					line.same = same
 
-		local line = {}
+					if vname ~= "" then
+						line.visual = vname
+					end
 
-		if prev_time == t.time then
-			line.visual = true
-		end
-		prev_time = t.time
+					if not same then
+						if t._interval then
+							line.offset = t._interval.offset
+						end
+						if t._measure then
+							line.measure = t._measure.offset
+						end
+					end
 
-		if not line.visual then
-			if t._interval then
-				line.offset = t._interval.offset
+					line.globalTime = t.time
+					line.notes = self:getNotes(point_notes[vp])
+					line.sounds, line.volume = self:getSounds(point_notes[vp])
+					line.comment = t.comment
+					if vp._expand then
+						line.expand = vp._expand.duration
+					end
+					if vp._velocity then
+						line.velocity = {
+							vp._velocity.currentSpeed,
+							vp._velocity.localSpeed,
+							vp._velocity.globalSpeed,
+						}
+					end
+					table.insert(sphLines.protoLines, line)
+
+					index = index + 1
+					vp = visual.points[index]
+					same = true
+				end
 			end
-			if t._measure then
-				line.measure = t._measure.offset
-			end
 		end
-
-		line.globalTime = t.time
-		line.notes = self:getNotes(point_notes[vp])
-		line.sounds, line.volume = self:getSounds(point_notes[vp])
-		line.comment = t.comment
-		if vp._expand then
-			line.expand = vp._expand.duration
-		end
-		if vp._velocity then
-			line.velocity = {
-				vp._velocity.currentSpeed,
-				vp._velocity.localSpeed,
-				vp._velocity.globalSpeed,
-			}
-		end
-		table.insert(sphLines.protoLines, line)
 	end
 
 	return sph

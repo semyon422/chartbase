@@ -23,14 +23,43 @@ input 4key
 0100 +1/2
 1000
 0100 +1/2 x1.1 #1/2
-0004 v e0.5
-0004 v x1.1
+0004 ^ e0.5
+0004 ^ x1.1
 1000 x1.05 :0001020304 .001020
 0100 +1/2 // comment
 0010 x1.1,1.2,1.3
 -
 -
 - =1.01
+]]
+
+	local dec = ChartDecoder()
+	local enc = ChartEncoder()
+
+	t:eq(enc:encode(dec:decode(s)), s)
+end
+
+function test.visuals(t)
+	local s = [[
+# metadata
+title Title
+artist Artist
+audio audio.mp3
+input 4key
+
+# notes
+- =0
+1111
+1000 ^ v1
+1000 ^ v2
+1000 ^ v3
+-
+1111
+1000 v1
+1000 v2
+1000 v3
+-
+- =1
 ]]
 
 	local dec = ChartDecoder()
