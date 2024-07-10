@@ -82,7 +82,7 @@ function ChartDecoder:setMetadata()
 		audio_path = tostring(qua["AudioFile"]),
 		background_path = tostring(qua["BackgroundFile"]),
 		preview_time = (qua["SongPreviewTime"] or 0) / 1000,
-		notes_count = self.notes_count,
+		notes_count = #self.qua.HitObjects,
 		duration = self.maxTime - self.minTime,
 		inputmode = tostring(self.chart.inputMode),
 		start_time = self.minTime / 1000,

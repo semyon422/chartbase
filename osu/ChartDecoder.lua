@@ -91,7 +91,7 @@ function ChartDecoder:setMetadata()
 		audio_path = general.AudioFilename,
 		background_path = self.osu.rawOsu.Events.background,
 		preview_time = tonumber(general.PreviewTime) / 1000,
-		notes_count = self.notes_count,
+		notes_count = #self.osu.protoNotes,
 		duration = (self.osu.maxTime - self.osu.minTime) / 1000,
 		inputmode = tostring(self.chart.inputMode),
 		start_time = self.osu.minTime / 1000,

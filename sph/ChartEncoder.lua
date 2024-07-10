@@ -33,11 +33,6 @@ local function sortNotes(a, b)
 	return a.column < b.column
 end
 
-function ChartEncoder:new()
-	self.notes_count = 0
-	self.longNotes = {}
-end
-
 ---@return table
 function ChartEncoder:getMetadata()
 	local chartmeta = self.chart.chartmeta
