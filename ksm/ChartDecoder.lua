@@ -1,18 +1,16 @@
 local IChartDecoder = require("notechart.IChartDecoder")
 local Chart = require("ncdk2.Chart")
-local Bms = require("bms.BMS")
 local Note = require("notechart.Note")
 local Signature = require("ncdk2.to.Signature")
 local Tempo = require("ncdk2.to.Tempo")
-local Stop = require("ncdk2.to.Stop")
 local MeasureLayer = require("ncdk2.layers.MeasureLayer")
 local AbsoluteLayer = require("ncdk2.layers.AbsoluteLayer")
 local InputMode = require("ncdk.InputMode")
 local Fraction = require("ncdk.Fraction")
 local Chartmeta = require("notechart.Chartmeta")
 local EncodingConverter = require("notechart.EncodingConverter")
-local enums = require("bms.enums")
 local Ksh = require("ksm.Ksh")
+local Visual = require("ncdk2.visual.Visual")
 
 ---@class ksm.ChartDecoder: chartbase.IChartDecoder
 ---@operator call: ksm.ChartDecoder
@@ -53,6 +51,10 @@ function ChartDecoder:decodeKsh(ksh)
 	local layer = MeasureLayer()
 	chart.layers.main = layer
 	self.layer = layer
+
+	local visual = Visual()
+	layer.visuals.main = visual
+	self.visual = visual
 
 	chart.inputMode = InputMode({
 		bt = 4,
@@ -115,7 +117,7 @@ function ChartDecoder:processTempos()
 		local measureTime = Fraction(_tempo.lineOffset, _tempo.lineCount) + _tempo.measureOffset
 		local point = layer:getPoint(measureTime)
 		point._tempo = Tempo(_tempo.tempo)
-		layer.visual:getPoint(point)
+		self.visual:getPoint(point)
 	end
 end
 
@@ -125,7 +127,7 @@ function ChartDecoder:processSignatures()
 		local measureTime = Fraction(_signature.measureIndex)
 		local point = layer:getPoint(measureTime)
 		point._signature = Signature(Fraction(_signature.n * 4, _signature.d))
-		layer.visual:getPoint(point)
+		self.visual:getPoint(point)
 	end
 end
 
@@ -142,8 +144,11 @@ function ChartDecoder:processAudio()
 	local audio_layer = AbsoluteLayer()
 	self.chart.layers.audio = audio_layer
 
+	local audio_visual = Visual()
+	audio_layer.visuals.main = audio_visual
+
 	local offset = -(tonumber(self.ksh.options.o) or 0) / 1000
-	local visualPoint = audio_layer.visual:getPoint(audio_layer:getPoint(offset))
+	local visualPoint = audio_visual:getPoint(audio_layer:getPoint(offset))
 
 	local note = Note(visualPoint, "audio")
 	note.noteType = "SoundNote"
@@ -157,6 +162,7 @@ end
 
 function ChartDecoder:processNotes()
 	local layer = self.layer
+	local visual = self.visual
 	local chart = self.chart
 
 	self.notes_count = 0
@@ -175,7 +181,7 @@ function ChartDecoder:processNotes()
 	for _, _note in ipairs(allNotes) do
 		local startMeasureTime = Fraction(_note.startLineOffset, _note.startLineCount) + _note.startMeasureOffset
 		local point = layer:getPoint(startMeasureTime)
-		local visualPoint = layer.visual:getPoint(point)
+		local visualPoint = visual:getPoint(point)
 
 		local inputType = _note.input
 		local inputIndex = _note.lane
@@ -203,7 +209,7 @@ function ChartDecoder:processNotes()
 			end
 
 			local end_point = layer:getPoint(endMeasureTime)
-			local end_visualPoint = layer.visual:getPoint(end_point)
+			local end_visualPoint = visual:getPoint(end_point)
 
 			local endNote = Note(end_visualPoint, column)
 			endNote.sounds = {}
@@ -235,15 +241,16 @@ end
 
 function ChartDecoder:processMeasureLines()
 	local layer = self.layer
+	local visual = self.visual
 	local chart = self.chart
 	for measureIndex = 0, #self.ksh.measureStrings do
 		local point = layer:getPoint(Fraction(measureIndex))
 
-		local startNote = Note(layer.visual:getPoint(point), "measure1")
+		local startNote = Note(visual:getPoint(point), "measure1")
 		startNote.noteType = "LineNoteStart"
 		chart.notes:insert(startNote)
 
-		local endNote = Note(layer.visual:newPoint(point), "measure1")
+		local endNote = Note(visual:newPoint(point), "measure1")
 		endNote.noteType = "LineNoteEnd"
 		chart.notes:insert(endNote)
 

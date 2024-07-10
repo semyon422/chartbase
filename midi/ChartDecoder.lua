@@ -1,18 +1,14 @@
 local IChartDecoder = require("notechart.IChartDecoder")
 local Chart = require("ncdk2.Chart")
-local Bms = require("bms.BMS")
 local Note = require("notechart.Note")
-local Signature = require("ncdk2.to.Signature")
 local Tempo = require("ncdk2.to.Tempo")
-local Stop = require("ncdk2.to.Stop")
 local MeasureLayer = require("ncdk2.layers.MeasureLayer")
 local VisualColumns = require("ncdk2.visual.VisualColumns")
 local InputMode = require("ncdk.InputMode")
 local Fraction = require("ncdk.Fraction")
 local Chartmeta = require("notechart.Chartmeta")
-local EncodingConverter = require("notechart.EncodingConverter")
-local enums = require("bms.enums")
 local Mid = require("midi.MID")
+local Visual = require("ncdk2.visual.Visual")
 
 ---@class midi.ChartDecoder: chartbase.IChartDecoder
 ---@operator call: midi.ChartDecoder
@@ -37,12 +33,16 @@ function ChartDecoder:decodeMid(mid)
 	local layer = MeasureLayer()
 	chart.layers.main = layer
 	self.layer = layer
-	self.visualColumns = VisualColumns(layer.visual)
+
+	local visual = Visual()
+	layer.visuals.main = visual
+	self.visual = visual
+	self.visualColumns = VisualColumns(visual)
 
 	for _, tempo in ipairs(mid.tempos) do
 		local point = layer:getPoint(Fraction(tempo[1], 1000, true))
 		point._tempo = Tempo(tempo[2])
-		layer.visual:getPoint(point)
+		visual:getPoint(point)
 	end
 
 	chart.inputMode = InputMode({key = 88})

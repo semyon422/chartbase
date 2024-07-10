@@ -10,6 +10,7 @@ local IntervalLayer = require("ncdk2.layers.IntervalLayer")
 local InputMode = require("ncdk.InputMode")
 local Fraction = require("ncdk.Fraction")
 local Chartmeta = require("notechart.Chartmeta")
+local Visual = require("ncdk2.visual.Visual")
 
 ---@class sph.ChartDecoder: chartbase.IChartDecoder
 ---@operator call: sph.ChartDecoder
@@ -43,6 +44,10 @@ function ChartDecoder:decodeSph(sph)
 	chart.layers.main = layer
 	self.layer = layer
 
+	local visual = Visual()
+	layer.visuals.main = visual
+	self.visual = visual
+
 	for _, line in ipairs(sph.sphLines.protoLines) do
 		self:processLine(line)
 	end
@@ -59,6 +64,7 @@ end
 
 ---@param line table
 function ChartDecoder:processLine(line)
+	local visual = self.visual
 	local layer = self.layer
 	local chart = self.chart
 	local longNotes = self.longNotes
@@ -67,7 +73,7 @@ function ChartDecoder:processLine(line)
 	local inputMap = self.chart.inputMode:getInputMap()
 
 	local point = layer:getPoint(line.globalTime)
-	local visualPoint = layer.visual:newPoint(point)
+	local visualPoint = visual:newPoint(point)
 
 	if line.offset then
 		point._interval = Interval(line.offset)
@@ -160,9 +166,12 @@ function ChartDecoder:addAudio()
 	local layer = IntervalLayer()
 	self.chart.layers.audio = layer
 
+	local visual = Visual()
+	layer.visuals.main = visual
+
 	local point = layer:getPoint(Fraction(0))
 	point._interval = Interval(0)
-	local vp = layer.visual:getPoint(point)
+	local vp = visual:getPoint(point)
 
 	local note = Note(vp, "audio")
 	note.sounds = {{audio, 1}}

@@ -12,6 +12,7 @@ local Chartmeta = require("notechart.Chartmeta")
 local EncodingConverter = require("notechart.EncodingConverter")
 local dpairs = require("dpairs")
 local Sm = require("stepmania.SM")
+local Visual = require("ncdk2.visual.Visual")
 
 ---@class stepmania.ChartDecoder: chartbase.IChartDecoder
 ---@operator call: stepmania.ChartDecoder
@@ -59,6 +60,10 @@ function ChartDecoder:decodeSm(sm, index)
 	local layer = MeasureLayer()
 	chart.layers.main = layer
 	self.layer = layer
+
+	local visual = Visual()
+	layer.visuals.main = visual
+	self.visual = visual
 
 	chart.inputMode = InputMode({key = self.sm_chart.mode})
 	self:processTempo()
@@ -112,6 +117,7 @@ function ChartDecoder:setMetadata()
 end
 
 function ChartDecoder:processNotes()
+	local visual = self.visual
 	local layer = self.layer
 	local chart = self.chart
 	self.notes_count = 0
@@ -123,7 +129,7 @@ function ChartDecoder:processNotes()
 	for _, _note in ipairs(self.sm_chart.notes) do
 		local measureTime = Fraction(_note.offset, self.sm_chart.linesPerMeasure[_note.measure]) + _note.measure
 		local point = layer:getPoint(measureTime)
-		local visualPoint = layer.visual:getPoint(point)
+		local visualPoint = visual:getPoint(point)
 
 		local column = "key" .. _note.column
 		local note = Note(visualPoint, column)
@@ -162,17 +168,18 @@ end
 
 function ChartDecoder:processTempo()
 	local layer = self.layer
+	local visual = self.visual
 	for _, bpm in ipairs(self.sm.bpm) do
 		local measureTime = Fraction(bpm.beat / 4, 1000, true)
 		local point = layer:getPoint(measureTime)
 		point._tempo = Tempo(bpm.tempo)
-		layer.visual:getPoint(point)
+		visual:getPoint(point)
 	end
 	for _, stop in ipairs(self.sm.stop) do
 		local measureTime = Fraction(stop.beat / 4, 1000, true)
 		local point = layer:getPoint(measureTime)
 		point._stop = Stop(stop.duration, true)
-		layer.visual:getPoint(point)
+		visual:getPoint(point)
 	end
 end
 
@@ -180,8 +187,11 @@ function ChartDecoder:processAudio()
 	local audio_layer = AbsoluteLayer()
 	self.chart.layers.audio = audio_layer
 
+	local visual = Visual()
+	audio_layer.visuals.main = visual
+
 	local offset = tonumber(self.sm.header["OFFSET"]) or 0
-	local visualPoint = audio_layer.visual:getPoint(audio_layer:getPoint(offset))
+	local visualPoint = visual:getPoint(audio_layer:getPoint(offset))
 
 	local note = Note(visualPoint, "audio")
 	note.noteType = "SoundNote"
@@ -194,17 +204,18 @@ function ChartDecoder:processAudio()
 end
 
 function ChartDecoder:processMeasureLines()
+	local visual = self.visual
 	local layer = self.layer
 	local chart = self.chart
 	local column = "measure1"
 	for measureIndex = 0, self.sm_chart.measure do
 		local point = layer:getPoint(Fraction(measureIndex))
 
-		local startNote = Note(layer.visual:getPoint(point), column)
+		local startNote = Note(visual:getPoint(point), column)
 		startNote.noteType = "LineNoteStart"
 		chart.notes:insert(startNote)
 
-		local endNote = Note(layer.visual:newPoint(point), column)
+		local endNote = Note(visual:newPoint(point), column)
 		endNote.noteType = "LineNoteEnd"
 		chart.notes:insert(endNote)
 

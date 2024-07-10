@@ -9,6 +9,7 @@ local InputMode = require("ncdk.InputMode")
 local Chartmeta = require("notechart.Chartmeta")
 local RawOsu = require("osu.RawOsu")
 local Osu = require("osu.Osu")
+local Visual = require("ncdk2.visual.Visual")
 
 ---@class osu.ChartDecoder: chartbase.IChartDecoder
 ---@operator call: osu.ChartDecoder
@@ -41,9 +42,13 @@ function ChartDecoder:decodeOsu(osu)
 	local layer = AbsoluteLayer()
 	chart.layers.main = layer
 	self.layer = layer
-	self.visualColumns = VisualColumns(layer.visual)
 
-	layer.visual.primaryTempo = 120
+	local visual = Visual()
+	layer.visuals.main = visual
+	self.visual = visual
+	self.visualColumns = VisualColumns(visual)
+
+	visual.primaryTempo = 120
 
 	self:decodeTempos()
 	self:decodeVelocities()
@@ -103,9 +108,8 @@ function ChartDecoder:addAudio()
 		return
 	end
 
-	local layer = self.layer
-	local point = layer:getPoint(0)
-	local visualPoint = layer.visual:getPoint(point)
+	local point = self.layer:getPoint(0)
+	local visualPoint = self.visual:getPoint(point)
 
 	local note = Note(visualPoint, "audio")
 	note.noteType = "SoundNote"
@@ -118,19 +122,21 @@ end
 
 function ChartDecoder:decodeTempos()
 	local layer = self.layer
+	local visual = self.visual
 	for _, proto_tempo in ipairs(self.osu.protoTempos) do
 		local point = layer:getPoint(proto_tempo.offset / 1000)
 		point._tempo = Tempo(proto_tempo.tempo)
-		layer.visual:getPoint(point)
+		visual:getPoint(point)
 		-- do something with proto_tempo.signature
 	end
 end
 
 function ChartDecoder:decodeVelocities()
 	local layer = self.layer
+	local visual = self.visual
 	for _, proto_velocity in ipairs(self.osu.protoVelocities) do
 		local point = layer:getPoint(proto_velocity.offset / 1000)
-		local visualPoint = layer.visual:getPoint(point)
+		local visualPoint = visual:getPoint(point)
 		visualPoint._velocity = Velocity(proto_velocity.velocity)
 	end
 end

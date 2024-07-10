@@ -7,13 +7,12 @@ local Tempo = require("ncdk2.to.Tempo")
 local Stop = require("ncdk2.to.Stop")
 local MeasureLayer = require("ncdk2.layers.MeasureLayer")
 local VisualColumns = require("ncdk2.visual.VisualColumns")
-local InputMode = require("ncdk.InputMode")
 local Fraction = require("ncdk.Fraction")
 local Chartmeta = require("notechart.Chartmeta")
 local EncodingConverter = require("notechart.EncodingConverter")
 local enums = require("bms.enums")
-local BMS = require("bms.BMS")
 local dpairs = require("dpairs")
+local Visual = require("ncdk2.visual.Visual")
 
 local bracketMatch = "%s(.+)%s$"
 local brackets = {
@@ -87,7 +86,11 @@ function ChartDecoder:decodeBms(bms)
 	local layer = MeasureLayer()
 	chart.layers.main = layer
 	self.layer = layer
-	self.visualColumns = VisualColumns(layer.visual)
+
+	local visual = Visual()
+	layer.visuals.main = visual
+	self.visual = visual
+	self.visualColumns = VisualColumns(visual)
 
 	self:setInputMode()
 	self:addFirstTempo()
@@ -168,7 +171,7 @@ function ChartDecoder:addFirstTempo()
 	if not self.bms.tempoAtStart and self.bms.baseTempo then
 		local point = self.layer:getPoint(Fraction(0))
 		point._tempo = Tempo(self.bms.baseTempo)
-		self.layer.visual:getPoint(point)
+		self.visual:getPoint(point)
 	end
 end
 
@@ -180,7 +183,7 @@ function ChartDecoder:setTempo(timeData)
 	local tempo = tonumber(timeData[enums.BackChannelEnum["Tempo"]][1], 16)
 	local point = self.layer:getPoint(timeData.measureTime)
 	point._tempo = Tempo(tempo)
-	self.layer.visual:getPoint(point)
+	self.visual:getPoint(point)
 end
 
 ---@param timeData table
@@ -197,7 +200,7 @@ function ChartDecoder:setExtendedTempo(timeData)
 
 	local point = self.layer:getPoint(timeData.measureTime)
 	point._tempo = Tempo(tempo)
-	self.layer.visual:getPoint(point)
+	self.visual:getPoint(point)
 
 	return true
 end
@@ -217,10 +220,10 @@ function ChartDecoder:setStop(timeData)
 	-- beatDuration = STOP * 4 / 192
 	local point = self.layer:getPoint(timeData.measureTime)
 	point._stop = Stop(Fraction(duration * 4, 16, false) / 192)
-	self.layer.visual:getPoint(point)
+	self.visual:getPoint(point)
 
 	point = self.layer:getPoint(timeData.measureTime, true)
-	self.layer.visual:getPoint(point)
+	self.visual:getPoint(point)
 end
 
 function ChartDecoder:processData()
@@ -238,12 +241,12 @@ function ChartDecoder:processData()
 	for measureIndex, value in pairs(self.bms.signature) do
 		local point = layer:getPoint(Fraction(measureIndex))
 		point._signature = Signature(Fraction(value * 4, 32768, true))
-		layer.visual:getPoint(point)
+		self.visual:getPoint(point)
 		local next_point = layer:getPoint(Fraction(measureIndex + 1))
 		if not next_point._signature then
 			next_point._signature = Signature()
 		end
-		layer.visual:getPoint(next_point)
+		self.visual:getPoint(next_point)
 	end
 
 	for _, timeData in ipairs(self.bms.timeList) do
@@ -346,11 +349,11 @@ function ChartDecoder:processMeasureLines()
 	for measureIndex = 0, self.bms.measureCount do
 		local point = layer:getPoint(Fraction(measureIndex))
 
-		local startNote = Note(layer.visual:getPoint(point), "measure1")
+		local startNote = Note(self.visual:getPoint(point), "measure1")
 		startNote.noteType = "LineNoteStart"
 		chart.notes:insert(startNote)
 
-		local endNote = Note(layer.visual:newPoint(point), "measure1")
+		local endNote = Note(self.visual:newPoint(point), "measure1")
 		endNote.noteType = "LineNoteEnd"
 		chart.notes:insert(endNote)
 

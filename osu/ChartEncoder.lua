@@ -137,7 +137,7 @@ function ChartEncoder:encodeTimingPoints()
 			})
 		end
 	end
-	for _, p in ipairs(layer.visual.points) do
+	for _, p in ipairs(layer.visuals.main.points) do
 		---@type ncdk2.Velocity
 		local velocity = p._velocity
 		if velocity then

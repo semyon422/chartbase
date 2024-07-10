@@ -9,6 +9,7 @@ local Barlines = require("osu.Barlines")
 local PrimaryTempo = require("osu.PrimaryTempo")
 local Chartmeta = require("notechart.Chartmeta")
 local tinyyaml = require("tinyyaml")
+local Visual = require("ncdk2.visual.Visual")
 
 ---@class quaver.ChartDecoder: chartbase.IChartDecoder
 ---@operator call: quaver.ChartDecoder
@@ -38,10 +39,14 @@ function ChartDecoder:decodeQua(qua)
 	chart.layers.main = layer
 	self.layer = layer
 
+	local visual = Visual()
+	layer.visuals.main = visual
+	self.visual = visual
+
 	if qua.BPMDoesNotAffectScrollVelocity then
-		layer.visual.tempoMultiplyTarget = "none"
+		visual.tempoMultiplyTarget = "none"
 	end
-	layer.visual.primaryTempo = 120
+	visual.primaryTempo = 120
 
 	self:decodeTempos()
 	self:decodeVelocities()
@@ -94,9 +99,8 @@ function ChartDecoder:addAudio()
 		return
 	end
 
-	local layer = self.layer
-	local point = layer:getPoint(0)
-	local visualPoint = layer.visual:getPoint(point)
+	local point = self.layer:getPoint(0)
+	local visualPoint = self.visual:getPoint(point)
 
 	local note = Note(visualPoint, "audio")
 	note.noteType = "SoundNote"
@@ -109,11 +113,12 @@ end
 
 function ChartDecoder:decodeTempos()
 	local layer = self.layer
+	local visual = self.visual
 	for _, tp in ipairs(self.qua.TimingPoints) do
 		if tp.Bpm then
 			local point = layer:getPoint((tp.StartTime or 0) / 1000)
 			point._tempo = Tempo(tp.Bpm)
-			layer.visual:getPoint(point)
+			visual:getPoint(point)
 			-- do something with tp.Singature
 		end
 	end
@@ -121,9 +126,10 @@ end
 
 function ChartDecoder:decodeVelocities()
 	local layer = self.layer
+	local visual = self.visual
 	for _, sv in ipairs(self.qua.SliderVelocities) do
 		local point = layer:getPoint((sv.StartTime or 0) / 1000)
-		local visualPoint = layer.visual:getPoint(point)
+		local visualPoint = visual:getPoint(point)
 		visualPoint._velocity = Velocity(sv.Multiplier or 0)
 	end
 end
@@ -149,9 +155,8 @@ end
 ---@param sounds table?
 ---@return ncdk2.Note
 function ChartDecoder:getNote(time, column, noteType, sounds)
-	local layer = self.layer
-	local point = layer:getPoint(time)
-	local visualPoint = layer.visual:getPoint(point)
+	local point = self.layer:getPoint(time)
+	local visualPoint = self.visual:getPoint(point)
 	local note = Note(visualPoint, column)
 	note.noteType = noteType
 	note.sounds = sounds
@@ -215,17 +220,18 @@ end
 
 function ChartDecoder:decodeBarlines(tempo_points)
 	local barlines = Barlines:generate(tempo_points, self.maxTime)
+	local visual = self.visual
 	local layer = self.layer
 	local chart = self.chart
 	local column = "measure1"
 	for _, offset in ipairs(barlines) do
 		local point = layer:getPoint(offset / 1000)
 
-		local a = Note(layer.visual:getPoint(point), column)
+		local a = Note(visual:getPoint(point), column)
 		a.noteType = "LineNoteStart"
 		chart.notes:insert(a)
 
-		local b = Note(layer.visual:newPoint(point), column)
+		local b = Note(visual:newPoint(point), column)
 		b.noteType = "LineNoteEnd"
 		chart.notes:insert(b)
 

@@ -10,6 +10,7 @@ local InputMode = require("ncdk.InputMode")
 local Fraction = require("ncdk.Fraction")
 local Chartmeta = require("notechart.Chartmeta")
 local EncodingConverter = require("notechart.EncodingConverter")
+local Visual = require("ncdk2.visual.Visual")
 
 ---@class o2jam.ChartDecoder: chartbase.IChartDecoder
 ---@operator call: o2jam.ChartDecoder
@@ -55,7 +56,11 @@ function ChartDecoder:decodeOjn(ojn, index)
 	local layer = MeasureLayer()
 	chart.layers.main = layer
 	self.layer = layer
-	self.visualColumns = VisualColumns(layer.visual)
+
+	local visual = Visual()
+	layer.visuals.main = visual
+	self.visual = visual
+	self.visualColumns = VisualColumns(visual)
 
 	self:process(index)
 	self:processMeasureLines()
@@ -112,6 +117,7 @@ function ChartDecoder:process(index)
 	self.minPoint = nil
 	self.maxPoint = nil
 
+	local visual = self.visual
 	local layer = self.layer
 	local chart = self.chart
 	local visualColumns = self.visualColumns
@@ -129,14 +135,14 @@ function ChartDecoder:process(index)
 				self.tempoAtStart = true
 			end
 			point._tempo = Tempo(event.value)
-			layer.visual:getPoint(point)
+			visual:getPoint(point)
 		elseif event.channel == "TIME_SIGNATURE" then
 			point._signature = Signature(Fraction(event.value * 4, 32768, true))
 			if not next_point._signature then
 				next_point._signature = Signature()
 			end
-			layer.visual:getPoint(point)
-			layer.visual:getPoint(next_point)
+			visual:getPoint(point)
+			visual:getPoint(next_point)
 		elseif event.channel:find("NOTE") or event.channel:find("AUTO") then
 			if event.channel:find("AUTO") then
 				local visualPoint = visualColumns:getPoint(point, "auto")
@@ -181,7 +187,7 @@ function ChartDecoder:process(index)
 	if not self.tempoAtStart then
 		local point = layer:getPoint(Fraction(0))
 		point._tempo = Tempo(self.ojn.bpm)
-		layer.visual:getPoint(point)
+		visual:getPoint(point)
 	end
 end
 
