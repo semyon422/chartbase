@@ -62,7 +62,7 @@ function ChartEncoder:encodeEventSamples()
 	for _, note in self.chart.notes:iter() do
 		if note.column == "auto" then
 			table.insert(samples, {
-				time = note.visualPoint.point.absoluteTime,
+				time = note:getTime(),
 				name = note.sounds[1][1],
 				volume = note.sounds[1][2],
 			})
@@ -79,7 +79,7 @@ function ChartEncoder:encodeHitObjects()
 		if key then
 			---@type osu.HitObject
 			local obj = {
-				time = math.floor(note.visualPoint.point.absoluteTime * 1000),
+				time = math.floor(note:getTime() * 1000),
 				x = math.floor(512 / columns * (key - 0.5)),
 				y = 192,
 				type = 1,
@@ -88,7 +88,7 @@ function ChartEncoder:encodeHitObjects()
 			}
 			if note.endNote then
 				obj.type = HitObjects.HitObjectType.ManiaLong
-				obj.endTime = note.endNote.visualPoint.point.absoluteTime
+				obj.endTime = note.endNote:getTime()
 			end
 			table.insert(objs, obj)
 			--- TODO: hotsounds and keysounds
