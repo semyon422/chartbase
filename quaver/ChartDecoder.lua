@@ -99,8 +99,13 @@ function ChartDecoder:addAudio()
 		return
 	end
 
-	local point = self.layer:getPoint(0)
-	local visualPoint = self.visual:getPoint(point)
+	local audio_layer = AbsoluteLayer()
+	self.chart.layers.audio = audio_layer
+
+	local visual = Visual()
+	audio_layer.visuals.main = visual
+
+	local visualPoint = visual:getPoint(audio_layer:getPoint(0))
 
 	local note = Note(visualPoint, "audio")
 	note.noteType = "SoundNote"
