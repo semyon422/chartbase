@@ -18,7 +18,6 @@ local ChartDecoder = IChartDecoder + {}
 
 function ChartDecoder:new()
 	self.notes_count = 0
-	self.longNotes = {}
 end
 
 ---@param s string
@@ -73,11 +72,10 @@ function ChartDecoder:getVisual(name)
 	return visual
 end
 
----@param line table
+---@param line sph.ProtoLine
 function ChartDecoder:processLine(line)
 	local layer = self.layer
 	local chart = self.chart
-	local longNotes = self.longNotes
 	local sounds = self.sph.sounds
 	local inputMap = self.inputMap
 
@@ -111,20 +109,17 @@ function ChartDecoder:processLine(line)
 
 		local t = _note.type
 		if t == "1" then
-			note.noteType = "ShortNote"
+			note.type = "note"
 			self.notes_count = self.notes_count + 1
 		elseif t == "2" then
-			note.noteType = "ShortNote"
+			note.type = "hold"
+			note.weight = 1
 			self.notes_count = self.notes_count + 1
-			longNotes[col] = note
-		elseif t == "3" and longNotes[col] then
-			note.noteType = "LongNoteEnd"
-			note.startNote = longNotes[col]
-			longNotes[col].endNote = note
-			longNotes[col].noteType = "LongNoteStart"
-			longNotes[col] = nil
+		elseif t == "3" then
+			note.type = "hold"
+			note.weight = -1
 		elseif t == "4" then
-			note.noteType = "SoundNote"
+			note.type = "shade"
 		end
 
 		chart.notes:insert(note)
@@ -134,8 +129,7 @@ function ChartDecoder:processLine(line)
 		local sound = sounds[line_sounds[i]]
 		if sound then
 			local column = "auto" .. (i - #notes)
-			local note = Note(visualPoint, column)
-			note.noteType = "SoundNote"
+			local note = Note(visualPoint, column, "sample")
 			note.sounds = {{sound, line_volume[i] or 1}}
 			self.chart.resourceList:add("sound", sound, {sound})
 			chart.notes:insert(note)
@@ -184,12 +178,11 @@ function ChartDecoder:addAudio()
 	point._interval = Interval(0)
 	local vp = visual:getPoint(point)
 
-	local note = Note(vp, "audio")
+	local note = Note(vp, "audio", "sample")
 	note.sounds = {{audio, 1}}
 	note.stream = true
 	self.chart.resourceList:add("sound", audio, {audio})
 
-	note.noteType = "SoundNote"
 	self.chart.notes:insert(note)
 end
 

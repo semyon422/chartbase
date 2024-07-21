@@ -20,10 +20,9 @@ local headerLines = {
 }
 
 local noteTypeMap = {
-	ShortNote = "1",
-	LongNoteStart = "2",
-	LongNoteEnd = "3",
-	SoundNote = "4",
+	note = {[0] = "1"},
+	hold = {[-1] = "2", [1] = "3"},
+	shade = {[0] = "4"},
 }
 
 ---@param a table
@@ -70,12 +69,12 @@ function ChartEncoder:createSoundListAndMap()
 	self.sounds_map = sounds_map
 end
 
----@param _notes {[number]: ncdk2.Note}}
+---@param _notes {[number]: notechart.Note}}
 ---@return table
 function ChartEncoder:getNotes(_notes)
 	local notes = {}
 	for input, note in pairs(_notes) do
-		local t = noteTypeMap[note.noteType]
+		local t = noteTypeMap[note.type] and noteTypeMap[note.type][note.weight]
 		local column = self.inputMap[input]
 		if self.inputMap[input] and t then
 			table.insert(notes, {
