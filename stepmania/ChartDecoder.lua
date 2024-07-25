@@ -138,19 +138,21 @@ function ChartDecoder:processNotes()
 		note.images = {}
 
 		if _note.noteType == "1" then
-			note.noteType = "ShortNote"
+			note.type = "note"
 			self.notes_count = self.notes_count + 1
-		elseif _note.noteType == "M" or _note.noteType == "F" then
-			note.noteType = "SoundNote"
+		elseif _note.noteType == "M" then
+			note.type = "mine"
+		elseif _note.noteType == "F" then
+			note.type = "fake"
 		elseif _note.noteType == "2" or _note.noteType == "4" then
-			note.noteType = "ShortNote"
+			note.type = "note"
 			longNotes[_note.column] = note
 			self.notes_count = self.notes_count + 1
 		elseif _note.noteType == "3" then
-			note.noteType = "LongNoteEnd"
-			note.startNote = longNotes[_note.column]
-			longNotes[_note.column].endNote = note
-			longNotes[_note.column].noteType = "LongNoteStart"
+			note.type = "hold"
+			note.weight = -1
+			longNotes[_note.column].type = "hold"
+			longNotes[_note.column].weight = 1
 			longNotes[_note.column] = nil
 		end
 
@@ -193,8 +195,7 @@ function ChartDecoder:processAudio()
 	local offset = tonumber(self.sm.header["OFFSET"]) or 0
 	local visualPoint = visual:getPoint(audio_layer:getPoint(offset))
 
-	local note = Note(visualPoint, "audio")
-	note.noteType = "SoundNote"
+	local note = Note(visualPoint, "audio", "sample")
 	note.sounds = {{self.sm.header["MUSIC"], 1}}
 	note.stream = true
 	note.streamOffset = offset
@@ -210,17 +211,8 @@ function ChartDecoder:processMeasureLines()
 	local column = "measure1"
 	for measureIndex = 0, self.sm_chart.measure do
 		local point = layer:getPoint(Fraction(measureIndex))
-
-		local startNote = Note(visual:getPoint(point), column)
-		startNote.noteType = "LineNoteStart"
+		local startNote = Note(visual:getPoint(point), column, "shade")
 		chart.notes:insert(startNote)
-
-		local endNote = Note(visual:newPoint(point), column)
-		endNote.noteType = "LineNoteEnd"
-		chart.notes:insert(endNote)
-
-		startNote.endNote = endNote
-		endNote.startNote = startNote
 	end
 end
 

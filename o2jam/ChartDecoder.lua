@@ -146,8 +146,7 @@ function ChartDecoder:process(index)
 		elseif event.channel:find("NOTE") or event.channel:find("AUTO") then
 			if event.channel:find("AUTO") then
 				local visualPoint = visualColumns:getPoint(point, "auto")
-				local note = Note(visualPoint, "auto")
-				note.noteType = "SoundNote"
+				local note = Note(visualPoint, "auto", "sample")
 				note.sounds = {{event.value, event.volume}}
 				chart.notes:insert(note)
 			else
@@ -159,13 +158,13 @@ function ChartDecoder:process(index)
 					self.measure_count = event.measure
 				end
 				if long_notes[key] and event.type == "RELEASE" then
-					long_notes[key].noteType = "LongNoteStart"
-					long_notes[key].endNote = note
-					note.startNote = long_notes[key]
-					note.noteType = "LongNoteEnd"
+					long_notes[key].type = "hold"
+					long_notes[key].weight = 1
+					note.type = "hold"
+					note.weight = -1
 					long_notes[key] = nil
 				else
-					note.noteType = "ShortNote"
+					note.type = "note"
 					if event.type == "HOLD" then
 						long_notes[key] = note
 					end
@@ -198,17 +197,8 @@ function ChartDecoder:processMeasureLines()
 	local column = "measure1"
 	for measureIndex = 0, self.measure_count do
 		local point = layer:getPoint(Fraction(measureIndex))
-
-		local startNote = Note(visualColumns:getPoint(point, column), column)
-		startNote.noteType = "LineNoteStart"
-		chart.notes:insert(startNote)
-
-		local endNote = Note(visualColumns:getPoint(point, column), column)
-		endNote.noteType = "LineNoteEnd"
-		chart.notes:insert(endNote)
-
-		startNote.endNote = endNote
-		endNote.startNote = startNote
+		local note = Note(visualColumns:getPoint(point, column), column, "shade")
+		chart.notes:insert(note)
 	end
 end
 

@@ -150,8 +150,7 @@ function ChartDecoder:processAudio()
 	local offset = -(tonumber(self.ksh.options.o) or 0) / 1000
 	local visualPoint = audio_visual:getPoint(audio_layer:getPoint(offset))
 
-	local note = Note(visualPoint, "audio")
-	note.noteType = "SoundNote"
+	local note = Note(visualPoint, "audio", "sample")
 	note.sounds = {{audio, 1}}
 	note.stream = true
 	note.streamOffset = offset
@@ -200,13 +199,14 @@ function ChartDecoder:processNotes()
 		local endMeasureTime = Fraction(_note.endLineOffset, _note.endLineCount) + _note.endMeasureOffset
 
 		if startMeasureTime == endMeasureTime then
-			startNote.noteType = "ShortNote"
+			startNote.type = "note"
 		else
 			if _note.input ~= "laser" then
-				startNote.noteType = "LongNoteStart"
+				startNote.type = "hold"
 			else
-				startNote.noteType = "LaserNoteStart"
+				startNote.type = "laser"
 			end
+			startNote.weight = 1
 
 			local end_point = layer:getPoint(endMeasureTime)
 			local end_visualPoint = visual:getPoint(end_point)
@@ -215,13 +215,11 @@ function ChartDecoder:processNotes()
 			endNote.sounds = {}
 
 			if _note.input ~= "laser" then
-				endNote.noteType = "LongNoteEnd"
+				endNote.type = "hold"
 			else
-				endNote.noteType = "LaserNoteEnd"
+				endNote.type = "laser"
 			end
-
-			endNote.startNote = startNote
-			startNote.endNote = endNote
+			endNote.weight = -1
 
 			chart.notes:insert(endNote)
 
@@ -245,17 +243,8 @@ function ChartDecoder:processMeasureLines()
 	local chart = self.chart
 	for measureIndex = 0, #self.ksh.measureStrings do
 		local point = layer:getPoint(Fraction(measureIndex))
-
-		local startNote = Note(visual:getPoint(point), "measure1")
-		startNote.noteType = "LineNoteStart"
-		chart.notes:insert(startNote)
-
-		local endNote = Note(visual:newPoint(point), "measure1")
-		endNote.noteType = "LineNoteEnd"
-		chart.notes:insert(endNote)
-
-		startNote.endNote = endNote
-		endNote.startNote = startNote
+		local note = Note(visual:getPoint(point), "measure1", "shade")
+		chart.notes:insert(note)
 	end
 end
 
