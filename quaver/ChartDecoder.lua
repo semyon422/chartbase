@@ -107,8 +107,7 @@ function ChartDecoder:addAudio()
 
 	local visualPoint = visual:getPoint(audio_layer:getPoint(0))
 
-	local note = Note(visualPoint, "audio")
-	note.noteType = "SoundNote"
+	local note = Note(visualPoint, "audio", "sample")
 	note.sounds = {{audioFileName, 1}}
 	note.stream = true
 	self.chart.resourceList:add("sound", audioFileName, {audioFileName})
@@ -162,8 +161,7 @@ end
 function ChartDecoder:getNote(time, column, noteType, sounds)
 	local point = self.layer:getPoint(time)
 	local visualPoint = self.visual:getPoint(point)
-	local note = Note(visualPoint, column)
-	note.noteType = noteType
+	local note = Note(visualPoint, column, noteType)
 	note.sounds = sounds
 	return note
 end
@@ -189,18 +187,17 @@ function ChartDecoder:getNotes(obj)
 	local sounds = {}  -- TODO: fix hitsounds/keysounds
 
 	if not endTime then
-		return self:getNote(startTime, column, "ShortNote", sounds)
+		return self:getNote(startTime, column, "note", sounds)
 	end
 
 	if endTime < startTime then
-		return self:getNote(startTime, column, "ShortNote"), self:getNote(endTime, column, "SoundNote")
+		return self:getNote(startTime, column, "hold"), self:getNote(endTime, column, "shade")
 	end
 
-	local startNote = self:getNote(startTime, column, "LongNoteStart", sounds)
-	local endNote = self:getNote(endTime, column, "LongNoteEnd")
-
-	endNote.startNote = startNote
-	startNote.endNote = endNote
+	local startNote = self:getNote(startTime, column, "hold", sounds)
+	local endNote = self:getNote(endTime, column, "hold")
+	startNote.weight = 1
+	endNote.weight = -1
 
 	return startNote, endNote
 end
@@ -224,24 +221,15 @@ function ChartDecoder:getTempoPoints()
 end
 
 function ChartDecoder:decodeBarlines(tempo_points)
-	local barlines = Barlines:generate(tempo_points, self.maxTime)
+	local barlines = Barlines:generate(tempo_points, self.maxTime * 1000)
 	local visual = self.visual
 	local layer = self.layer
 	local chart = self.chart
 	local column = "measure1"
 	for _, offset in ipairs(barlines) do
 		local point = layer:getPoint(offset / 1000)
-
-		local a = Note(visual:getPoint(point), column)
-		a.noteType = "LineNoteStart"
+		local a = Note(visual:getPoint(point), column, "shade")
 		chart.notes:insert(a)
-
-		local b = Note(visual:newPoint(point), column)
-		b.noteType = "LineNoteEnd"
-		chart.notes:insert(b)
-
-		a.endNote = b
-		b.startNote = a
 	end
 end
 

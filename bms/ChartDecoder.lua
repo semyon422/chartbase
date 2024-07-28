@@ -288,30 +288,33 @@ function ChartDecoder:processData()
 					end
 
 					if channelInfo.name == "BGA" then
-						note.noteType = "ImageNote"
-					elseif channelInfo.inputType == "auto" or channelInfo.mine then
-						note.noteType = "SoundNote"
+						note.type = "sprite"
+					elseif channelInfo.inputType == "auto" then
+						note.type = "sample"
+					elseif channelInfo.mine then
+						note.type = "mine"
 					elseif channelInfo.long then
 						if not longNoteData[channelIndex] then
-							note.noteType = "LongNoteStart"
+							note.type = "hold"
+							note.weight = 1
 							longNoteData[channelIndex] = note
 						else
-							note.noteType = "LongNoteEnd"
+							note.type = "hold"
+							note.weight = -1
 							note.sounds = {}
-							note.startNote = longNoteData[channelIndex]
-							longNoteData[channelIndex].endNote = note
 							longNoteData[channelIndex] = nil
 						end
 					else
 						if longNoteData[channelIndex] and value == self.bms.lnobj then
-							longNoteData[channelIndex].noteType = "LongNoteStart"
-							longNoteData[channelIndex].endNote = note
-							note.startNote = longNoteData[channelIndex]
-							note.noteType = "LongNoteEnd"
+							longNoteData[channelIndex].type = "hold"
+							longNoteData[channelIndex].weight = 1
+							note.type = "hold"
+							note.weight = -1
 							note.sounds = {}
 							longNoteData[channelIndex] = nil
 						else
-							note.noteType = "ShortNote"
+							note.type = "note"
+							note.weight = 0
 							longNoteData[channelIndex] = note
 						end
 					end
@@ -322,7 +325,7 @@ function ChartDecoder:processData()
 						not channelInfo.mine and
 						channelInfo.name ~= "BGA"
 					then
-						if note.noteType ~= "LongNoteEnd" then
+						if note.weight >= 0 then
 							self.notes_count = self.notes_count + 1
 						end
 
@@ -339,7 +342,8 @@ function ChartDecoder:processData()
 		end
 	end
 	for _, note in pairs(longNoteData) do
-		note.noteType = "ShortNote"
+		note.type = "note"
+		note.weight = 0
 	end
 end
 
@@ -348,17 +352,8 @@ function ChartDecoder:processMeasureLines()
 	local chart = self.chart
 	for measureIndex = 0, self.bms.measureCount do
 		local point = layer:getPoint(Fraction(measureIndex))
-
-		local startNote = Note(self.visual:getPoint(point), "measure1")
-		startNote.noteType = "LineNoteStart"
-		chart.notes:insert(startNote)
-
-		local endNote = Note(self.visual:newPoint(point), "measure1")
-		endNote.noteType = "LineNoteEnd"
-		chart.notes:insert(endNote)
-
-		startNote.endNote = endNote
-		endNote.startNote = startNote
+		local note = Note(self.visual:getPoint(point), "measure1", "shade")
+		chart.notes:insert(note)
 	end
 end
 
