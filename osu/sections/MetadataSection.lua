@@ -14,8 +14,8 @@ MetadataSection.Creator = ""
 MetadataSection.Version = ""
 MetadataSection.Source = ""
 MetadataSection.Tags = ""
-MetadataSection.BeatmapID = ""
-MetadataSection.BeatmapSetID = ""
+MetadataSection.BeatmapID = "0"
+MetadataSection.BeatmapSetID = "-1"
 
 MetadataSection.keys = {
 	"Title",
