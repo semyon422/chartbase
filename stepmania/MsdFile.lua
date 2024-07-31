@@ -34,6 +34,15 @@ function MsdFile:getNumParams(val)
 end
 
 ---@param val integer
+---@return string[]
+function MsdFile:getValue(val)
+	if val > self:getNumValues() then
+		return {}
+	end
+	return self.values[val]
+end
+
+---@param val integer
 ---@param par integer
 ---@return string
 function MsdFile:getParam(val, par)
