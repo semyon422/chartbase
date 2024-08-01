@@ -39,6 +39,10 @@ function Barlines:generate(tempo_points, lastTime)
 		while beatTime < timeEnd do
 			table.insert(barlines, beatTime)
 			beatTime = beatTime + measure_length
+
+			if measure_length < 1e-4 then  -- optimization
+				break
+			end
 		end
 	end
 	return barlines
