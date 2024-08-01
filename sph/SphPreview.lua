@@ -334,6 +334,7 @@ local function preview_line_to_line(pline, long_notes)
 			elseif pr == false then
 				note.type = "3"
 				long_notes[column].type = "2"
+				long_notes[column] = nil
 			end
 			table.insert(notes, note)
 		end
@@ -394,13 +395,13 @@ local function line_to_preview_line(line, prev_pline, long_notes)
 				end
 			end
 			local old_value = notes[column]
-			if old_value == true then
-				if t == false then
-					t = true  -- convert 0-length LN to a short note
-				end
-			elseif old_value == false then
-				if t == true then
+			if old_value == true and t == false then
+				t = true  -- convert 0-length LN to a short note
+			elseif old_value == false and t == true then
+				if note.type == "1" then
 					t = false  -- delete note at the end of LN
+				elseif note.type == "2" then
+					t = nil  -- connect 2 LNs
 				end
 			end
 			notes[column] = t

@@ -461,4 +461,20 @@ function test.collision_long_inside_long(t)
 	})
 end
 
+function test.collision_long_long_merge(t)
+	local _lines = {
+		{notes={{column=1,type="2"}}},
+		{notes={{column=1,type="3"}}},
+		{notes={{column=1,type="2"}},same=true},
+		{notes={{column=1,type="3"}}},
+	}
+
+	local plines = SphPreview:linesToPreviewLines(_lines)
+	t:tdeq(plines, {
+		{notes={true}},
+		{notes={}},
+		{notes={false}},
+	})
+end
+
 return test
