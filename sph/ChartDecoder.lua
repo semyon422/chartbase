@@ -44,6 +44,9 @@ function ChartDecoder:decodeSph(sph)
 	chart.layers.main = layer
 	self.layer = layer
 
+	---@type ncdk2.Point?
+	self.close_point = nil
+
 	for _, line in ipairs(sph.sphLines.protoLines) do
 		self:processLine(line)
 	end
@@ -82,6 +85,12 @@ function ChartDecoder:processLine(line)
 	local visual = self:getVisual(line.visual)
 
 	local point = layer:getPoint(line.globalTime)
+
+	if self.close_point and self.close_point ~= point then
+		visual:newPoint(self.close_point)
+	end
+	self.close_point = nil
+
 	local visualPoint = visual:newPoint(point)
 
 	if line.offset then
@@ -141,6 +150,7 @@ function ChartDecoder:processLine(line)
 	end
 	if line.expand and line.expand ~= 0 then
 		visualPoint._expand = Expand(line.expand)
+		self.close_point = point
 	end
 	if line.measure then
 		point._measure = Measure(line.measure)
