@@ -11,7 +11,7 @@ local Fraction = require("ncdk.Fraction")
 local Chartmeta = require("notechart.Chartmeta")
 local EncodingConverter = require("notechart.EncodingConverter")
 local dpairs = require("dpairs")
-local Sm = require("stepmania.SM")
+local Sm = require("stepmania.Sm")
 local Visual = require("ncdk2.visual.Visual")
 
 ---@class stepmania.ChartDecoder: chartbase.IChartDecoder
@@ -103,7 +103,7 @@ function ChartDecoder:setMetadata()
 		source = header["SUBTITLE"],
 		name = sm_chart.header[3],
 		creator = header["CREDIT"],
-		level = tonumber(sm_chart.header[4]),
+		level = tonumber(sm_chart.header.difficulty),
 		audio_path = header["MUSIC"],
 		audio_offset = tonumber(self.sm.header["OFFSET"]),
 		preview_time = tonumber(header["SAMPLESTART"]) or 0,
@@ -127,7 +127,7 @@ function ChartDecoder:processNotes()
 
 	local longNotes = {}
 	for _, _note in ipairs(self.sm_chart.notes) do
-		local measureTime = Fraction(_note.offset, self.sm_chart.linesPerMeasure[_note.measure]) + _note.measure
+		local measureTime = Fraction(_note.offset, self.sm_chart.measure_size[_note.measure]) + _note.measure
 		local point = layer:getPoint(measureTime)
 		local visualPoint = visual:getPoint(point)
 

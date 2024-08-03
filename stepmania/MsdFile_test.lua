@@ -13,7 +13,6 @@ function test.basic(t)
 		"#c\r\n\t ",
 	}, "\r\n"))
 
-
 	t:eq(msd:getNumValues(), 5)
 
 	t:eq(msd:getNumParams(1), 4)
@@ -42,6 +41,29 @@ function test.unescape(t)
 
 	msd:read('#q\\"w\\"e;', true)
 	t:eq(msd:getParam(2, 1), 'q\"w\"e')
+end
+
+function test.bom(t)
+	local BOM = string.char(0xEF, 0xBB, 0xBF)
+
+	local msd = MsdFile()
+
+	msd:read(BOM .. "#qwe;")
+	t:eq(msd:getParam(1, 1), "qwe")
+end
+
+function test.no_comment_multiline(t)
+	local msd = MsdFile()
+
+	msd:read(table.concat({
+		"#q:a,  // comment",
+		"s,  // comment",
+		"d,  ",
+		"f;",
+	}, "\r\n"))
+
+	t:eq(msd:getParam(1, 1), "q")
+	t:eq(msd:getParam(1, 2), "a,  \ns,  \nd,  \r\nf")
 end
 
 return test
