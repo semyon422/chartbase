@@ -47,7 +47,7 @@ function ChartDecoder:decode(s)
 	return charts
 end
 
----@param sm stepmania.SM
+---@param sm stepmania.Sm
 ---@param index integer
 ---@return ncdk2.Chart
 function ChartDecoder:decodeSm(sm, index)
@@ -101,7 +101,7 @@ function ChartDecoder:setMetadata()
 		title = header["TITLE"],
 		artist = header["ARTIST"],
 		source = header["SUBTITLE"],
-		name = sm_chart.header[3],
+		name = sm_chart.header.difficulty,
 		creator = header["CREDIT"],
 		level = tonumber(sm_chart.header.difficulty),
 		audio_path = header["MUSIC"],

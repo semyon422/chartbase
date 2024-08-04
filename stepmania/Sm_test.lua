@@ -33,7 +33,16 @@ function test.basic(t)
 ;
 ]])
 
-	print(require("inspect")(sm))
+	local chart = sm.charts[1]
+
+	local header = chart.header
+	t:eq(header.stepstype, "dance-single")
+	t:eq(header.description, "")
+	t:eq(header.difficulty, "Challenge")
+	t:eq(header.meter, "1")
+	t:eq(header.radarvalues, "0.000,0.000,0.000,0.000,0.000")
+
+	t:eq(#chart.notes, 8)
 end
 
 return test

@@ -83,14 +83,20 @@ function Sm:processNOTES(params)
 	table.insert(self.charts, chart)
 
 	chart.header = {
-		type = params[2],
-		description = params[3],
-		difficulty = params[4],
-		signature = params[5],
-		radar = params[6],
+		stepstype = params[2]:match("^%s*(.-)%s*$"),
+		description = params[3]:match("^%s*(.-)%s*$"),
+		difficulty = params[4]:match("^%s*(.-)%s*$"),
+		meter = params[5]:match("^%s*(.-)%s*$"),
+		radarvalues = params[6]:match("^%s*(.-)%s*$"),
 	}
 
-	for _, s in ipairs(params[7]:split(",")) do
+	self:processNotesParam(params[7])
+end
+
+---@param param string
+function Sm:processNotesParam(param)
+	local chart = self.chart
+	for _, s in ipairs(param:split(",")) do
 		local count = 0
 		for line in s:gmatch("([^%s]+)") do
 			self:processNotesLine(line:trim())

@@ -14,6 +14,7 @@ local ChartDecoders = {
 	bml = require("bms.ChartDecoder"),
 	pms = require("bms.PmsChartDecoder"),
 	sm = require("stepmania.ChartDecoder"),
+	ssc = require("stepmania.SscChartDecoder"),
 	qua = require("quaver.ChartDecoder"),
 	mid = require("midi.ChartDecoder"),
 	midi = require("midi.ChartDecoder"),
