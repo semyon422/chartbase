@@ -5,6 +5,22 @@ local path_util = require("path_util")
 ---@operator call: notechart.ChartFactory
 local ChartFactory = class()
 
+ChartFactory.extensions = {
+	"osu",
+	"sph",
+	"ojn",
+	"bms",
+	"bme",
+	"bml",
+	"pms",
+	"sm",
+	"ssc",
+	"qua",
+	"mid",
+	"midi",
+	"ksh"
+}
+
 local ChartDecoders = {
 	osu = require("osu.ChartDecoder"),
 	sph = require("sph.ChartDecoder"),
