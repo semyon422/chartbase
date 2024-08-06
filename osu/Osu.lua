@@ -168,7 +168,7 @@ function Osu:decodeHitObjects()
 			column = math.max(1, math.min(keymode, math.floor(obj.x / 512 * keymode + 1)))
 		end
 
-		local sounds = Sounds:decode(obj.soundType, obj, p)
+		local sounds = Sounds:decode(obj.soundType, obj.addition, p)
 		table.insert(self.protoNotes, {
 			time = obj.time,
 			endTime = obj.endTime,
