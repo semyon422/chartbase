@@ -41,7 +41,7 @@ function ChartEncoder:encodeMetadata()
 	local rosu = self.rawOsu
 
 	rosu.General.AudioFilename = chart.chartmeta.audio_path
-	rosu.General.PreviewTime = math.floor(chart.chartmeta.preview_time * 1000)
+	rosu.General.PreviewTime = math.floor((chart.chartmeta.preview_time or -1) * 1000)
 	rosu.General.Mode = 3
 
 	rosu.Metadata.Title = chart.chartmeta.title
