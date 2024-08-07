@@ -212,7 +212,7 @@ function ChartDecoder:setStop(timeData)
 	end
 	local value = timeData[enums.BackChannelEnum["Stop"]][1]
 	local duration = self.bms.stop[value]
-	if not duration then
+	if not duration or duration <= 0 then
 		return
 	end
 
