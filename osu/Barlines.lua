@@ -4,6 +4,8 @@ local class = require("class")
 ---@operator call: osu.Barlines
 local Barlines = class()
 
+-- NOTICE: beatLength in ms!
+
 ---@param tempo_points osu.FilteredPoint[]
 ---@param lastTime number
 ---@return number[]
@@ -40,7 +42,10 @@ function Barlines:generate(tempo_points, lastTime)
 			table.insert(barlines, beatTime)
 			beatTime = beatTime + measure_length
 
-			if measure_length < 1e-4 then  -- optimization
+			if
+				measure_length < 0.1 or
+				(timeEnd - beatTime) / measure_length > 10000
+			then  -- optimization
 				break
 			end
 		end
