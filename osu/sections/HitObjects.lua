@@ -141,6 +141,7 @@ local function decode_osu_slider(object, split, soundType)
 	if #split > 10 then
 		object.addition = Addition(split[11])
 	end
+	object.addition = object.addition or Addition()
 
 	object.points = points
 	object.sounds = sounds
@@ -189,6 +190,7 @@ function HitObjects:decodeLine(line)
 			object.addition = Addition()
 		end
 	end
+	object.addition = object.addition or Addition()
 
 	table.insert(self, object)
 end
