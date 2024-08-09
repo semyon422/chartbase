@@ -182,7 +182,7 @@ function ChartDecoder:setTempo(timeData)
 	end
 	local tempo = tonumber(timeData[enums.BackChannelEnum["Tempo"]][1], 16)
 	local point = self.layer:getPoint(timeData.measureTime)
-	point._tempo = Tempo(tempo)
+	point._tempo = Tempo(math.abs(tempo))
 	self.visual:getPoint(point)
 end
 
@@ -199,7 +199,7 @@ function ChartDecoder:setExtendedTempo(timeData)
 	end
 
 	local point = self.layer:getPoint(timeData.measureTime)
-	point._tempo = Tempo(tempo)
+	point._tempo = Tempo(math.abs(tempo))
 	self.visual:getPoint(point)
 
 	return true
