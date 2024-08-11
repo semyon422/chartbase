@@ -240,7 +240,7 @@ function ChartDecoder:processData()
 
 	for measureIndex, value in pairs(self.bms.signature) do
 		local point = layer:getPoint(Fraction(measureIndex))
-		point._signature = Signature(Fraction(value * 4, 32768, true))
+		point._signature = Signature(Fraction(value * 4, 1000, "closest"))
 		self.visual:getPoint(point)
 		local next_point = layer:getPoint(Fraction(measureIndex + 1))
 		if not next_point._signature then
