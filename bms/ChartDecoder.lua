@@ -277,13 +277,13 @@ function ChartDecoder:processData()
 						local sound = self.bms.wav[value]
 						if sound and not channelInfo.mine then
 							note.sounds[1] = {sound, 1}
-							self.chart.resourceList:add("sound", sound, {sound})
+							self.chart.resources:add("sound", sound)
 						end
 					elseif channelInfo.name == "BGA" then
 						local image = self.bms.bmp[value]
 						if image then
 							note.images[1] = {image, 1}
-							self.chart.resourceList:add("image", image, {image})
+							self.chart.resources:add("image", image)
 						end
 					end
 

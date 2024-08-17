@@ -91,7 +91,7 @@ function ChartDecoder:processData(trackIndex, addedNotes)
 			local eventId = event[2] .. ":" .. event[3]
 
 			local hs = tostring(event[3])
-			chart.resourceList:add("sound", hs, {hs})
+			chart.resources:add("sound", hs)
 
 			local point = layer:getPoint(Fraction(event[2], 1000, true))
 

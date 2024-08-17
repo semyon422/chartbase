@@ -120,7 +120,7 @@ function ChartDecoder:addAudio()
 	note.type = "sample"
 	note.sounds = {{audioFileName, 1}}
 	note.stream = true
-	self.chart.resourceList:add("sound", audioFileName, {audioFileName})
+	self.chart.resources:add("sound", audioFileName)
 
 	self.chart.notes:insert(note)
 end
@@ -173,7 +173,7 @@ function ChartDecoder:decodeSamples()
 		note.type = "sample"
 		note.sounds = {{e.name, e.volume / 100}}
 		chart.notes:insert(note)
-		self.chart.resourceList:add("sound", e.name, {e.name})
+		self.chart.resources:add("sound", e.name)
 	end
 end
 
@@ -210,7 +210,7 @@ function ChartDecoder:getNotes(proto_note)
 	local sounds = {}
 	for i, s in ipairs(proto_note.sounds) do
 		sounds[i] = {s.name, s.volume / 100}
-		self.chart.resourceList:add("sound", s.name, {s.name, s.fallback_name})
+		self.chart.resources:add("sound", s.name, s.fallback_name)
 	end
 
 	if not endTime then

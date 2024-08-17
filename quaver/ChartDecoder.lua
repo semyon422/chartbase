@@ -110,7 +110,7 @@ function ChartDecoder:addAudio()
 	local note = Note(visualPoint, "audio", "sample")
 	note.sounds = {{audioFileName, 1}}
 	note.stream = true
-	self.chart.resourceList:add("sound", audioFileName, {audioFileName})
+	self.chart.resources:add("sound", audioFileName)
 
 	self.chart.notes:insert(note)
 end

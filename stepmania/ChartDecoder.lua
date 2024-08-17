@@ -199,7 +199,7 @@ function ChartDecoder:processAudio()
 	note.sounds = {{self.sm.header["MUSIC"], 1}}
 	note.stream = true
 	note.streamOffset = offset
-	self.chart.resourceList:add("sound", self.sm.header["MUSIC"], {self.sm.header["MUSIC"]})
+	self.chart.resources:add("sound", self.sm.header["MUSIC"])
 
 	self.chart.notes:insert(note)
 end
