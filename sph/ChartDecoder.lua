@@ -190,7 +190,6 @@ function ChartDecoder:addAudio()
 
 	local note = Note(vp, "audio", "sample")
 	note.sounds = {{audio, 1}}
-	note.stream = true
 	self.chart.resources:add("sound", audio)
 
 	self.chart.notes:insert(note)

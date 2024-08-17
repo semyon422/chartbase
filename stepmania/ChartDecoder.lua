@@ -197,8 +197,6 @@ function ChartDecoder:processAudio()
 
 	local note = Note(visualPoint, "audio", "sample")
 	note.sounds = {{self.sm.header["MUSIC"], 1}}
-	note.stream = true
-	note.streamOffset = offset
 	self.chart.resources:add("sound", self.sm.header["MUSIC"])
 
 	self.chart.notes:insert(note)
