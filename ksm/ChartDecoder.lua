@@ -69,7 +69,6 @@ function ChartDecoder:decodeKsh(ksh)
 	self:processAudio()
 	self:processMeasureLines()
 
-	chart.type = "ksm"
 	chart:compute()
 
 	self:updateLength()

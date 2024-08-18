@@ -55,7 +55,6 @@ function ChartDecoder:decodeMid(mid)
 
 	self:processMeasureLines()
 
-	chart.type = "bms"
 	chart:compute()
 
 	self:setMetadata()

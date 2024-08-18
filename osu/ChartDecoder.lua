@@ -68,7 +68,6 @@ function ChartDecoder:decodeOsu(osu)
 	elseif mode == 3 then
 		chart.inputMode = InputMode({key = osu.keymode})
 	end
-	chart.type = "osu"
 
 	chart:compute()
 

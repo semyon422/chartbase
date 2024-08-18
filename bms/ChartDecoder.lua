@@ -97,7 +97,6 @@ function ChartDecoder:decodeBms(bms)
 	self:processData()
 	self:processMeasureLines()
 
-	chart.type = "bms"
 	chart:compute()
 
 	self:updateLength()

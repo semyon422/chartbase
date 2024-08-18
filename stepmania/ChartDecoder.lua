@@ -71,7 +71,6 @@ function ChartDecoder:decodeSm(sm, index)
 	self:processAudio()
 	self:processMeasureLines()
 
-	chart.type = "sm"
 	chart:compute()
 
 	self:updateLength()

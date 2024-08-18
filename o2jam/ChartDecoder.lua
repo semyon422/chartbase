@@ -65,7 +65,8 @@ function ChartDecoder:decodeOjn(ojn, index)
 	self:process(index)
 	self:processMeasureLines()
 
-	chart.type = "o2jam"
+	chart.resources:add("ojm", ojn.ojm_file)
+
 	chart:compute()
 
 	self:updateLength()

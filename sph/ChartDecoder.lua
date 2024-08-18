@@ -53,7 +53,6 @@ function ChartDecoder:decodeSph(sph)
 
 	self:addAudio()
 
-	chart.type = "bms"
 	chart:compute()
 
 	self:setMetadata()

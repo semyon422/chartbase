@@ -60,7 +60,6 @@ function ChartDecoder:decodeQua(qua)
 
 	self.columns = tonumber(qua.Mode:sub(-1, -1))
 	chart.inputMode = InputMode({key = self.columns})
-	chart.type = "quaver"
 
 	chart:compute()
 
