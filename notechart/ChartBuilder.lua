@@ -15,7 +15,7 @@ function ChartBuilder:new()
 end
 
 ---@return ncdk2.AbsoluteLayer
-function ChartBuilder:createLayer()
+function ChartBuilder:createAbsoluteLayer()
 	local layer = AbsoluteLayer()
 	self.chart.layers.main = layer
 	return layer

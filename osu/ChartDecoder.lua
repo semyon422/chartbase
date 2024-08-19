@@ -1,4 +1,5 @@
 local IChartDecoder = require("notechart.IChartDecoder")
+local ChartBuilder = require("notechart.ChartBuilder")
 local Chart = require("ncdk2.Chart")
 local Note = require("notechart.Note")
 local Velocity = require("ncdk2.visual.Velocity")
@@ -36,15 +37,16 @@ end
 function ChartDecoder:decodeOsu(osu)
 	self.osu = osu
 
-	local chart = Chart()
+	local chartBuilder = ChartBuilder()
+	self.chartBuilder = chartBuilder
+
+	local chart = chartBuilder.chart
 	self.chart = chart
 
-	local layer = AbsoluteLayer()
-	chart.layers.main = layer
+	local layer = chartBuilder:createAbsoluteLayer()
 	self.layer = layer
 
-	local visual = Visual()
-	layer.visuals.main = visual
+	local visual = chartBuilder:getVisual("name")
 	self.visual = visual
 	self.visualColumns = VisualColumns(visual)
 
@@ -102,24 +104,11 @@ function ChartDecoder:setMetadata()
 end
 
 function ChartDecoder:addAudio()
-	local audioFileName = self.osu.rawOsu.General.AudioFilename
-	if not audioFileName or audioFileName == "virtual" then
+	local path = self.osu.rawOsu.General.AudioFilename
+	if not path or path == "virtual" then
 		return
 	end
-
-	local audio_layer = AbsoluteLayer()
-	self.chart.layers.audio = audio_layer
-
-	local visual = Visual()
-	audio_layer.visuals.main = visual
-
-	local visualPoint = visual:getPoint(audio_layer:getPoint(0))
-
-	local note = Note(visualPoint, "audio", "sample")
-	note.sounds = {{audioFileName, 1}}
-	self.chart.resources:add("sound", audioFileName)
-
-	self.chart.notes:insert(note)
+	self.chartBuilder:addMainAudio(path)
 end
 
 function ChartDecoder:decodeTempos()
@@ -144,9 +133,7 @@ function ChartDecoder:decodeVelocities()
 end
 
 function ChartDecoder:decodeNotes()
-	local layer = self.layer
 	local chart = self.chart
-
 	for _, proto_note in ipairs(self.osu.protoNotes) do
 		local a, b = self:getNotes(proto_note)
 		if a then
@@ -250,8 +237,7 @@ function ChartDecoder:decodeBarlines()
 	local column = "measure1"
 	for _, offset in ipairs(self.osu.barlines) do
 		local point = layer:getPoint(offset / 1000)
-		local a = Note(visualColumns:getPoint(point, column), column)
-		a.type = "shade"
+		local a = Note(visualColumns:getPoint(point, column), column, "shade")
 		chart.notes:insert(a)
 	end
 end
