@@ -46,7 +46,7 @@ function ChartDecoder:decodeOsu(osu)
 	local layer = chartBuilder:createAbsoluteLayer()
 	self.layer = layer
 
-	local visual = chartBuilder:getVisual("name")
+	local visual = chartBuilder:getVisual("main")
 	self.visual = visual
 	self.visualColumns = VisualColumns(visual)
 
@@ -108,7 +108,7 @@ function ChartDecoder:addAudio()
 	if not path or path == "virtual" then
 		return
 	end
-	self.chartBuilder:addMainAudio(path)
+	self.chartBuilder:setMainAudio(path)
 end
 
 function ChartDecoder:decodeTempos()
@@ -153,8 +153,7 @@ function ChartDecoder:decodeSamples()
 	for _, e in ipairs(self.osu.rawOsu.Events.samples) do
 		local point = layer:getPoint(e.time / 1000)
 		local visualPoint = visualColumns:getPoint(point, "auto")
-		local note = Note(visualPoint, "auto")
-		note.type = "sample"
+		local note = Note(visualPoint, "auto", "sample")
 		note.sounds = {{e.name, e.volume / 100}}
 		chart.notes:insert(note)
 		self.chart.resources:add("sound", e.name)

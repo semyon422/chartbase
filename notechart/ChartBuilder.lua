@@ -57,7 +57,7 @@ end
 ---@param file_name string
 ---@param offset number?
 ---@param volume number?
-function ChartBuilder:addMainAudio(file_name, offset, volume)
+function ChartBuilder:setMainAudio(file_name, offset, volume)
 	local chart = self.chart
 
 	local layer = AbsoluteLayer()
