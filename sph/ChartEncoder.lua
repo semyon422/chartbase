@@ -69,14 +69,14 @@ function ChartEncoder:createSoundListAndMap()
 	self.sounds_map = sounds_map
 end
 
----@param _notes {[number]: notechart.Note}}
+---@param _notes {[ncdk2.Column]: notechart.Note}}
 ---@return table
 function ChartEncoder:getNotes(_notes)
 	local notes = {}
 	for input, note in pairs(_notes) do
 		local t = noteTypeMap[note.type] and noteTypeMap[note.type][note.weight]
 		local column = self.inputMap[input]
-		if self.inputMap[input] and t then
+		if column and t then
 			table.insert(notes, {
 				column = column,
 				type = t,
@@ -97,7 +97,7 @@ local function sortSound(a, b)
 	return a.column < b.column
 end
 
----@param _notes {[number]: ncdk2.Note}}
+---@param _notes {[ncdk2.Column]: ncdk2.Note}}
 ---@return table
 ---@return table
 function ChartEncoder:getSounds(_notes)

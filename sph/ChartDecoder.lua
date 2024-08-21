@@ -38,7 +38,7 @@ function ChartDecoder:decodeSph(sph)
 	self.chart = chart
 
 	chart.inputMode = InputMode(sph.metadata.input)
-	self.inputMap = chart.inputMode:getInputMap()
+	self.inputMap = chart.inputMode:getInputs()
 
 	local layer = IntervalLayer()
 	chart.layers.main = layer
@@ -104,8 +104,7 @@ function ChartDecoder:processLine(line)
 
 	for i, _note in ipairs(notes) do
 		local col = _note.column
-		local input = inputMap[col]
-		local column = input[1] .. input[2]
+		local column = inputMap[col]
 
 		local note = Note(visualPoint, column)
 

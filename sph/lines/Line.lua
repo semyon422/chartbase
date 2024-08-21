@@ -1,7 +1,7 @@
 local class = require("class")
 
 ---@class sph.LineNote
----@field column number
+---@field column integer
 ---@field type string
 
 ---@class sph.Line
