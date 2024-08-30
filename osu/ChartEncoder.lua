@@ -70,28 +70,33 @@ function ChartEncoder:encodeEventSamples()
 	end
 end
 
+local allowedTypes = {
+	note = true,
+	hold = true,
+}
+
 function ChartEncoder:encodeHitObjects()
 	local columns = self.chart.inputMode:getColumns()
 	local inputMap = self.inputMap
 	local objs = self.rawOsu.HitObjects
-	for _, note in self.chart.notes:iter() do
-		local key = inputMap[note.column]
-		if key then
+	for _, note in ipairs(self.chart.notes:getLinkedNotes()) do
+		local key = inputMap[note:getColumn()]
+		if key and allowedTypes[note:getType()] then
 			---@type osu.HitObject
 			local obj = {
-				time = math.floor(note:getTime() * 1000),
+				time = math.floor(note:getStartTime() * 1000),
 				x = math.floor(512 / columns * (key - 0.5)),
 				y = 192,
 				type = 1,
 				soundType = HitObjects.HitObjectType.Normal,
 				addition = Addition(),
 			}
-			if note.endNote then
+			if note:isLong() then
 				obj.type = HitObjects.HitObjectType.ManiaLong
-				obj.endTime = note.endNote:getTime()
+				obj.endTime = math.floor(note:getEndTime() * 1000)
 			end
 			table.insert(objs, obj)
-			--- TODO: hotsounds and keysounds
+			--- TODO: hitsounds and keysounds
 		end
 	end
 	objs:sort()
