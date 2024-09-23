@@ -1,5 +1,5 @@
 local class = require("class")
-local byte = require("byte_new")
+local byte = require("byte")
 local table_util = require("table_util")
 local bit = require("bit")
 local Fraction = require("ncdk.Fraction")

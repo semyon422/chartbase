@@ -1,7 +1,7 @@
 local class = require("class")
 local ffi = require("ffi")
 local bit = require("bit")
-local byte = require("byte")
+local byte = require("byte_old")
 local Fraction = require("ncdk.Fraction")
 
 ---@class o2jam.OJN

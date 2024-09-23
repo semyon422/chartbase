@@ -1,5 +1,5 @@
 local class = require("class")
-local byte = require("byte")
+local byte = require("byte_old")
 local bit = require("bit")
 
 ---@class o2jam.OJM
