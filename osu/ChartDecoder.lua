@@ -100,6 +100,10 @@ function ChartDecoder:setMetadata()
 		tempo_avg = self.osu.primary_tempo,
 		tempo_min = self.osu.min_tempo,
 		tempo_max = self.osu.max_tempo,
+		osu_beatmap_id = self.osu.rawOsu.Metadata.BeatmapID,
+		osu_beatmapset_id = self.osu.rawOsu.Metadata.BeatmapSetID,
+		osu_od = self.osu.rawOsu.Difficulty.OverallDifficulty,
+		osu_hp = self.osu.rawOsu.Difficulty.HPDrainRate,
 	})
 end
 
