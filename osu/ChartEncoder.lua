@@ -142,15 +142,17 @@ function ChartEncoder:encodeTimingPoints()
 			})
 		end
 	end
-	for _, p in ipairs(layer.visuals.main.points) do
-		---@type ncdk2.Velocity
-		local velocity = p._velocity
-		if velocity then
-			table.insert(tpoints, {
-				offset = p.point.absoluteTime * 1000,
-				beatLength = -100 / velocity.currentSpeed,
-				timingChange = false,
-			})
+	if layer.visuals.main then
+		for _, p in ipairs(layer.visuals.main.points) do
+			---@type ncdk2.Velocity
+			local velocity = p._velocity
+			if velocity then
+				table.insert(tpoints, {
+					offset = p.point.absoluteTime * 1000,
+					beatLength = -100 / velocity.currentSpeed,
+					timingChange = false,
+				})
+			end
 		end
 	end
 end
