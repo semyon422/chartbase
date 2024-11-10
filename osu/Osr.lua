@@ -19,9 +19,9 @@ local WIN_EPOCH = 621355968000000000
 function Osr:new()
 	self.mode = 3
 	self.version = tonumber(os.date("%Y%m%d"))  -- yyyymmdd
-	self.beatmap_hash = ""
-	self.player_name = ""
-	self.replay_hash = ""
+	self.beatmap_hash = "00000000000000000000000000000000"
+	self.player_name = "Player"
+	self.replay_hash = "00000000000000000000000000000000"
 	self._300 = 0
 	self._100 = 0
 	self._50 = 0
@@ -40,6 +40,9 @@ function Osr:new()
 	self.lzma_props = string.char(93, 0, 0, 32, 0)
 	self.online_score_id = 0
 	self.additional_mod_info = nil  ---@type number?
+	self.events = {}
+
+	self:setTimestamp(os.time())
 end
 
 local function read_string(b)
@@ -62,7 +65,7 @@ local function write_string(b, s)
 	end
 	b:int8(0x0b)
 
-	local bytes = leb128.uenc(b.pointer, #s)
+	local bytes = leb128.uenc(b.pointer + b.offset, #s)
 	b:seek(b.offset + bytes)
 
 	b:fill(s)
