@@ -179,14 +179,14 @@ function Osr:encode()
 	return table.concat(out)
 end
 
----@return number
+---@return integer
 function Osr:getTimestamp()
 	return (self.timestamp - WIN_EPOCH) / 1e7
 end
 
----@return number
+---@param ts integer
 function Osr:setTimestamp(ts)
-	return ts * 1e7 + WIN_EPOCH
+	self.timestamp = ts * 1e7 + WIN_EPOCH
 end
 
 function Osr:decodeManiaEvents()
