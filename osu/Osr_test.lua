@@ -3,14 +3,36 @@ local Osr = require("osu.Osr")
 local test = {}
 
 ---@param t testing.T
-function test.basic(t)
-	local path = "userdata/export/replay-mania_3469849_566302508.osr"
-	local data = love.filesystem.read(path)
-
+function test.mania_encode_decode(t)
 	local osr = Osr()
-	osr:decode(love.filesystem.read(path))
-	osr:decodeManiaEvents()
-	local _data = osr:encode()
+
+	local mania_events = {
+		{-1000, 1, true},
+		{-500, 2, true},
+		{0, 1, false},
+		{500, 2, false},
+	}
+
+	osr:encodeManiaEvents(mania_events)
+
+	t:tdeq(osr.events, {
+		{-1000, 1, 19.17098, 0},
+		{500, 3, 19.17098, 0},
+		{500, 2, 19.17098, 0},
+		{500, 0, 19.17098, 0},
+		osr.last_event,
+	})
+
+	local _mania_events = osr:decodeManiaEvents()
+
+	t:tdeq(_mania_events, mania_events)
+
+	local data = osr:encode()
+
+	local _osr = Osr()
+	_osr:decode(data)
+
+	t:tdeq(_osr, osr)
 end
 
 return test

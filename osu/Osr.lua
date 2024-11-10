@@ -11,6 +11,9 @@ local _7z = require("7z")
 ---@field events osu.OsrEvent[]
 local Osr = class()
 
+---@type osu.OsrEvent
+Osr.last_event = {-12345, 0, 0, 0}
+
 local WIN_EPOCH = 621355968000000000
 
 function Osr:new()
@@ -203,13 +206,14 @@ function Osr:decodeManiaEvents()
 			while x > 0 do
 				key = key + 1
 				local pressed = bit.band(x, 1) ~= 0
-				if pressed then
+				if pressed and not keys[key] then
 					keys[key] = true
 					i = i + 1
 					mania_events[i] = {t, key, true}
 				end
 				x = bit.rshift(x, 1)
 			end
+			x = e[2]
 			for _key in pairs(keys) do
 				if bit.band(x, bit.lshift(1, _key - 1)) == 0 then
 					keys[_key] = nil
@@ -224,7 +228,39 @@ end
 
 ---@param mania_events {[1]: integer, [2]: integer, [3]: boolean}[]
 function Osr:encodeManiaEvents(mania_events)
+	---@type osu.OsrEvent[]
+	local events = {}
+	self.events = events
 
+	local y = 19.17098
+	local km = 0
+
+	---@type integer
+	local old_t
+	local x = 0
+
+	---@type osu.OsrEvent
+	local event
+
+	for _, me in ipairs(mania_events) do
+		local t, key, state = me[1], me[2], me[3]
+
+		if t ~= old_t then
+			event = {t - (old_t or 0), x, y, km}
+			table.insert(events, event)
+			old_t = t
+		end
+
+		local key_bit = bit.lshift(1, key - 1)
+		if state then
+			x = bit.bor(x, key_bit)
+		else
+			x = bit.band(x, bit.bnot(key_bit))
+		end
+		event[2] = x
+	end
+
+	table.insert(events, self.last_event)
 end
 
 return Osr
