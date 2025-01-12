@@ -60,7 +60,7 @@ function ChartEncoder:encodeEventSamples()
 	local columns = self.chart.inputMode:getColumns()
 	local samples = self.rawOsu.Events.samples
 	for _, note in self.chart.notes:iter() do
-		if note.column == "auto" then
+		if note.column:find("auto") == 1 then
 			table.insert(samples, {
 				time = note:getTime(),
 				name = note.sounds[1][1],
@@ -74,6 +74,21 @@ local allowedTypes = {
 	note = true,
 	hold = true,
 }
+
+---@param obj osu.HitObject
+---@param note ncdk2.LinkedNote
+function ChartEncoder:encodeHitObjectSounds(obj, note)
+	--- TODO: better impl for hitsounds and keysounds
+
+	local startNote = note.startNote
+	---@cast startNote notechart.Note
+
+	local sounds = startNote.sounds
+	if sounds and sounds[1] then
+		obj.addition.sampleFile = sounds[1][1]
+		obj.addition.volume = sounds[1][2] * 100
+	end
+end
 
 function ChartEncoder:encodeHitObjects()
 	local columns = self.chart.inputMode:getColumns()
@@ -95,8 +110,8 @@ function ChartEncoder:encodeHitObjects()
 				obj.type = HitObjects.HitObjectType.ManiaLong
 				obj.endTime = math.floor(note:getEndTime() * 1000)
 			end
+			self:encodeHitObjectSounds(obj, note)
 			table.insert(objs, obj)
-			--- TODO: hitsounds and keysounds
 		end
 	end
 	objs:sort()
