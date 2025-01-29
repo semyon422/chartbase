@@ -60,7 +60,7 @@ function ChartEncoder:encodeEventSamples()
 	local columns = self.chart.inputMode:getColumns()
 	local samples = self.rawOsu.Events.samples
 	for _, note in self.chart.notes:iter() do
-		if note.column:find("auto") == 1 then
+		if note.column:find("auto") == 1 and note.sounds[1] then
 			table.insert(samples, {
 				time = note:getTime(),
 				name = note.sounds[1][1],
