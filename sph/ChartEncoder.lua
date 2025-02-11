@@ -224,7 +224,7 @@ function ChartEncoder:encodeSph(chart)
 					line.globalTime = t.time
 					line.notes = self:getNotes(point_notes[vp])
 					line.sounds, line.volume = self:getSounds(point_notes[vp])
-					line.comment = t.comment
+					line.comment = vp.comment
 					if vp._expand then
 						line.expand = vp._expand.duration
 					end

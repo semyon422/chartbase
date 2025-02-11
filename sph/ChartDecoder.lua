@@ -96,7 +96,7 @@ function ChartDecoder:processLine(line)
 		point._interval = Interval(line.offset)
 	end
 
-	point.comment = line.comment
+	visualPoint.comment = line.comment
 
 	local line_sounds = line.sounds or {}
 	local line_volume = line.volume or {}
