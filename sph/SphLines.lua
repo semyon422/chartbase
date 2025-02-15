@@ -22,7 +22,7 @@ local SphLines = class()
 function SphLines:new()
 	---@type sph.ProtoLine[]
 	self.protoLines = {}
-	self.beatOffset = 0
+	self.beatOffset = -1
 	self.lineTime = {0, 1}
 end
 

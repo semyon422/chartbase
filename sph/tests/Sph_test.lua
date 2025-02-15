@@ -2,6 +2,7 @@ local Sph = require("sph.Sph")
 
 local test = {}
 
+---@param t testing.T
 function test.encdec_1(t)
 	local sph = Sph()
 
