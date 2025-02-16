@@ -1,6 +1,7 @@
 local class = require("class")
 
 ---@class chartbase.Chartmeta
+---@operator call: chartbase.Chartmeta
 ---@field index number?
 ---@field format string?
 ---@field title string?

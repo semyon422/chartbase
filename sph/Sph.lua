@@ -1,15 +1,17 @@
 local class = require("class")
 local SphLines = require("sph.SphLines")
+local Metadata = require("sph.Metadata")
 local TextLines = require("sph.lines.TextLines")
 local LinesCleaner = require("sph.lines.LinesCleaner")
 local template_key = require("sph.lines.template_key")
 
 ---@class sph.Sph
 ---@operator call: sph.Sph
+---@field sounds {[integer]: string}
 local Sph = class()
 
 function Sph:new()
-	self.metadata = {}
+	self.metadata = Metadata()
 	self.sounds = {}
 	self.sphLines = SphLines()
 	self.textLines = TextLines()
@@ -28,7 +30,7 @@ function Sph:decodeLine(line)
 	elseif self.section == "metadata" then
 		local k, v = line:match("^(%w+) (.+)$")
 		if k then
-			self.metadata[k] = v
+			self.metadata:set(k, v)
 		end
 	elseif self.section == "sounds" then
 		local t, v = line:match("^(..) (.+)$")
@@ -48,29 +50,13 @@ function Sph:decode(s)
 	self.sphLines:decode(self.textLines.lines)
 end
 
-local headerLines = {
-	"title",
-	"artist",
-	"name",
-	"creator",
-	"source",
-	"level",
-	"tags",
-	"audio",
-	"background",
-	"preview",
-	"input",
-}
-
 ---@return string
 function Sph:encode()
 	local lines = {}
 
 	table.insert(lines, "# metadata")
-	local metadata = self.metadata
-	for _, k in ipairs(headerLines) do
-		local v = metadata[k]
-		if v then
+	for k, v in self.metadata:iter() do
+		if v ~= nil and v ~= "" then
 			table.insert(lines, ("%s %s"):format(k, v))
 		end
 	end
@@ -103,7 +89,7 @@ function Sph:encode()
 	return table.concat(lines, "\n")
 end
 
----@param info table
+---@param info {[string]: any}
 ---@return string
 function Sph:getDefault(info)
 	local out = {}

@@ -37,7 +37,7 @@ function ChartDecoder:decodeSph(sph)
 	local chart = Chart()
 	self.chart = chart
 
-	chart.inputMode = InputMode(sph.metadata.input)
+	chart.inputMode = InputMode(assert(sph.metadata:get("input")))
 	self.inputMap = chart.inputMode:getInputs()
 
 	local layer = IntervalLayer()
@@ -171,7 +171,7 @@ end
 
 function ChartDecoder:addAudio()
 	local sph = self.sph
-	local audio = sph.metadata.audio
+	local audio = sph.metadata:get("audio")
 	if not audio then
 		return
 	end
@@ -214,24 +214,13 @@ function ChartDecoder:setMetadata()
 	local beats = (b.time - a.time):tonumber()
 	local avgBeatDuration = (b.absoluteTime - a.absoluteTime) / beats
 
-	chart.chartmeta = Chartmeta({
-		format = "sph",
-		title = sph.metadata.title,
-		artist = sph.metadata.artist,
-		source = sph.metadata.source,
-		tags = sph.metadata.tags,
-		name = sph.metadata.name,
-		creator = sph.metadata.creator,
-		level = tonumber(sph.metadata.level),
-		audio_path = sph.metadata.audio,
-		background_path = sph.metadata.background,
-		preview_time = tonumber(sph.metadata.preview),
-		notes_count = tonumber(self.notes_count),
-		duration = tonumber(totalLength),
-		tempo = 60 / avgBeatDuration,
-		inputmode = sph.metadata.input,
-		start_time = tonumber(minTime),
-	})
+	local chartmeta = sph.metadata:toChartmeta()
+	chartmeta.notes_count = tonumber(self.notes_count)
+	chartmeta.duration = tonumber(totalLength)
+	chartmeta.tempo = 60 / avgBeatDuration
+	chartmeta.start_time = tonumber(minTime)
+
+	chart.chartmeta = chartmeta
 end
 
 return ChartDecoder

@@ -32,21 +32,6 @@ local function sortNotes(a, b)
 	return a.column < b.column
 end
 
----@return table
-function ChartEncoder:getMetadata()
-	local chartmeta = self.chart.chartmeta
-
-	local md = {}
-	for _, d in ipairs(headerLines) do
-		local k, v = d[1], chartmeta[d[2]]
-		if v then
-			md[k] = v
-		end
-	end
-
-	return md
-end
-
 function ChartEncoder:createSoundListAndMap()
 	local sounds_map = {}
 	for vp, notes in pairs(self.point_notes) do
@@ -158,7 +143,7 @@ function ChartEncoder:encodeSph(chart)
 	local sph = Sph()
 	local sphLines = sph.sphLines
 
-	sph.metadata = self:getMetadata()
+	sph.metadata:fromChartmeta(chart.chartmeta)
 
 	local layer = chart.layers.main
 	self.layer = layer

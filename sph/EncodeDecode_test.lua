@@ -4,12 +4,15 @@ local ChartEncoder = require("sph.ChartEncoder")
 local test = {}
 
 function test.basic(t)
+	-- volume is a custom field
+
 	local s = [[
 # metadata
 title Title
 artist Artist
 audio audio.mp3
 input 4key
+volume 80
 
 # sounds
 01 sound01.ogg
