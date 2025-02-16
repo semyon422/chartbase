@@ -31,6 +31,7 @@ function SphLines:decode(lines)
 	for _, line in ipairs(lines) do
 		self:decodeLine(line)
 	end
+	self:recalcGlobalTime()
 end
 
 ---@param line sph.Line
@@ -73,6 +74,23 @@ function SphLines:decodeLine(line)
 	pline.globalTime = Fraction(self.beatOffset) + self.lineTime
 
 	table.insert(self.protoLines, pline)
+end
+
+function SphLines:recalcGlobalTime()
+	---@type integer?
+	local offset
+	for _, pline in ipairs(self.protoLines) do
+		if pline.offset then
+			offset = pline.globalTime:floor()
+			break
+		end
+	end
+	if not offset then
+		return
+	end
+	for _, pline in ipairs(self.protoLines) do
+		pline.globalTime = pline.globalTime - offset
+	end
 end
 
 ---@return sph.Line[]

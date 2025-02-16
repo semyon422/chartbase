@@ -65,7 +65,7 @@ function test.decenc_visuals(t)
 end
 
 ---@param t testing.T
-function test.protoLines_globalTime_1(t)
+function test.protoLines_globalTime_mixed(t)
 	local sl = SphLines()
 
 	local lines_in = {
@@ -82,6 +82,47 @@ function test.protoLines_globalTime_1(t)
 	t:eq(sl.protoLines[1].globalTime, Fraction(0))
 	t:eq(sl.protoLines[2].globalTime, Fraction(2))
 	t:eq(sl.protoLines[3].globalTime, Fraction(2) + Fraction(3, 4))
+end
+
+---@param t testing.T
+function test.protoLines_globalTime_early_frac(t)
+	local sl = SphLines()
+
+	local lines_in = {
+		{time = Fraction(1, 2), notes = {true}},
+		{},
+		{},
+		{},
+		{offset = 0},
+		{offset = 1},
+	}
+
+	sl:decode(lines_in)
+
+	t:eq(sl.protoLines[1].globalTime, Fraction(-7, 2))
+	t:eq(sl.protoLines[2].globalTime, Fraction(0))
+	t:eq(sl.protoLines[3].globalTime, Fraction(1))
+
+	local lines = sl:encode()
+	t:tdeq(lines, lines_in)
+end
+
+---@param t testing.T
+function test.protoLines_globalTime_first_ivl_frac(t)
+	local sl = SphLines()
+
+	local lines_in = {
+		{offset = 0, time = Fraction(1, 2), notes = {true}},
+		{offset = 1},
+	}
+
+	sl:decode(lines_in)
+
+	t:eq(sl.protoLines[1].globalTime, Fraction(1, 2))
+	t:eq(sl.protoLines[2].globalTime, Fraction(1))
+
+	local lines = sl:encode()
+	t:tdeq(lines, lines_in)
 end
 
 return test
