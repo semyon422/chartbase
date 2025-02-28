@@ -54,7 +54,7 @@ function ChartDecoder:decodeQua(qua)
 
 	local tempo_points = self:getTempoPoints()
 	self:decodeBarlines(tempo_points)
-	self.primary_tempo, self.min_tempo, self.max_tempo = PrimaryTempo:compute(tempo_points, self.maxTime)
+	self.primary_tempo, self.min_tempo, self.max_tempo = PrimaryTempo:compute(tempo_points, self.maxTime * 1000)
 
 	self:addAudio()
 

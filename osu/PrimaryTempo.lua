@@ -5,9 +5,10 @@ local class = require("class")
 local PrimaryTempo = class()
 
 ---@param tempo_points osu.FilteredPoint[]
----@return number primary primary tempo, ms
----@return number min min tempo, ms
----@return number max max tempo, ms
+---@param lastTime number ms
+---@return number primary primary tempo
+---@return number min min tempo
+---@return number max max tempo
 function PrimaryTempo:compute(tempo_points, lastTime)
 	local current_bl = 0
 
