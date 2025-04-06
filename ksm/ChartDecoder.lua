@@ -1,3 +1,4 @@
+local string_util = require("string_util")
 local IChartDecoder = require("notechart.IChartDecoder")
 local Chart = require("ncdk2.Chart")
 local Note = require("notechart.Note")
@@ -132,7 +133,7 @@ end
 
 function ChartDecoder:processAudio()
 	local audio = self.ksh.options.m
-	local split = audio:split(";")
+	local split = string_util.split(audio, ";")
 	if split[1] then
 		audio = split[1]
 	end

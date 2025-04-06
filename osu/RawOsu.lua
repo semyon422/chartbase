@@ -1,4 +1,5 @@
 local class = require("class")
+local string_util = require("string_util")
 local GeneralSection = require("osu.sections.GeneralSection")
 local EditorSection = require("osu.sections.EditorSection")
 local MetadataSection = require("osu.sections.MetadataSection")
@@ -40,7 +41,7 @@ end
 
 ---@param s string
 function RawOsu:decode(s)
-	for _, line in ipairs(s:gsub("\r\n?", "\n"):split("\n")) do
+	for _, line in string_util.isplit(s:gsub("\r\n?", "\n"), "\n") do
 		self:decodeLine(line)
 	end
 	self.TimingPoints:sort()

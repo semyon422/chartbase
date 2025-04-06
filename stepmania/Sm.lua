@@ -1,4 +1,5 @@
 local class = require("class")
+local string_util = require("string_util")
 local MsdFile = require("stepmania.MsdFile")
 
 ---@class stepmania.Sm
@@ -41,7 +42,7 @@ end
 
 ---@param params string[]
 function Sm:processBPMS(params)
-	local bpms = params[2]:split(",")
+	local bpms = string_util.split(params[2], ",")
 	for _, v in ipairs(bpms) do
 		local beat, tempo = v:match("^%s*(.+)=(.+)%s*$")
 		if beat and tempo then
@@ -58,7 +59,7 @@ end
 
 ---@param params string[]
 function Sm:processSTOPS(params)
-	local stops = params[2]:split(",")
+	local stops = string_util.split(params[2], ",")
 	for _, v in ipairs(stops) do
 		local beat, duration = v:match("^%s*(.+)=(.+)%s*$")
 		if beat and duration then
@@ -96,7 +97,7 @@ end
 ---@param param string
 function Sm:processNotesParam(param)
 	local chart = self.chart
-	for _, s in ipairs(param:split(",")) do
+	for _, s in string_util.isplit(param, ",") do
 		local count = 0
 		for line in s:gmatch("([^%s]+)") do
 			self:processNotesLine(line:trim())

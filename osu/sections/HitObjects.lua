@@ -1,6 +1,7 @@
 local Section = require("osu.sections.Section")
 local Addition = require("osu.sections.Addition")
 local bit = require("bit")
+local string_util = require("string_util")
 
 ---@class osu.HitObject
 ---@field x number
@@ -57,7 +58,7 @@ local function decode_osu_slider(object, split, soundType)
 	local sounds = nil
 
 	---@type string[]
-	local pointsplit = split[6]:split("|")
+	local pointsplit = string_util.split(split[6], "|")
 	for i = 1, #pointsplit do
 		local point = pointsplit[i]
 		if #point == 1 then
@@ -66,7 +67,7 @@ local function decode_osu_slider(object, split, soundType)
 		end
 
 		---@type string[]
-		local temp = point:split(":")
+		local temp = string_util.split(point, ":")
 
 		---@type osu.Vector2
 		local v = {tonumber(temp[1]), tonumber(temp[2])}
@@ -86,7 +87,7 @@ local function decode_osu_slider(object, split, soundType)
 	end
 	if #split > 8 and #split[9] > 0 then
 		---@type string[]
-		local adds = split[9]:split("|")
+		local adds = string_util.split(split[9], "|")
 		if #adds > 0 then
 			sounds = {}
 			local addslength = math.min(#adds, repeatCount + 1)
@@ -106,11 +107,11 @@ local function decode_osu_slider(object, split, soundType)
 
 	if #split > 9 and #split[10] > 0 then
 		---@type string[]
-		local sets = split[10]:split("|")
+		local sets = string_util.split(split[10], "|")
 		if #sets > 0 then
 			for _, t in ipairs(sets) do
 				---@type string[]
-				local split2 = t:split(":")
+				local split2 = string_util.split(t, ":")
 				table.insert(ss, tonumber(split2[1]))
 				table.insert(ssa, tonumber(split2[2]))
 			end
@@ -153,7 +154,7 @@ end
 ---@param line string
 function HitObjects:decodeLine(line)
 	---@type string[]
-	local split = line:split(",")
+	local split = string_util.split(line, ",")
 
 	local object = {
 		sampleSet = 0,

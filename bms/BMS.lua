@@ -1,4 +1,5 @@
 local class = require("class")
+local string_util = require("string_util")
 local Fraction = require("ncdk.Fraction")
 local enums = require("bms.enums")
 
@@ -30,7 +31,7 @@ end
 
 ---@param noteChartString string
 function BMS:import(noteChartString)
-	for _, line in ipairs(noteChartString:split("\n")) do
+	for _, line in string_util.isplit(noteChartString, "\n") do
 		self:processLine(line:trim())
 	end
 

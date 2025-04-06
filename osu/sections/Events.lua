@@ -1,5 +1,6 @@
 local Section = require("osu.sections.Section")
 local table_util = require("table_util")
+local string_util = require("string_util")
 
 ---@class osu.EventSample
 ---@field time number
@@ -34,7 +35,7 @@ local quoted_pattern = '^"?(.-)"?$'
 ---@param line string
 function Events:decodeLine(line)
 	---@type string[]
-	local split = line:split(",")
+	local split = string_util.split(line, ",")
 
 	-- comma is not allowed in file names
 	-- osu uses split(",") and we will use

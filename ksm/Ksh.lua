@@ -1,4 +1,5 @@
 local class = require("class")
+local string_util = require("string_util")
 
 ---@class ksm.Ksh
 ---@operator call: ksm.Ksh
@@ -28,13 +29,13 @@ end
 function Ksh:import(noteChartString)
 	self.noteChartString = noteChartString
 
-	self.measureStrings = noteChartString:split("\n--\n")
+	self.measureStrings = string_util.split(noteChartString, "\n--\n")
 	self.measureStrings[#self.measureStrings + 1] = "0000|00|--"
 
 	for measureIndex = 1, #self.measureStrings - 1 do
 		local measureString = self.measureStrings[measureIndex + 1]
 		self.measureLineCounts[measureIndex] = 0
-		for _, line in ipairs(measureString:split("\n")) do
+		for _, line in string_util.isplit(measureString, "\n") do
 			if line:sub(1, 1) ~= "#" and line:sub(1, 2) ~= '//' and line:sub(8, 8) == "|" and not line:find("=") then
 				self.measureLineCounts[measureIndex] = self.measureLineCounts[measureIndex] + 1
 			end
@@ -48,7 +49,7 @@ function Ksh:import(noteChartString)
 		local measureString = self.measureStrings[measureIndex + 1]
 		local lineOffset = 0
 
-		for _, line in ipairs(measureString:split("\n")) do
+		for _, line in string_util.isplit(measureString, "\n") do
 			local key, value = line:match("^(.-)=(.*)$")
 
 			if key then
@@ -75,7 +76,7 @@ function Ksh:import(noteChartString)
 						end
 					end
 				elseif key == "beat" then
-					local values = value:split("/")
+					local values = string_util.split(value, "/")
 					if #values == 2 then
 						self.timeSignatures[#self.timeSignatures + 1] = {
 							measureIndex = measureIndex - 1,

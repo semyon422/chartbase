@@ -1,4 +1,5 @@
 local class = require("class")
+local string_util = require("string_util")
 local SphLines = require("sph.SphLines")
 local Metadata = require("sph.Metadata")
 local TextLines = require("sph.lines.TextLines")
@@ -44,7 +45,7 @@ end
 
 ---@param s string
 function Sph:decode(s)
-	for _, line in ipairs(s:split("\n")) do
+	for _, line in string_util.isplit(s, "\n") do
 		self:decodeLine(line)
 	end
 	self.sphLines:decode(self.textLines.lines)

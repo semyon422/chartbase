@@ -1,4 +1,5 @@
 local class = require("class")
+local string_util = require("string_util")
 local Fraction = require("ncdk.Fraction")
 local template_key = require("sph.lines.template_key")
 local Line = require("sph.lines.Line")
@@ -79,7 +80,7 @@ end
 ---@param velocity string
 ---@return number[]
 local function parse_velocity(velocity)
-	local vel = velocity:split(",")
+	local vel = string_util.split(velocity, ",")
 	---@type number[]
 	local out = {}
 	for i = 1, 3 do
@@ -99,7 +100,7 @@ function TextLines:decodeLine(s)
 	end
 	line.comment = comment
 
-	local args = data:split(" ")
+	local args = string_util.split(data, " ")
 	for i = 2, #args do
 		local k, v = args[i]:match("^(.)(.*)$")
 

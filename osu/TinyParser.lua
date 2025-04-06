@@ -1,4 +1,5 @@
 local class = require("class")
+local string_util = require("string_util")
 
 ---@class osu.TimingDataImporter
 ---@operator call: osu.TimingDataImporter
@@ -8,7 +9,7 @@ local TinyParser = class()
 function TinyParser:import(noteChartString)
 	self.notes = {}
 	local block
-	for _, line in ipairs(noteChartString:split("\n")) do
+	for _, line in string_util.isplit(noteChartString, "\n") do
 		if line:find("^%[") then
 			block = line:match("^%[(.+)%]")
 		else
@@ -19,12 +20,12 @@ function TinyParser:import(noteChartString)
 				end
 			elseif block == "HitObjects" and line ~= "" then
 				local note = {}
-				local data = line:split(",")
+				local data = string_util.split(line, ",")
 				note.column = math.min(math.max(math.ceil(tonumber(data[1]) / 512 * self.columnCount), 1), self.columnCount)
 
 				note.startTime = tonumber(data[3])
 				if bit.band(tonumber(data[4]), 128) == 128 then
-					local addition = data[6]:split(":")
+					local addition = string_util.split(data[6], ":")
 					note.endTime = tonumber(addition[1])
 				end
 

@@ -1,3 +1,4 @@
+local string_util = require("string_util")
 local bit = require("bit")
 local Section = require("osu.sections.Section")
 
@@ -45,7 +46,7 @@ end
 ---@param line string
 function TimingPoints:decodeLine(line)
 	---@type string[]
-	local split = line:split(",")
+	local split = string_util.split(line, ",")
 	local size = #split
 
 	if size < 2 then

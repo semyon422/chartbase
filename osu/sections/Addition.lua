@@ -1,4 +1,5 @@
 local class = require("class")
+local string_util = require("string_util")
 
 ---@class osu.Addition
 ---@operator call: osu.Addition
@@ -20,7 +21,7 @@ function Addition:new(s)
 	if not s then
 		return
 	end
-	local a = s:split(":")
+	local a = string_util.split(s, ":")
 	self.sampleSet = tonumber(a[1])
 	self.addSampleSet = tonumber(a[2])
 	self.customSample = tonumber(a[3])

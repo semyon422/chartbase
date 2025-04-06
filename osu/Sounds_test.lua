@@ -1,3 +1,4 @@
+local string_util = require("string_util")
 local Sounds = require("osu.Sounds")
 local Addition = require("osu.sections.Addition")
 
@@ -6,7 +7,7 @@ local test = {}
 ---@param s string
 ---@return osu.ControlPoint
 local function dec_tp(s)  -- 0,0,0,s,c,v,0,0
-	local split = s:split(",")
+	local split = string_util.split(s, ",")
 	return {
 		sampleSet = tonumber(split[1]),
 		customSamples = tonumber(split[2]),
