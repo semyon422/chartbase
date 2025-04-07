@@ -100,7 +100,7 @@ function Sm:processNotesParam(param)
 	for _, s in string_util.isplit(param, ",") do
 		local count = 0
 		for line in s:gmatch("([^%s]+)") do
-			self:processNotesLine(line:trim())
+			self:processNotesLine(string_util.trim(line))
 			chart.offset = chart.offset + 1
 			count = count + 1
 		end

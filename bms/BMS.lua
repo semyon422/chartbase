@@ -32,7 +32,7 @@ end
 ---@param noteChartString string
 function BMS:import(noteChartString)
 	for _, line in string_util.isplit(noteChartString, "\n") do
-		self:processLine(line:trim())
+		self:processLine(string_util.trim(line))
 	end
 
 	if not self.hasTempo then
