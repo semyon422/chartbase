@@ -95,8 +95,6 @@ function ChartDecoder:getChartmeta(index)
 		name = O2jamDifficultyNames[index],
 		creator = self.conv:convert(ojn.str_noter),
 		level = ojn.charts[index].level,
-		-- notes_count = ojn.charts[index].notes,
-		notes_count = self.notes_count,
 		-- duration = ojn.charts[index].duration,
 		duration = self.totalLength,
 		tempo = ojn.bpm,
@@ -130,7 +128,6 @@ function ChartDecoder:process(index)
 	---@type notechart.Note[]
 	local long_notes = {}
 
-	self.notes_count = 0
 	self.measure_count = 0
 	self.tempoAtStart = false
 	self.minPoint = nil
@@ -188,7 +185,6 @@ function ChartDecoder:process(index)
 						long_notes[key] = note
 					end
 
-					self.notes_count = self.notes_count + 1
 					note.sounds = {{event.value, event.volume}}
 				end
 				if not self.minPoint or point < self.minPoint then

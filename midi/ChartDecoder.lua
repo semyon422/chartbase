@@ -56,7 +56,6 @@ function ChartDecoder:decodeMid(mid)
 	chart.inputMode = InputMode({key = 88})
 
 	local addedNotes = {}
-	self.notes_count = 0
 	for i = 1, #self.mid.notes do
 		self:processData(i, addedNotes)
 	end
@@ -79,7 +78,6 @@ function ChartDecoder:getChartmeta()
 		index = 1,
 		format = "mid",
 		title = self.title,
-		notes_count = self.notes_count,
 		duration = mid.length,
 		tempo = mid.bpm,
 		inputmode = tostring(self.chart.inputMode),
@@ -102,7 +100,6 @@ function ChartDecoder:processData(trackIndex, addedNotes)
 	local chart = self.chart
 	local layer = self.layer
 	local visualColumns = self.visualColumns
-	local notes_count = self.notes_count
 
 	local startNote
 	for _, event in ipairs(notes[trackIndex]) do
@@ -128,12 +125,9 @@ function ChartDecoder:processData(trackIndex, addedNotes)
 
 			-- TODO: long notes?
 
-			notes_count = notes_count + 1
 			addedNotes[eventId] = true
 		end
 	end
-
-	self.notes_count = notes_count
 end
 
 function ChartDecoder:processMeasureLines()

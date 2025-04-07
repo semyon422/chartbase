@@ -18,7 +18,6 @@ local Healths = require("sea.chart.Healths")
 local ChartDecoder = IChartDecoder + {}
 
 function ChartDecoder:new()
-	self.notes_count = 0
 end
 
 ---@param s string
@@ -93,7 +92,6 @@ function ChartDecoder:getChartmeta()
 		audio_path = tostring(qua["AudioFile"]),
 		background_path = tostring(qua["BackgroundFile"]),
 		preview_time = (qua["SongPreviewTime"] or 0) / 1000,
-		-- notes_count = #self.qua.HitObjects,
 		duration = self.maxTime - self.minTime,
 		inputmode = tostring(self.chart.inputMode),
 		start_time = self.minTime / 1000,

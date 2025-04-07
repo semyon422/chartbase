@@ -21,7 +21,6 @@ local chartmeta_map = {
 
 local chartmeta_ignore = table_util.invert({
 	"format",
-	"notes_count",
 	"duration",
 	"tempo",
 	"start_time",
@@ -113,7 +112,6 @@ function Metadata:toChartmeta()
 		audio_path = self.data.audio,
 		background_path = self.data.background,
 		preview_time = tonumber(self.data.preview),
-		-- notes_count = tonumber(self.notes_count),
 		inputmode = self.data.input,
 	}
 

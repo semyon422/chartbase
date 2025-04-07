@@ -149,7 +149,6 @@ function ChartDecoder:getChartmeta()
 		name = name,
 		level = tonumber(header["PLAYLEVEL"]),
 		stage_path = header["STAGEFILE"],
-		notes_count = self.notes_count,
 		duration = self.totalLength,
 		tempo = bms.baseTempo or 0,
 		inputmode = tostring(self.chart.inputMode),
@@ -258,8 +257,6 @@ function ChartDecoder:processData()
 	local visualColumns = self.visualColumns
 	local longNoteData = {}
 
-	self.notes_count = 0
-
 	self.minPoint = nil
 	self.maxPoint = nil
 
@@ -353,10 +350,6 @@ function ChartDecoder:processData()
 						not channelInfo.mine and
 						channelInfo.name ~= "BGA"
 					then
-						if note.weight >= 0 then
-							self.notes_count = self.notes_count + 1
-						end
-
 						if not self.minPoint or point < self.minPoint then
 							self.minPoint = point
 						end

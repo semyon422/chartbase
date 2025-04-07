@@ -122,7 +122,6 @@ function ChartDecoder:getChartmeta(index)
 		audio_offset = tonumber(self.sm.header["OFFSET"]),
 		preview_time = tonumber(header["SAMPLESTART"]) or 0,
 		background_path = header["BACKGROUND"],
-		notes_count = self.notes_count,
 		duration = self.totalLength,
 		tempo = self.sm.displayTempo or 0,
 		inputmode = tostring(self.chart.inputMode),
@@ -142,7 +141,6 @@ function ChartDecoder:processNotes()
 	local visual = self.visual
 	local layer = self.layer
 	local chart = self.chart
-	self.notes_count = 0
 
 	self.minPoint = nil
 	self.maxPoint = nil
@@ -161,7 +159,6 @@ function ChartDecoder:processNotes()
 
 		if _note.noteType == "1" then
 			note.type = "note"
-			self.notes_count = self.notes_count + 1
 		elseif _note.noteType == "M" then
 			note.type = "mine"
 		elseif _note.noteType == "F" then
@@ -169,7 +166,6 @@ function ChartDecoder:processNotes()
 		elseif _note.noteType == "2" or _note.noteType == "4" then
 			note.type = "note"
 			longNotes[_note.column] = note
-			self.notes_count = self.notes_count + 1
 		elseif _note.noteType == "3" then
 			note.type = "hold"
 			note.weight = -1

@@ -19,7 +19,6 @@ local Timings = require("sea.chart.Timings")
 local ChartDecoder = IChartDecoder + {}
 
 function ChartDecoder:new()
-	self.notes_count = 0
 end
 
 ---@param s string
@@ -125,11 +124,9 @@ function ChartDecoder:processLine(line)
 		local t = _note.type
 		if t == "1" then
 			note.type = "note"
-			self.notes_count = self.notes_count + 1
 		elseif t == "2" then
 			note.type = "hold"
 			note.weight = 1
-			self.notes_count = self.notes_count + 1
 		elseif t == "3" then
 			note.type = "hold"
 			note.weight = -1
@@ -225,7 +222,6 @@ function ChartDecoder:getChartmeta()
 
 	local chartmeta = sph.metadata:toChartmeta()
 
-	-- chartmeta.notes_count = tonumber(self.notes_count)
 	chartmeta.hash = self.hash
 	chartmeta.index = 1
 	chartmeta.duration = tonumber(totalLength)

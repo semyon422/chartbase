@@ -116,7 +116,6 @@ function ChartDecoder:getChartmeta()
 		audio_path = self.audioFileName,
 		background_path = options["jacket"],
 		preview_time = (options["plength"] or 0) / 1000,
-		notes_count = self.notes_count,
 		duration = self.totalLength,
 		inputmode = tostring(self.chart.inputMode),
 		start_time = self.minTime,
@@ -182,8 +181,6 @@ function ChartDecoder:processNotes()
 	local visual = self.visual
 	local chart = self.chart
 
-	self.notes_count = 0
-
 	self.minPoint = nil
 	self.maxPoint = nil
 
@@ -243,8 +240,6 @@ function ChartDecoder:processNotes()
 
 			lastPoint = end_point
 		end
-
-		self.notes_count = self.notes_count + 1
 
 		if not self.minPoint or point < self.minPoint then
 			self.minPoint = point

@@ -19,7 +19,6 @@ local Timings = require("sea.chart.Timings")
 local ChartDecoder = IChartDecoder + {}
 
 function ChartDecoder:new()
-	self.notes_count = 0
 	self.longNotes = {}
 end
 
@@ -104,7 +103,6 @@ function ChartDecoder:getChartmeta()
 		audio_path = general.AudioFilename,
 		background_path = self.osu.rawOsu.Events.background,
 		preview_time = tonumber(general.PreviewTime) / 1000,
-		-- notes_count = #self.osu.protoNotes,
 		duration = (self.osu.maxTime - self.osu.minTime) / 1000,
 		inputmode = tostring(self.chart.inputMode),
 		start_time = self.osu.minTime / 1000,
