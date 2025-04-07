@@ -82,8 +82,8 @@ SliderTickRate:1
 
 
 [HitObjects]
-320,192,0,128,1,1000:0:0:0:0:
-64,192,1000,1,1,0:0:0:0:]]
+320,192,0,128,1,1000:0:0:0:56:normal-hitnormal
+64,192,1000,1,1,0:0:0:80:soft-hitfinish]]
 
 out_chart = out_chart:gsub("\n", "\r\n")
 
@@ -94,6 +94,8 @@ function test.basic(t)
 	local enc = ChartEncoder()
 	local s = enc:encode(charts)
 	t:eq(s, out_chart)
+
+	-- TODO: fix this test
 end
 
 return test
