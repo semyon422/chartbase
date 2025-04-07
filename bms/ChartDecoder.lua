@@ -8,11 +8,13 @@ local Stop = require("ncdk2.to.Stop")
 local MeasureLayer = require("ncdk2.layers.MeasureLayer")
 local VisualColumns = require("ncdk2.visual.VisualColumns")
 local Fraction = require("ncdk.Fraction")
-local Chartmeta = require("notechart.Chartmeta")
 local EncodingConverter = require("notechart.EncodingConverter")
 local enums = require("bms.enums")
 local dpairs = require("dpairs")
 local Visual = require("ncdk2.visual.Visual")
+local Chartmeta = require("sea.chart.Chartmeta")
+local Timings = require("sea.chart.Timings")
+local Healths = require("sea.chart.Healths")
 
 local bracketMatch = "%s(.+)%s$"
 local brackets = {
@@ -65,18 +67,24 @@ function ChartDecoder:new()
 end
 
 ---@param s string
----@return ncdk2.Chart[]
-function ChartDecoder:decode(s)
+---@param hash string?
+---@return {chart: ncdk2.Chart, chartmeta: sea.Chartmeta}[]
+function ChartDecoder:decode(s, hash)
+	self.hash = hash
 	local bms = Bms()
 	local content = s:gsub("\r[\r\n]?", "\n")
 	content = self.conv:convert(content)
 	bms:import(content)
-	local chart = self:decodeBms(bms)
-	return {chart}
+	local chart, chartmeta = self:decodeBms(bms)
+	return {{
+		chart = chart,
+		chartmeta = chartmeta,
+	}}
 end
 
 ---@param bms bms.BMS
 ---@return ncdk2.Chart
+---@return sea.Chartmeta
 function ChartDecoder:decodeBms(bms)
 	self.bms = bms
 
@@ -100,9 +108,9 @@ function ChartDecoder:decodeBms(bms)
 	chart:compute()
 
 	self:updateLength()
-	self:setMetadata()
+	local chartmeta = self:getChartmeta()
 
-	return chart
+	return chart, chartmeta
 end
 
 function ChartDecoder:updateLength()
@@ -117,11 +125,24 @@ function ChartDecoder:updateLength()
 	end
 end
 
-function ChartDecoder:setMetadata()
+local lr2_rank = {
+	[0] = "easy",
+	[1] = "normal",
+	[2] = "hard",
+	[3] = "veryhard",
+}
+
+---@return sea.Chartmeta
+function ChartDecoder:getChartmeta()
 	local bms = self.bms
 	local header = bms.header
 	local title, name = splitTitle(header["TITLE"])
-	self.chart.chartmeta = Chartmeta({
+
+	local rank = lr2_rank[tonumber(header["RANK"]) or 0]
+
+	local chartmeta = {
+		hash = self.hash,
+		index = 1,
 		format = "bms",
 		title = title,
 		artist = header["ARTIST"],
@@ -133,7 +154,15 @@ function ChartDecoder:setMetadata()
 		tempo = bms.baseTempo or 0,
 		inputmode = tostring(self.chart.inputMode),
 		start_time = self.minTime,
-	})
+		timings = Timings("lr2", rank),
+		healths = Healths("lr2", rank),
+	}
+	setmetatable(chartmeta, Chartmeta)
+	---@cast chartmeta sea.Chartmeta
+
+	assert(chartmeta:validate())
+
+	return chartmeta
 end
 
 function ChartDecoder:setInputMode()

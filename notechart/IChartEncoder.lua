@@ -4,9 +4,9 @@ local class = require("class")
 ---@operator call: chartbase.IChartEncoder
 local IChartEncoder = class()
 
----@param charts ncdk2.Chart[]
+---@param chart_chartmetas {chart: ncdk2.Chart, chartmeta: sea.Chartmeta}[]
 ---@return string
-function IChartEncoder:encode(charts)
+function IChartEncoder:encode(chart_chartmetas)
 	return ""
 end
 

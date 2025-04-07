@@ -126,16 +126,17 @@ function ChartEncoder:getSounds(_notes)
 	return sounds, volume
 end
 
----@param charts ncdk2.Chart[]
+---@param chart_chartmetas {chart: ncdk2.Chart, chartmeta: sea.Chartmeta}[]
 ---@return string
-function ChartEncoder:encode(charts)
-	local sph = self:encodeSph(charts[1])
+function ChartEncoder:encode(chart_chartmetas)
+	local sph = self:encodeSph(chart_chartmetas[1].chart, chart_chartmetas[1].chartmeta)
 	return sph:encode()
 end
 
 ---@param chart ncdk2.Chart
+---@param chartmeta sea.Chartmeta
 ---@return sph.Sph
-function ChartEncoder:encodeSph(chart)
+function ChartEncoder:encodeSph(chart, chartmeta)
 	self.chart = chart
 	self.columns = chart.inputMode:getColumns()
 	self.inputMap = chart.inputMode:getInputMap()
@@ -143,7 +144,7 @@ function ChartEncoder:encodeSph(chart)
 	local sph = Sph()
 	local sphLines = sph.sphLines
 
-	sph.metadata:fromChartmeta(chart.chartmeta)
+	sph.metadata:fromChartmeta(chartmeta)
 
 	local layer = chart.layers.main
 	self.layer = layer

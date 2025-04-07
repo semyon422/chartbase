@@ -9,17 +9,19 @@ local mappings = require("osu.exportKeyMappings")
 ---@operator call: osu.ChartEncoder
 local ChartEncoder = IChartEncoder + {}
 
----@param charts ncdk2.Chart[]
+---@param chart_chartmetas {chart: ncdk2.Chart, chartmeta: sea.Chartmeta}[]
 ---@return string
-function ChartEncoder:encode(charts)
-	local osu = self:encodeOsu(charts[1])
+function ChartEncoder:encode(chart_chartmetas)
+	local osu = self:encodeOsu(chart_chartmetas[1].chart, chart_chartmetas[1].chartmeta)
 	return osu:encode()
 end
 
 ---@param chart ncdk2.Chart
+---@param chartmeta sea.Chartmeta
 ---@return osu.Osu
-function ChartEncoder:encodeOsu(chart)
+function ChartEncoder:encodeOsu(chart, chartmeta)
 	self.chart = chart
+	self.chartmeta = chartmeta
 	self.columns = chart.inputMode:getColumns()
 	self.inputMap = chart.inputMode:getInputMap()
 
@@ -38,22 +40,23 @@ end
 
 function ChartEncoder:encodeMetadata()
 	local chart = self.chart
+	local chartmeta = self.chartmeta
 	local rosu = self.rawOsu
 
-	rosu.General.AudioFilename = chart.chartmeta.audio_path
-	rosu.General.PreviewTime = math.floor((chart.chartmeta.preview_time or -1) * 1000)
+	rosu.General.AudioFilename = chartmeta.audio_path
+	rosu.General.PreviewTime = math.floor((chartmeta.preview_time or -1) * 1000)
 	rosu.General.Mode = 3
 
-	rosu.Metadata.Title = chart.chartmeta.title
-	rosu.Metadata.Artist = chart.chartmeta.artist
-	rosu.Metadata.Source = chart.chartmeta.source
-	rosu.Metadata.Tags = chart.chartmeta.tags
-	rosu.Metadata.Version = chart.chartmeta.name
-	rosu.Metadata.Creator = chart.chartmeta.creator
+	rosu.Metadata.Title = chartmeta.title
+	rosu.Metadata.Artist = chartmeta.artist
+	rosu.Metadata.Source = chartmeta.source
+	rosu.Metadata.Tags = chartmeta.tags
+	rosu.Metadata.Version = chartmeta.name
+	rosu.Metadata.Creator = chartmeta.creator
 
 	rosu.Difficulty.CircleSize = chart.inputMode:getColumns()
 
-	rosu.Events.background = chart.chartmeta.background_path
+	rosu.Events.background = chartmeta.background_path
 end
 
 function ChartEncoder:encodeEventSamples()

@@ -6,24 +6,32 @@ local MeasureLayer = require("ncdk2.layers.MeasureLayer")
 local VisualColumns = require("ncdk2.visual.VisualColumns")
 local InputMode = require("ncdk.InputMode")
 local Fraction = require("ncdk.Fraction")
-local Chartmeta = require("notechart.Chartmeta")
 local Mid = require("midi.MID")
 local Visual = require("ncdk2.visual.Visual")
+local Chartmeta = require("sea.chart.Chartmeta")
+local Timings = require("sea.chart.Timings")
+local Healths = require("sea.chart.Healths")
 
 ---@class midi.ChartDecoder: chartbase.IChartDecoder
 ---@operator call: midi.ChartDecoder
 local ChartDecoder = IChartDecoder + {}
 
 ---@param s string
----@return ncdk2.Chart[]
-function ChartDecoder:decode(s)
+---@param hash string?
+---@return {chart: ncdk2.Chart, chartmeta: sea.Chartmeta}[]
+function ChartDecoder:decode(s, hash)
+	self.hash = hash
 	local mid = Mid(s)
-	local chart = self:decodeMid(mid)
-	return {chart}
+	local chart, chartmeta = self:decodeMid(mid)
+	return {{
+		chart = chart,
+		chartmeta = chartmeta,
+	}}
 end
 
 ---@param mid midi.MID
 ---@return ncdk2.Chart
+---@return sea.Chartmeta
 function ChartDecoder:decodeMid(mid)
 	self.mid = mid
 
@@ -57,14 +65,18 @@ function ChartDecoder:decodeMid(mid)
 
 	chart:compute()
 
-	self:setMetadata()
+	local chartmeta = self:getChartmeta()
 
-	return chart
+	return chart, chartmeta
 end
 
-function ChartDecoder:setMetadata()
+---@return sea.Chartmeta
+function ChartDecoder:getChartmeta()
 	local mid = self.mid
-	self.chart.chartmeta = Chartmeta({
+
+	local chartmeta = {
+		hash = self.hash,
+		index = 1,
 		format = "mid",
 		title = self.title,
 		notes_count = self.notes_count,
@@ -72,7 +84,15 @@ function ChartDecoder:setMetadata()
 		tempo = mid.bpm,
 		inputmode = tostring(self.chart.inputMode),
 		start_time = mid.minTime,
-	})
+		timings = Timings("unknown"),
+		healths = Healths("unknown"),
+	}
+	setmetatable(chartmeta, Chartmeta)
+	---@cast chartmeta sea.Chartmeta
+
+	assert(chartmeta:validate())
+
+	return chartmeta
 end
 
 ---@param trackIndex number

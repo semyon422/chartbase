@@ -1,6 +1,5 @@
 local class = require("class")
 local table_util = require("table_util")
-local Chartmeta = require("notechart.Chartmeta")
 
 ---@class sph.Metadata
 ---@operator call: sph.Metadata
@@ -83,7 +82,7 @@ function Metadata:iter()
 	end)
 end
 
----@param chartmeta chartbase.Chartmeta
+---@param chartmeta sea.Chartmeta
 function Metadata:fromChartmeta(chartmeta)
 	---@type {[string]: true}
 	local chartmeta_keys = {}
@@ -93,16 +92,16 @@ function Metadata:fromChartmeta(chartmeta)
 		self:set(d[1], chartmeta[d[2]])
 	end
 
-	for k, v in pairs(chartmeta) do
-		if not chartmeta_keys[k] and not chartmeta_ignore[k] then
-			self:set(k, v)
-		end
-	end
+	-- for k, v in pairs(chartmeta) do
+	-- 	if not chartmeta_keys[k] and not chartmeta_ignore[k] then
+	-- 		self:set(k, v)
+	-- 	end
+	-- end
 end
 
----@return chartbase.Chartmeta
+---@return table
 function Metadata:toChartmeta()
-	local chartmeta = Chartmeta({
+	local chartmeta = {
 		format = "sph",
 		title = self.data.title,
 		artist = self.data.artist,
@@ -114,15 +113,15 @@ function Metadata:toChartmeta()
 		audio_path = self.data.audio,
 		background_path = self.data.background,
 		preview_time = tonumber(self.data.preview),
-		notes_count = tonumber(self.notes_count),
+		-- notes_count = tonumber(self.notes_count),
 		inputmode = self.data.input,
-	})
+	}
 
-	for k, v in pairs(self.data) do
-		if not chartmeta[k] then
-			chartmeta[k] = v
-		end
-	end
+	-- for k, v in pairs(self.data) do
+	-- 	if not chartmeta[k] then
+	-- 		chartmeta[k] = v
+	-- 	end
+	-- end
 
 	return chartmeta
 end

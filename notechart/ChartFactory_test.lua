@@ -6,6 +6,8 @@ local test_chart = [[
 # metadata
 title Title
 artist Artist
+name Name
+creator Creator
 audio audio.mp3
 input 4key
 

@@ -1,5 +1,6 @@
 local class = require("class")
 local path_util = require("path_util")
+local digest = require("digest")
 
 ---@class notechart.ChartFactory
 ---@operator call: notechart.ChartFactory
@@ -47,16 +48,22 @@ end
 
 ---@param filename string
 ---@param content string
----@return ncdk2.Chart[]?
+---@param hash string?
+---@return {chart: ncdk2.Chart, chartmeta: sea.Chartmeta}[]?
 ---@return string?
-function ChartFactory:getCharts(filename, content)
+function ChartFactory:getCharts(filename, content, hash)
+	hash = hash or digest.hash("md5", content, true)
+
 	---@type chartbase.IChartDecoder
 	local decoder = assert(ChartDecoders[path_util.ext(filename, true)], filename)()
-	local status, charts = xpcall(decoder.decode, debug.traceback, decoder, content)
+
+	local status, chart_chartmetas = xpcall(decoder.decode, debug.traceback, decoder, content, hash)
 	if not status then
-		return nil, charts
+		---@cast chart_chartmetas -table, +string
+		return nil, chart_chartmetas
 	end
-	return charts
+
+	return chart_chartmetas
 end
 
 return ChartFactory

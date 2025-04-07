@@ -8,11 +8,13 @@ local MeasureLayer = require("ncdk2.layers.MeasureLayer")
 local AbsoluteLayer = require("ncdk2.layers.AbsoluteLayer")
 local InputMode = require("ncdk.InputMode")
 local Fraction = require("ncdk.Fraction")
-local Chartmeta = require("notechart.Chartmeta")
 local EncodingConverter = require("notechart.EncodingConverter")
 local dpairs = require("dpairs")
 local Sm = require("stepmania.Sm")
 local Visual = require("ncdk2.visual.Visual")
+local Chartmeta = require("sea.chart.Chartmeta")
+local Timings = require("sea.chart.Timings")
+local Healths = require("sea.chart.Healths")
 
 ---@class stepmania.ChartDecoder: chartbase.IChartDecoder
 ---@operator call: stepmania.ChartDecoder
@@ -32,17 +34,24 @@ function ChartDecoder:new()
 end
 
 ---@param s string
----@return ncdk2.Chart[]
-function ChartDecoder:decode(s)
+---@param hash string?
+---@return {chart: ncdk2.Chart, chartmeta: sea.Chartmeta}[]
+function ChartDecoder:decode(s, hash)
+	self.hash = hash
+
 	local sm = Sm()
 	local content = s:gsub("\r[\r\n]?", "\n")
 	content = self.conv:convert(content)
 	sm:import(content)
 
-	---@type ncdk2.Chart[]
+	---@type {chart: ncdk2.Chart, chartmeta: sea.Chartmeta}[]
 	local charts = {}
 	for i = 1, #sm.charts do
-		charts[i] = self:decodeSm(sm, i)
+		local chart, chartmeta = self:decodeSm(sm, i)
+		charts[i] = {
+			chart = chart,
+			chartmeta = chartmeta,
+		}
 	end
 	return charts
 end
@@ -50,6 +59,7 @@ end
 ---@param sm stepmania.Sm
 ---@param index integer
 ---@return ncdk2.Chart
+---@return sea.Chartmeta
 function ChartDecoder:decodeSm(sm, index)
 	self.sm = sm
 	self.sm_chart = sm.charts[index]
@@ -74,9 +84,9 @@ function ChartDecoder:decodeSm(sm, index)
 	chart:compute()
 
 	self:updateLength()
-	self:setMetadata()
+	local chartmeta = self:getChartmeta(index)
 
-	return chart
+	return chart, chartmeta
 end
 
 function ChartDecoder:updateLength()
@@ -91,11 +101,16 @@ function ChartDecoder:updateLength()
 	end
 end
 
-function ChartDecoder:setMetadata()
+---@param index integer
+---@return sea.Chartmeta
+function ChartDecoder:getChartmeta(index)
 	local sm = self.sm
 	local sm_chart = self.sm_chart
 	local header = sm.header
-	self.chart.chartmeta = Chartmeta({
+
+	local chartmeta = {
+		hash = self.hash,
+		index = index,
 		format = "sm",
 		title = header["TITLE"],
 		artist = header["ARTIST"],
@@ -112,7 +127,15 @@ function ChartDecoder:setMetadata()
 		tempo = self.sm.displayTempo or 0,
 		inputmode = tostring(self.chart.inputMode),
 		start_time = self.minTime,
-	})
+		timings = Timings("etterna", 4),
+		healths = Healths("etterna", 4),
+	}
+	setmetatable(chartmeta, Chartmeta)
+	---@cast chartmeta sea.Chartmeta
+
+	assert(chartmeta:validate())
+
+	return chartmeta
 end
 
 function ChartDecoder:processNotes()

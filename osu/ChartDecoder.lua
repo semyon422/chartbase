@@ -7,10 +7,12 @@ local Tempo = require("ncdk2.to.Tempo")
 local AbsoluteLayer = require("ncdk2.layers.AbsoluteLayer")
 local VisualColumns = require("ncdk2.visual.VisualColumns")
 local InputMode = require("ncdk.InputMode")
-local Chartmeta = require("notechart.Chartmeta")
 local RawOsu = require("osu.RawOsu")
 local Osu = require("osu.Osu")
 local Visual = require("ncdk2.visual.Visual")
+local Chartmeta = require("sea.chart.Chartmeta")
+local Healths = require("sea.chart.Healths")
+local Timings = require("sea.chart.Timings")
 
 ---@class osu.ChartDecoder: chartbase.IChartDecoder
 ---@operator call: osu.ChartDecoder
@@ -22,18 +24,24 @@ function ChartDecoder:new()
 end
 
 ---@param s string
----@return ncdk2.Chart[]
-function ChartDecoder:decode(s)
+---@param hash string?
+---@return {chart: ncdk2.Chart, chartmeta: sea.Chartmeta}[]
+function ChartDecoder:decode(s, hash)
+	self.hash = hash
 	local rawOsu = RawOsu()
 	local osu = Osu(rawOsu)
 	rawOsu:decode(s)
 	osu:decode()
-	local chart = self:decodeOsu(osu)
-	return {chart}
+	local chart, chartmeta = self:decodeOsu(osu)
+	return {{
+		chart = chart,
+		chartmeta = chartmeta,
+	}}
 end
 
 ---@param osu osu.Osu
----@return ncdk2.Chart[]
+---@return ncdk2.Chart
+---@return sea.Chartmeta
 function ChartDecoder:decodeOsu(osu)
 	self.osu = osu
 
@@ -73,15 +81,19 @@ function ChartDecoder:decodeOsu(osu)
 
 	chart:compute()
 
-	self:setMetadata()
+	local chartmeta = self:getChartmeta()
 
-	return chart
+	return chart, chartmeta
 end
 
-function ChartDecoder:setMetadata()
+---@return sea.Chartmeta
+function ChartDecoder:getChartmeta()
 	local general = self.osu.rawOsu.General
 	local metadata = self.osu.rawOsu.Metadata
-	self.chart.chartmeta = Chartmeta({
+
+	local chartmeta = {
+		hash = self.hash,
+		index = 1,
 		format = "osu",
 		title = metadata.Title,
 		artist = metadata.Artist,
@@ -92,7 +104,7 @@ function ChartDecoder:setMetadata()
 		audio_path = general.AudioFilename,
 		background_path = self.osu.rawOsu.Events.background,
 		preview_time = tonumber(general.PreviewTime) / 1000,
-		notes_count = #self.osu.protoNotes,
+		-- notes_count = #self.osu.protoNotes,
 		duration = (self.osu.maxTime - self.osu.minTime) / 1000,
 		inputmode = tostring(self.chart.inputMode),
 		start_time = self.osu.minTime / 1000,
@@ -100,11 +112,17 @@ function ChartDecoder:setMetadata()
 		tempo_avg = self.osu.primary_tempo,
 		tempo_min = self.osu.min_tempo,
 		tempo_max = self.osu.max_tempo,
-		osu_beatmap_id = self.osu.rawOsu.Metadata.BeatmapID,
-		osu_beatmapset_id = self.osu.rawOsu.Metadata.BeatmapSetID,
-		osu_od = self.osu.rawOsu.Difficulty.OverallDifficulty,
-		osu_hp = self.osu.rawOsu.Difficulty.HPDrainRate,
-	})
+		osu_beatmap_id = tonumber(self.osu.rawOsu.Metadata.BeatmapID),
+		osu_beatmapset_id = tonumber(self.osu.rawOsu.Metadata.BeatmapSetID),
+		timings = Timings("osumania", tonumber(self.osu.rawOsu.Difficulty.OverallDifficulty)),
+		healths = Healths("osumania", tonumber(self.osu.rawOsu.Difficulty.HPDrainRate)),
+	}
+	setmetatable(chartmeta, Chartmeta)
+	---@cast chartmeta sea.Chartmeta
+
+	assert(chartmeta:validate())
+
+	return chartmeta
 end
 
 function ChartDecoder:addAudio()

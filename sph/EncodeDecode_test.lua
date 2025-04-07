@@ -5,14 +5,17 @@ local test = {}
 
 function test.basic(t)
 	-- volume is a custom field
+	-- volume 80
+	-- disabled for a while
 
 	local s = [[
 # metadata
 title Title
 artist Artist
+name Name
+creator Creator
 audio audio.mp3
 input 4key
-volume 80
 
 # sounds
 01 sound01.ogg
@@ -49,6 +52,8 @@ function test.visuals(t)
 # metadata
 title Title
 artist Artist
+name Name
+creator Creator
 audio audio.mp3
 input 4key
 
@@ -79,6 +84,8 @@ function test.close_point(t)
 # metadata
 title Title
 artist Artist
+name Name
+creator Creator
 audio audio.mp3
 input 4key
 
@@ -93,6 +100,8 @@ input 4key
 # metadata
 title Title
 artist Artist
+name Name
+creator Creator
 audio audio.mp3
 input 4key
 

@@ -9,8 +9,10 @@ local Interval = require("ncdk2.to.Interval")
 local IntervalLayer = require("ncdk2.layers.IntervalLayer")
 local InputMode = require("ncdk.InputMode")
 local Fraction = require("ncdk.Fraction")
-local Chartmeta = require("notechart.Chartmeta")
 local Visual = require("ncdk2.visual.Visual")
+local Chartmeta = require("sea.chart.Chartmeta")
+local Healths = require("sea.chart.Healths")
+local Timings = require("sea.chart.Timings")
 
 ---@class sph.ChartDecoder: chartbase.IChartDecoder
 ---@operator call: sph.ChartDecoder
@@ -21,16 +23,22 @@ function ChartDecoder:new()
 end
 
 ---@param s string
----@return ncdk2.Chart[]
-function ChartDecoder:decode(s)
+---@param hash string?
+---@return {chart: ncdk2.Chart, chartmeta: sea.Chartmeta}[]
+function ChartDecoder:decode(s, hash)
+	self.hash = hash
 	local sph = Sph()
 	sph:decode(s:gsub("\r[\r\n]?", "\n"))
-	local chart = self:decodeSph(sph)
-	return {chart}
+	local chart, chartmeta = self:decodeSph(sph)
+	return {{
+		chart = chart,
+		chartmeta = chartmeta,
+	}}
 end
 
 ---@param sph sph.Sph
 ---@return ncdk2.Chart
+---@return sea.Chartmeta
 function ChartDecoder:decodeSph(sph)
 	self.sph = sph
 
@@ -55,9 +63,9 @@ function ChartDecoder:decodeSph(sph)
 
 	chart:compute()
 
-	self:setMetadata()
+	local chartmeta = self:getChartmeta()
 
-	return chart
+	return chart, chartmeta
 end
 
 ---@param name string?
@@ -193,7 +201,8 @@ function ChartDecoder:addAudio()
 	self.chart.notes:insert(note)
 end
 
-function ChartDecoder:setMetadata()
+---@return sea.Chartmeta
+function ChartDecoder:getChartmeta()
 	local chart = self.chart
 	local sph = self.sph
 
@@ -215,12 +224,22 @@ function ChartDecoder:setMetadata()
 	local avgBeatDuration = (b.absoluteTime - a.absoluteTime) / beats
 
 	local chartmeta = sph.metadata:toChartmeta()
-	chartmeta.notes_count = tonumber(self.notes_count)
+
+	-- chartmeta.notes_count = tonumber(self.notes_count)
+	chartmeta.hash = self.hash
+	chartmeta.index = 1
 	chartmeta.duration = tonumber(totalLength)
 	chartmeta.tempo = 60 / avgBeatDuration
 	chartmeta.start_time = tonumber(minTime)
+	chartmeta.timings = Timings("simple", 160)
+	chartmeta.healths = Healths("simple", 20)
 
-	chart.chartmeta = chartmeta
+	setmetatable(chartmeta, Chartmeta)
+	---@cast chartmeta sea.Chartmeta
+
+	assert(chartmeta:validate())
+
+	return chartmeta
 end
 
 return ChartDecoder

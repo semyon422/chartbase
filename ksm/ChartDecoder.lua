@@ -8,10 +8,12 @@ local MeasureLayer = require("ncdk2.layers.MeasureLayer")
 local AbsoluteLayer = require("ncdk2.layers.AbsoluteLayer")
 local InputMode = require("ncdk.InputMode")
 local Fraction = require("ncdk.Fraction")
-local Chartmeta = require("notechart.Chartmeta")
 local EncodingConverter = require("notechart.EncodingConverter")
 local Ksh = require("ksm.Ksh")
 local Visual = require("ncdk2.visual.Visual")
+local Chartmeta = require("sea.chart.Chartmeta")
+local Timings = require("sea.chart.Timings")
+local Healths = require("sea.chart.Healths")
 
 ---@class ksm.ChartDecoder: chartbase.IChartDecoder
 ---@operator call: ksm.ChartDecoder
@@ -31,18 +33,24 @@ function ChartDecoder:new()
 end
 
 ---@param s string
----@return ncdk2.Chart[]
-function ChartDecoder:decode(s)
+---@param hash string?
+---@return {chart: ncdk2.Chart, chartmeta: sea.Chartmeta}[]
+function ChartDecoder:decode(s, hash)
+	self.hash = hash
 	local ksh = Ksh(s)
 	local content = s:gsub("\r\n", "\n")
 	content = self.conv:convert(content)
 	ksh:import(content)
-	local chart = self:decodeKsh(ksh)
-	return {chart}
+	local chart, chartmeta = self:decodeKsh(ksh)
+	return {{
+		chart = chart,
+		chartmeta = chartmeta,
+	}}
 end
 
 ---@param ksh ksm.Ksh
 ---@return ncdk2.Chart
+---@return sea.Chartmeta
 function ChartDecoder:decodeKsh(ksh)
 	self.ksh = ksh
 
@@ -73,9 +81,9 @@ function ChartDecoder:decodeKsh(ksh)
 	chart:compute()
 
 	self:updateLength()
-	self:setMetadata()
+	local chartmeta = self:getChartmeta()
 
-	return chart
+	return chart, chartmeta
 end
 
 function ChartDecoder:updateLength()
@@ -90,10 +98,14 @@ function ChartDecoder:updateLength()
 	end
 end
 
-function ChartDecoder:setMetadata()
+---@return sea.Chartmeta
+function ChartDecoder:getChartmeta()
 	local ksh = self.ksh
 	local options = ksh.options
-	self.chart.chartmeta = Chartmeta({
+
+	local chartmeta = {
+		hash = self.hash,
+		index = 1,
 		format = "ksh",
 		title = options["title"],
 		artist = options["artist"],
@@ -108,7 +120,15 @@ function ChartDecoder:setMetadata()
 		duration = self.totalLength,
 		inputmode = tostring(self.chart.inputMode),
 		start_time = self.minTime,
-	})
+		timings = Timings("unknown"),
+		healths = Healths("unknown"),
+	}
+	setmetatable(chartmeta, Chartmeta)
+	---@cast chartmeta sea.Chartmeta
+
+	assert(chartmeta:validate())
+
+	return chartmeta
 end
 
 function ChartDecoder:processTempos()

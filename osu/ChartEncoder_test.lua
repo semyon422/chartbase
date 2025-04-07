@@ -89,10 +89,10 @@ out_chart = out_chart:gsub("\n", "\r\n")
 
 function test.basic(t)
 	local dec = ChartDecoder()
-	local charts = dec:decode(test_chart)
+	local chart_chartmetas = dec:decode(test_chart)
 
 	local enc = ChartEncoder()
-	local s = enc:encode(charts)
+	local s = enc:encode(chart_chartmetas)
 	t:eq(s, out_chart)
 
 	-- TODO: fix this test

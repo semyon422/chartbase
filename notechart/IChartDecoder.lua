@@ -4,9 +4,12 @@ local class = require("class")
 ---@operator call: chartbase.IChartDecoder
 local IChartDecoder = class()
 
+IChartDecoder.hash = "00000000000000000000000000000000"
+
 ---@param s string
----@return ncdk2.Chart[]
-function IChartDecoder:decode(s)
+---@param hash string?
+---@return {chart: ncdk2.Chart, chartmeta: sea.Chartmeta}[]
+function IChartDecoder:decode(s, hash)
 	return {}
 end
 

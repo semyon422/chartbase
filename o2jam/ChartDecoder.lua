@@ -8,9 +8,11 @@ local MeasureLayer = require("ncdk2.layers.MeasureLayer")
 local VisualColumns = require("ncdk2.visual.VisualColumns")
 local InputMode = require("ncdk.InputMode")
 local Fraction = require("ncdk.Fraction")
-local Chartmeta = require("notechart.Chartmeta")
 local EncodingConverter = require("notechart.EncodingConverter")
 local Visual = require("ncdk2.visual.Visual")
+local Chartmeta = require("sea.chart.Chartmeta")
+local Timings = require("sea.chart.Timings")
+local Healths = require("sea.chart.Healths")
 
 ---@class o2jam.ChartDecoder: chartbase.IChartDecoder
 ---@operator call: o2jam.ChartDecoder
@@ -32,19 +34,23 @@ function ChartDecoder:new()
 end
 
 ---@param s string
----@return ncdk2.Chart[]
-function ChartDecoder:decode(s)
+---@param hash string?
+---@return {chart: ncdk2.Chart, chartmeta: sea.Chartmeta}[]
+function ChartDecoder:decode(s, hash)
+	self.hash = hash
 	local ojn = Ojn(s)
-	return {
-		self:decodeOjn(ojn, 1),
-		self:decodeOjn(ojn, 2),
-		self:decodeOjn(ojn, 3),
-	}
+	---@type {chart: ncdk2.Chart, chartmeta: sea.Chartmeta}[]
+	local ret = {{}, {}, {}}
+	ret[1].chart, ret[1].chartmeta = self:decodeOjn(ojn, 1)
+	ret[2].chart, ret[2].chartmeta = self:decodeOjn(ojn, 2)
+	ret[3].chart, ret[3].chartmeta = self:decodeOjn(ojn, 3)
+	return ret
 end
 
 ---@param ojn o2jam.OJN
 ---@param index integer
 ---@return ncdk2.Chart
+---@return sea.Chartmeta
 function ChartDecoder:decodeOjn(ojn, index)
 	self.ojn = ojn
 
@@ -70,15 +76,19 @@ function ChartDecoder:decodeOjn(ojn, index)
 	chart:compute()
 
 	self:updateLength()
-	self:setMetadata(index)
+	local chartmeta = self:getChartmeta(index)
 
-	return chart
+	return chart, chartmeta
 end
 
 ---@param index integer
-function ChartDecoder:setMetadata(index)
+---@return sea.Chartmeta
+function ChartDecoder:getChartmeta(index)
 	local ojn = self.ojn
-	self.chart.chartmeta = Chartmeta({
+
+	local chartmeta = {
+		hash = self.hash,
+		index = index,
 		format = "ojn",
 		title = self.conv:convert(ojn.str_title),
 		artist = self.conv:convert(ojn.str_artist),
@@ -92,7 +102,15 @@ function ChartDecoder:setMetadata(index)
 		tempo = ojn.bpm,
 		inputmode = tostring(self.chart.inputMode),
 		start_time = self.minTime,
-	})
+		timings = Timings("unknown"),
+		healths = Healths("unknown"),
+	}
+	setmetatable(chartmeta, Chartmeta)
+	---@cast chartmeta sea.Chartmeta
+
+	assert(chartmeta:validate())
+
+	return chartmeta
 end
 
 function ChartDecoder:updateLength()

@@ -7,9 +7,11 @@ local AbsoluteLayer = require("ncdk2.layers.AbsoluteLayer")
 local InputMode = require("ncdk.InputMode")
 local Barlines = require("osu.Barlines")
 local PrimaryTempo = require("osu.PrimaryTempo")
-local Chartmeta = require("notechart.Chartmeta")
 local tinyyaml = require("tinyyaml")
 local Visual = require("ncdk2.visual.Visual")
+local Chartmeta = require("sea.chart.Chartmeta")
+local Timings = require("sea.chart.Timings")
+local Healths = require("sea.chart.Healths")
 
 ---@class quaver.ChartDecoder: chartbase.IChartDecoder
 ---@operator call: quaver.ChartDecoder
@@ -20,15 +22,21 @@ function ChartDecoder:new()
 end
 
 ---@param s string
----@return ncdk2.Chart[]
-function ChartDecoder:decode(s)
+---@param hash string?
+---@return {chart: ncdk2.Chart, chartmeta: sea.Chartmeta}[]
+function ChartDecoder:decode(s, hash)
+	self.hash = hash
 	local qua = tinyyaml.parse(s:gsub("\r\n", "\n"))
-	local chart = self:decodeQua(qua)
-	return {chart}
+	local chart, chartmeta = self:decodeQua(qua)
+	return {{
+		chart = chart,
+		chartmeta = chartmeta,
+	}}
 end
 
 ---@param qua table
----@return ncdk2.Chart[]
+---@return ncdk2.Chart
+---@return sea.Chartmeta
 function ChartDecoder:decodeQua(qua)
 	self.qua = qua
 
@@ -63,14 +71,18 @@ function ChartDecoder:decodeQua(qua)
 
 	chart:compute()
 
-	self:setMetadata()
+	local chartmeta = self:getChartmeta()
 
-	return chart
+	return chart, chartmeta
 end
 
-function ChartDecoder:setMetadata()
+---@return sea.Chartmeta
+function ChartDecoder:getChartmeta()
 	local qua = self.qua
-	self.chart.chartmeta = Chartmeta({
+
+	local chartmeta = {
+		hash = self.hash,
+		index = 1,
 		format = "qua",
 		title = tostring(qua["Title"]),  -- yaml can parse it as number
 		artist = tostring(qua["Artist"]),
@@ -81,7 +93,7 @@ function ChartDecoder:setMetadata()
 		audio_path = tostring(qua["AudioFile"]),
 		background_path = tostring(qua["BackgroundFile"]),
 		preview_time = (qua["SongPreviewTime"] or 0) / 1000,
-		notes_count = #self.qua.HitObjects,
+		-- notes_count = #self.qua.HitObjects,
 		duration = self.maxTime - self.minTime,
 		inputmode = tostring(self.chart.inputMode),
 		start_time = self.minTime / 1000,
@@ -89,7 +101,15 @@ function ChartDecoder:setMetadata()
 		tempo_avg = self.primary_tempo,
 		tempo_min = self.min_tempo,
 		tempo_max = self.max_tempo,
-	})
+		timings = Timings("quaver"),
+		healths = Healths("quaver"),
+	}
+	setmetatable(chartmeta, Chartmeta)
+	---@cast chartmeta sea.Chartmeta
+
+	assert(chartmeta:validate())
+
+	return chartmeta
 end
 
 function ChartDecoder:addAudio()
