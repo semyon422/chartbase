@@ -224,9 +224,7 @@ function ChartDecoder:getChartmeta()
 
 	chartmeta.hash = self.hash
 	chartmeta.index = 1
-	chartmeta.duration = tonumber(totalLength)
 	chartmeta.tempo = 60 / avgBeatDuration
-	chartmeta.start_time = tonumber(minTime)
 	chartmeta.timings = Timings("simple", 160)
 	chartmeta.healths = Healths("simple", 20)
 

@@ -95,11 +95,8 @@ function ChartDecoder:getChartmeta(index)
 		name = O2jamDifficultyNames[index],
 		creator = self.conv:convert(ojn.str_noter),
 		level = ojn.charts[index].level,
-		-- duration = ojn.charts[index].duration,
-		duration = self.totalLength,
 		tempo = ojn.bpm,
 		inputmode = tostring(self.chart.inputMode),
-		start_time = self.minTime,
 		timings = Timings("unknown"),
 		healths = Healths("unknown"),
 	}

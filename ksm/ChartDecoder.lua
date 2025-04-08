@@ -116,9 +116,7 @@ function ChartDecoder:getChartmeta()
 		audio_path = self.audioFileName,
 		background_path = options["jacket"],
 		preview_time = (options["plength"] or 0) / 1000,
-		duration = self.totalLength,
 		inputmode = tostring(self.chart.inputMode),
-		start_time = self.minTime,
 		timings = Timings("unknown"),
 		healths = Healths("unknown"),
 	}

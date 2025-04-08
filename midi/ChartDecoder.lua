@@ -78,10 +78,8 @@ function ChartDecoder:getChartmeta()
 		index = 1,
 		format = "mid",
 		title = self.title,
-		duration = mid.length,
 		tempo = mid.bpm,
 		inputmode = tostring(self.chart.inputMode),
-		start_time = mid.minTime,
 		timings = Timings("unknown"),
 		healths = Healths("unknown"),
 	}

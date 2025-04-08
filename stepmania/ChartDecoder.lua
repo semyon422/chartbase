@@ -122,10 +122,8 @@ function ChartDecoder:getChartmeta(index)
 		audio_offset = tonumber(self.sm.header["OFFSET"]),
 		preview_time = tonumber(header["SAMPLESTART"]) or 0,
 		background_path = header["BACKGROUND"],
-		duration = self.totalLength,
 		tempo = self.sm.displayTempo or 0,
 		inputmode = tostring(self.chart.inputMode),
-		start_time = self.minTime,
 		timings = Timings("etterna", 4),
 		healths = Healths("etterna", 4),
 	}

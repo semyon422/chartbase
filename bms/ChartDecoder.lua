@@ -149,10 +149,8 @@ function ChartDecoder:getChartmeta()
 		name = name,
 		level = tonumber(header["PLAYLEVEL"]),
 		stage_path = header["STAGEFILE"],
-		duration = self.totalLength,
 		tempo = bms.baseTempo or 0,
 		inputmode = tostring(self.chart.inputMode),
-		start_time = self.minTime,
 		timings = Timings("lr2", rank),
 		healths = Healths("lr2", rank),
 	}
