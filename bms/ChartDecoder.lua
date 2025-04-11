@@ -151,7 +151,7 @@ function ChartDecoder:getChartmeta()
 		stage_path = header["STAGEFILE"],
 		tempo = bms.baseTempo or 0,
 		inputmode = tostring(self.chart.inputMode),
-		timings = Timings("lr2", rank),
+		timings = Timings("bmarank", rank),
 		healths = Healths("lr2", rank),
 	}
 	setmetatable(chartmeta, Chartmeta)
