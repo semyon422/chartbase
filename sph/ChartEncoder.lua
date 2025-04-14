@@ -134,7 +134,7 @@ function ChartEncoder:encode(chart_chartmetas)
 end
 
 ---@param chart ncdk2.Chart
----@param chartmeta sea.Chartmeta
+---@param chartmeta sea.Chartmeta?
 ---@return sph.Sph
 function ChartEncoder:encodeSph(chart, chartmeta)
 	self.chart = chart
@@ -144,7 +144,9 @@ function ChartEncoder:encodeSph(chart, chartmeta)
 	local sph = Sph()
 	local sphLines = sph.sphLines
 
-	sph.metadata:fromChartmeta(chartmeta)
+	if chartmeta then
+		sph.metadata:fromChartmeta(chartmeta)
+	end
 
 	local layer = chart.layers.main
 	self.layer = layer
