@@ -76,7 +76,7 @@ function ChartDecoder:getChartmeta()
 	local chartmeta = {
 		hash = self.hash,
 		index = 1,
-		format = "mid",
+		format = "midi",
 		title = self.title,
 		tempo = mid.bpm,
 		inputmode = tostring(self.chart.inputMode),

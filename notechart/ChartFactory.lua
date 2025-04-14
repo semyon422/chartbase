@@ -1,4 +1,5 @@
 local class = require("class")
+local valid = require("valid")
 local path_util = require("path_util")
 local digest = require("digest")
 
@@ -60,7 +61,7 @@ function ChartFactory:getCharts(filename, content, hash)
 	local status, chart_chartmetas = xpcall(decoder.decode, debug.traceback, decoder, content, hash)
 	if not status then
 		---@cast chart_chartmetas -table, +string
-		return nil, chart_chartmetas
+		return valid.format(nil, chart_chartmetas)
 	end
 
 	return chart_chartmetas

@@ -111,7 +111,7 @@ function ChartDecoder:getChartmeta(index)
 	local chartmeta = {
 		hash = self.hash,
 		index = index,
-		format = "sm",
+		format = "stepmania",
 		title = header["TITLE"],
 		artist = header["ARTIST"],
 		source = header["SUBTITLE"],

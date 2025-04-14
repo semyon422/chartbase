@@ -89,7 +89,7 @@ function ChartDecoder:getChartmeta(index)
 	local chartmeta = {
 		hash = self.hash,
 		index = index,
-		format = "ojn",
+		format = "o2jam",
 		title = self.conv:convert(ojn.str_title),
 		artist = self.conv:convert(ojn.str_artist),
 		name = O2jamDifficultyNames[index],

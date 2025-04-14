@@ -82,7 +82,7 @@ function ChartDecoder:getChartmeta()
 	local chartmeta = {
 		hash = self.hash,
 		index = 1,
-		format = "qua",
+		format = "quaver",
 		title = tostring(qua["Title"]),  -- yaml can parse it as number
 		artist = tostring(qua["Artist"]),
 		source = tostring(qua["Source"]),

@@ -101,7 +101,7 @@ end
 ---@return table
 function Metadata:toChartmeta()
 	local chartmeta = {
-		format = "sph",
+		format = "sphere",
 		title = self.data.title,
 		artist = self.data.artist,
 		source = self.data.source,

@@ -106,7 +106,7 @@ function ChartDecoder:getChartmeta()
 	local chartmeta = {
 		hash = self.hash,
 		index = 1,
-		format = "ksh",
+		format = "ksm",
 		title = options["title"],
 		artist = options["artist"],
 		name = options["difficulty"],
