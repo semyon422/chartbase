@@ -124,8 +124,6 @@ function ChartDecoder:getChartmeta(index)
 		background_path = header["BACKGROUND"],
 		tempo = self.sm.displayTempo or 0,
 		inputmode = tostring(self.chart.inputMode),
-		timings = Timings("stepmania"),
-		healths = Healths("etterna", 4),
 	}
 	setmetatable(chartmeta, Chartmeta)
 	---@cast chartmeta sea.Chartmeta

@@ -98,7 +98,6 @@ function ChartDecoder:getChartmeta()
 		tempo_min = self.min_tempo,
 		tempo_max = self.max_tempo,
 		timings = Timings("quaver"),
-		healths = Healths("quaver"),
 	}
 	setmetatable(chartmeta, Chartmeta)
 	---@cast chartmeta sea.Chartmeta

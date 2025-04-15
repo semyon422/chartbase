@@ -97,8 +97,6 @@ function ChartDecoder:getChartmeta(index)
 		level = ojn.charts[index].level,
 		tempo = ojn.bpm,
 		inputmode = tostring(self.chart.inputMode),
-		timings = Timings("unknown"),
-		healths = Healths("unknown"),
 	}
 	setmetatable(chartmeta, Chartmeta)
 	---@cast chartmeta sea.Chartmeta

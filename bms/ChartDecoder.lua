@@ -152,7 +152,6 @@ function ChartDecoder:getChartmeta()
 		tempo = bms.baseTempo or 0,
 		inputmode = tostring(self.chart.inputMode),
 		timings = Timings("bmarank", rank),
-		healths = Healths("lr2", rank),
 	}
 	setmetatable(chartmeta, Chartmeta)
 	---@cast chartmeta sea.Chartmeta

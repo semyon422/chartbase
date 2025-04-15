@@ -111,7 +111,6 @@ function ChartDecoder:getChartmeta()
 		osu_beatmap_id = tonumber(self.osu.rawOsu.Metadata.BeatmapID),
 		osu_beatmapset_id = tonumber(self.osu.rawOsu.Metadata.BeatmapSetID),
 		timings = Timings("osumania", tonumber(self.osu.rawOsu.Difficulty.OverallDifficulty)),
-		healths = Healths("osumania", tonumber(self.osu.rawOsu.Difficulty.HPDrainRate)),
 	}
 	setmetatable(chartmeta, Chartmeta)
 	---@cast chartmeta sea.Chartmeta

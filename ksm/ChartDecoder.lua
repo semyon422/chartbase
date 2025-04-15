@@ -117,8 +117,6 @@ function ChartDecoder:getChartmeta()
 		background_path = options["jacket"],
 		preview_time = (options["plength"] or 0) / 1000,
 		inputmode = tostring(self.chart.inputMode),
-		timings = Timings("unknown"),
-		healths = Healths("unknown"),
 	}
 	setmetatable(chartmeta, Chartmeta)
 	---@cast chartmeta sea.Chartmeta

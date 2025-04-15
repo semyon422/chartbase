@@ -80,8 +80,6 @@ function ChartDecoder:getChartmeta()
 		title = self.title,
 		tempo = mid.bpm,
 		inputmode = tostring(self.chart.inputMode),
-		timings = Timings("unknown"),
-		healths = Healths("unknown"),
 	}
 	setmetatable(chartmeta, Chartmeta)
 	---@cast chartmeta sea.Chartmeta

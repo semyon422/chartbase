@@ -225,8 +225,6 @@ function ChartDecoder:getChartmeta()
 	chartmeta.hash = self.hash
 	chartmeta.index = 1
 	chartmeta.tempo = 60 / avgBeatDuration
-	chartmeta.timings = Timings("simple")
-	chartmeta.healths = Healths("simple", 20)
 
 	setmetatable(chartmeta, Chartmeta)
 	---@cast chartmeta sea.Chartmeta
