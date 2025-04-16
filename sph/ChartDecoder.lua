@@ -123,7 +123,7 @@ function ChartDecoder:processLine(line)
 
 		local t = _note.type
 		if t == "1" then
-			note.type = "note"
+			note.type = "tap"
 		elseif t == "2" then
 			note.type = "hold"
 			note.weight = 1

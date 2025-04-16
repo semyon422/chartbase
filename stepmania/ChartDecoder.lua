@@ -154,13 +154,13 @@ function ChartDecoder:processNotes()
 		note.images = {}
 
 		if _note.noteType == "1" then
-			note.type = "note"
+			note.type = "tap"
 		elseif _note.noteType == "M" then
 			note.type = "mine"
 		elseif _note.noteType == "F" then
 			note.type = "fake"
 		elseif _note.noteType == "2" or _note.noteType == "4" then
-			note.type = "note"
+			note.type = "tap"
 			longNotes[_note.column] = note
 		elseif _note.noteType == "3" then
 			note.type = "hold"

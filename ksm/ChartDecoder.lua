@@ -210,7 +210,7 @@ function ChartDecoder:processNotes()
 		local endMeasureTime = Fraction(_note.endLineOffset, _note.endLineCount) + _note.endMeasureOffset
 
 		if startMeasureTime == endMeasureTime then
-			startNote.type = "note"
+			startNote.type = "tap"
 		else
 			if _note.input ~= "laser" then
 				startNote.type = "hold"

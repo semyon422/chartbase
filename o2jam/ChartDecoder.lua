@@ -175,7 +175,7 @@ function ChartDecoder:process(index)
 					note.weight = -1
 					long_notes[key] = nil
 				else
-					note.type = "note"
+					note.type = "tap"
 					if event.type == "HOLD" then
 						long_notes[key] = note
 					end

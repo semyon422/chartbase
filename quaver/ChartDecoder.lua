@@ -200,7 +200,7 @@ function ChartDecoder:getNotes(obj)
 	local sounds = {}  -- TODO: fix hitsounds/keysounds
 
 	if not endTime then
-		return self:getNote(startTime, column, "note", sounds)
+		return self:getNote(startTime, column, "tap", sounds)
 	end
 
 	if endTime < startTime then

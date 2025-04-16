@@ -335,7 +335,7 @@ function ChartDecoder:processData()
 							note.sounds = {}
 							longNoteData[channelIndex] = nil
 						else
-							note.type = "note"
+							note.type = "tap"
 							note.weight = 0
 							longNoteData[channelIndex] = note
 						end
@@ -360,7 +360,7 @@ function ChartDecoder:processData()
 		end
 	end
 	for _, note in pairs(longNoteData) do
-		note.type = "note"
+		note.type = "tap"
 		note.weight = 0
 	end
 end

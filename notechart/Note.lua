@@ -1,7 +1,7 @@
 local Note = require("ncdk2.notes.Note")
 
 ---@alias notechart.NoteType
----| "note"
+---| "tap"
 ---| "hold"
 ---| "laser"
 ---| "drumroll"

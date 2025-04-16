@@ -20,7 +20,7 @@ local headerLines = {
 }
 
 local noteTypeMap = {
-	note = {[0] = "1"},
+	tap = {[0] = "1"},
 	hold = {[1] = "2", [-1] = "3"},
 	shade = {[0] = "4"},
 }

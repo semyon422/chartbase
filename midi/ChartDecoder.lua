@@ -115,7 +115,7 @@ function ChartDecoder:processData(trackIndex, addedNotes)
 
 			startNote = Note(vp, column)
 			startNote.sounds = {{hs, event[4]}}
-			startNote.type = addedNotes[eventId] and "sample" or "note"
+			startNote.type = addedNotes[eventId] and "sample" or "tap"
 
 			chart.notes:insert(startNote)
 

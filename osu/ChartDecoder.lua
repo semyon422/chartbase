@@ -217,7 +217,7 @@ function ChartDecoder:getNotes(proto_note)
 		if startIsNan then
 			return
 		end
-		return self:getNote(startTime, column, "note", sounds)
+		return self:getNote(startTime, column, "tap", sounds)
 	end
 
 	if startIsNan and endIsNan then
@@ -232,7 +232,7 @@ function ChartDecoder:getNotes(proto_note)
 	end
 
 	if endTime < startTime then
-		return self:getNote(startTime, column, "note"), self:getNote(endTime, column, "shade")
+		return self:getNote(startTime, column, "tap"), self:getNote(endTime, column, "shade")
 	end
 
 	local lnType = "hold"

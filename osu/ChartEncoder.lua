@@ -74,7 +74,7 @@ function ChartEncoder:encodeEventSamples()
 end
 
 local allowedTypes = {
-	note = true,
+	tap = true,
 	hold = true,
 }
 
