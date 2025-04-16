@@ -11,8 +11,6 @@ local InputMode = require("ncdk.InputMode")
 local Fraction = require("ncdk.Fraction")
 local Visual = require("ncdk2.visual.Visual")
 local Chartmeta = require("sea.chart.Chartmeta")
-local Healths = require("sea.chart.Healths")
-local Timings = require("sea.chart.Timings")
 
 ---@class sph.ChartDecoder: chartbase.IChartDecoder
 ---@operator call: sph.ChartDecoder
@@ -54,6 +52,9 @@ function ChartDecoder:decodeSph(sph)
 	---@type ncdk2.Point?
 	self.close_point = nil
 
+	---@type {[string]: true}
+	self.close_visuals = {}
+
 	for _, line in ipairs(sph.sphLines.protoLines) do
 		self:processLine(line)
 	end
@@ -67,9 +68,8 @@ function ChartDecoder:decodeSph(sph)
 	return chart, chartmeta
 end
 
----@param name string?
+---@param name string
 function ChartDecoder:getVisual(name)
-	name = name or ""
 	local visual = self.layer.visuals[name]
 	if visual then
 		return visual
@@ -87,15 +87,22 @@ function ChartDecoder:processLine(line)
 	local chart = self.chart
 	local sounds = self.sph.sounds
 	local inputMap = self.inputMap
+	local close_point = self.close_point
+	local close_visuals = self.close_visuals
 
-	local visual = self:getVisual(line.visual)
+	local line_visual = line.visual or ""
+	local visual = self:getVisual(line_visual)
 
 	local point = layer:getPoint(line.globalTime)
 
-	if self.close_point and self.close_point ~= point then
-		visual:newPoint(self.close_point)
+	if close_point and close_point ~= point then
+		for v in pairs(close_visuals) do
+			self:getVisual(v):newPoint(close_point)
+			close_visuals[v] = nil
+		end
+		self.close_point = nil
 	end
-	self.close_point = nil
+	close_visuals[line_visual] = nil
 
 	local visualPoint = visual:newPoint(point)
 
@@ -154,6 +161,7 @@ function ChartDecoder:processLine(line)
 	if line.expand and line.expand ~= 0 then
 		visualPoint._expand = Expand(line.expand)
 		self.close_point = point
+		close_visuals[line_visual] = true
 	end
 	if line.measure then
 		point._measure = Measure(line.measure)

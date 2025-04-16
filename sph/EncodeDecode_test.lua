@@ -120,4 +120,64 @@ input 4key
 	t:eq(enc:encode(dec:decode(s_in)), s_out)
 end
 
+
+-- create a close point for expand if missing
+function test.close_point_2_layers(t)
+	local s_in = [[
+# metadata
+title Title
+artist Artist
+name Name
+creator Creator
+audio audio.mp3
+input 4key
+
+# notes
+- =0 x1
+- v2 x1
+-
+- v2 e2
+0011 ^ v2 e-2
+0011 ^ v3 e1
+-
+-
+- v2 e2
+0010 ^ v2 e-2
+-
+- =3
+]]
+
+	local s_out = [[
+# metadata
+title Title
+artist Artist
+name Name
+creator Creator
+audio audio.mp3
+input 4key
+
+# notes
+- =0 x1
+- v2 x1
+-
+- v2 e2
+0011 ^ v2 e-2
+- ^ v2
+0011 ^ v3 e1
+- ^ v3
+-
+-
+- v2 e2
+0010 ^ v2 e-2
+- ^ v2
+-
+- =3
+]]
+
+	local dec = ChartDecoder()
+	local enc = ChartEncoder()
+
+	t:eq(enc:encode(dec:decode(s_in)), s_out)
+end
+
 return test
