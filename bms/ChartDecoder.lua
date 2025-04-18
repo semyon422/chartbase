@@ -125,20 +125,11 @@ function ChartDecoder:updateLength()
 	end
 end
 
-local lr2_rank = {
-	[0] = "easy",
-	[1] = "normal",
-	[2] = "hard",
-	[3] = "veryhard",
-}
-
 ---@return sea.Chartmeta
 function ChartDecoder:getChartmeta()
 	local bms = self.bms
 	local header = bms.header
 	local title, name = splitTitle(header["TITLE"])
-
-	local rank = lr2_rank[tonumber(header["RANK"]) or 0]
 
 	local chartmeta = {
 		hash = self.hash,
@@ -148,10 +139,10 @@ function ChartDecoder:getChartmeta()
 		artist = header["ARTIST"],
 		name = name,
 		level = tonumber(header["PLAYLEVEL"]),
-		stage_path = header["STAGEFILE"],
+		background_path = header["STAGEFILE"],
 		tempo = bms.baseTempo or 0,
 		inputmode = tostring(self.chart.inputMode),
-		timings = Timings("bmarank", rank),
+		timings = Timings("bmsrank", tonumber(header["RANK"]) or 3),
 	}
 	setmetatable(chartmeta, Chartmeta)
 	---@cast chartmeta sea.Chartmeta

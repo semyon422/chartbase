@@ -1,3 +1,4 @@
+local valid = require("valid")
 local IChartDecoder = require("notechart.IChartDecoder")
 local Chart = require("ncdk2.Chart")
 local Sph = require("sph.Sph")
@@ -237,7 +238,7 @@ function ChartDecoder:getChartmeta()
 	setmetatable(chartmeta, Chartmeta)
 	---@cast chartmeta sea.Chartmeta
 
-	assert(chartmeta:validate())
+	assert(valid.format(chartmeta:validate()))
 
 	return chartmeta
 end

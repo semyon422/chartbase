@@ -13,6 +13,7 @@ local Visual = require("ncdk2.visual.Visual")
 local Chartmeta = require("sea.chart.Chartmeta")
 local Healths = require("sea.chart.Healths")
 local Timings = require("sea.chart.Timings")
+local odhp = require("osu.odhp")
 
 ---@class osu.ChartDecoder: chartbase.IChartDecoder
 ---@operator call: osu.ChartDecoder
@@ -90,6 +91,14 @@ function ChartDecoder:getChartmeta()
 	local general = self.osu.rawOsu.General
 	local metadata = self.osu.rawOsu.Metadata
 
+	---@type sea.Timings?
+	local timings
+
+	local od = tonumber(self.osu.rawOsu.Difficulty.OverallDifficulty)
+	if od then
+		timings = Timings("osuod", odhp.round_od(od, 10))
+	end
+
 	local chartmeta = {
 		hash = self.hash,
 		index = 1,
@@ -110,7 +119,7 @@ function ChartDecoder:getChartmeta()
 		tempo_max = self.osu.max_tempo,
 		osu_beatmap_id = tonumber(self.osu.rawOsu.Metadata.BeatmapID),
 		osu_beatmapset_id = tonumber(self.osu.rawOsu.Metadata.BeatmapSetID),
-		timings = Timings("osuod", tonumber(self.osu.rawOsu.Difficulty.OverallDifficulty)),
+		timings = timings,
 	}
 	setmetatable(chartmeta, Chartmeta)
 	---@cast chartmeta sea.Chartmeta

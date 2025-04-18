@@ -64,6 +64,12 @@ function ChartFactory:getCharts(filename, content, hash)
 		return valid.format(nil, chart_chartmetas)
 	end
 
+	for _, t in ipairs(chart_chartmetas) do
+		if t.chartmeta.hash ~= hash then
+			return nil, "invalid hash"
+		end
+	end
+
 	return chart_chartmetas
 end
 

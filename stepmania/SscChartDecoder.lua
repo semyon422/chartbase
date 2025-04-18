@@ -12,10 +12,14 @@ function SscChartDecoder:decode(s)
 	s = self.conv:convert(s)
 	ssc:decode(s)
 
-	---@type ncdk2.Chart[]
+	---@type {chart: ncdk2.Chart, chartmeta: sea.Chartmeta}[]
 	local charts = {}
 	for i = 1, #ssc.charts do
-		charts[i] = self:decodeSm(ssc, i)
+		local chart, chartmeta = self:decodeSm(ssc, i)
+		charts[i] = {
+			chart = chart,
+			chartmeta = chartmeta,
+		}
 	end
 	return charts
 end

@@ -13,8 +13,11 @@ function PmsChartDecoder:decode(s)
 	local content = s:gsub("\r[\r\n]?", "\n")
 	content = self.conv:convert(content)
 	bms:import(content)
-	local chart = self:decodeBms(bms)
-	return {chart}
+	local chart, chartmeta = self:decodeBms(bms)
+	return {{
+		chart = chart,
+		chartmeta = chartmeta,
+	}}
 end
 
 return PmsChartDecoder

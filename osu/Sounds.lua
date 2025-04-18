@@ -65,13 +65,13 @@ function Sounds:getSampleName(soundType, sampleSet, addSampleSet, customSampleSe
 	end
 
 	---@type string
-	local strSoundType = table_util.keyof(SoundType, soundType):lower()
+	local strSoundType = (table_util.keyof(SoundType, soundType) or "None"):lower()
 
 	if sampleSet == SampleSet.None then
 		sampleSet = SampleSet.Soft
 	end
 	---@type string
-	local strSampleSet = table_util.keyof(SampleSet, sampleSet):lower()
+	local strSampleSet = (table_util.keyof(SampleSet, sampleSet) or "None"):lower()
 	local customSample = math.max(customSampleSet, 0)
 	local modePrefix = is_taiko and "taiko-" or ""
 
