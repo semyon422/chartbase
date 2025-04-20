@@ -180,7 +180,7 @@ function ChartDecoder:decodeSamples()
 		local point = layer:getPoint(e.time / 1000)
 		local visualPoint = visualColumns:getPoint(point, "auto")
 		local note = Note(visualPoint, "auto", "sample")
-		note.sounds = {{e.name, e.volume / 100}}
+		note.data = {sounds = {{e.name, e.volume / 100}}}
 		chart.notes:insert(note)
 		self.chart.resources:add("sound", e.name)
 	end
@@ -200,7 +200,7 @@ function ChartDecoder:getNote(time, column, _type, sounds, weight)
 	local note = Note(visualPoint, column)
 	note.type = _type
 	note.weight = weight or 0
-	note.sounds = sounds
+	note.data = {sounds = sounds}
 	return note
 end
 

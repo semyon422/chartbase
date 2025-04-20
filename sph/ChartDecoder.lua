@@ -125,7 +125,7 @@ function ChartDecoder:processLine(line)
 
 		local sound = sounds[line_sounds[i]]
 		if sound then
-			note.sounds = {{sound, line_volume[i] or 1}}
+			note.data.sounds = {{sound, line_volume[i] or 1}}
 			self.chart.resources:add("sound", sound)
 		end
 
@@ -150,7 +150,7 @@ function ChartDecoder:processLine(line)
 		if sound then
 			local column = "auto" .. (i - #notes)
 			local note = Note(visualPoint, column, "sample")
-			note.sounds = {{sound, line_volume[i] or 1}}
+			note.data.sounds = {{sound, line_volume[i] or 1}}
 			self.chart.resources:add("sound", sound)
 			chart.notes:insert(note)
 		end
@@ -201,7 +201,7 @@ function ChartDecoder:addAudio()
 	local vp = visual:getPoint(point)
 
 	local note = Note(vp, "audio", "sample")
-	note.sounds = {{audio, 1}}
+	note.data.sounds = {{audio, 1}}
 	self.chart.resources:add("sound", audio)
 
 	self.chart.notes:insert(note)

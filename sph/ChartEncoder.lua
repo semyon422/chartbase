@@ -36,7 +36,7 @@ function ChartEncoder:createSoundListAndMap()
 	local sounds_map = {}
 	for vp, notes in pairs(self.point_notes) do
 		for _, note in pairs(notes) do
-			local sound = note.sounds and note.sounds[1] and note.sounds[1][1]
+			local sound = note.data.sounds and note.data.sounds[1] and note.data.sounds[1][1]
 			if sound then
 				sounds_map[sound] = true
 			end
@@ -90,7 +90,7 @@ function ChartEncoder:getSounds(_notes)
 
 	local notes = {}
 	for input, note in pairs(_notes) do
-		local nds = note.sounds and note.sounds[1]
+		local nds = note.data.sounds and note.data.sounds[1]
 		local nsound = nds and nds[1]
 		local nvolume = nds and nds[2]
 		local column = self.inputMap[input] or self.columns + 1

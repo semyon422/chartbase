@@ -284,18 +284,18 @@ function ChartDecoder:processData()
 					local visualPoint = visualColumns:getPoint(point, column)
 					local note = Note(visualPoint, column)
 
-					note.sounds = {}
-					note.images = {}
+					note.data.sounds = {}
+					note.data.images = {}
 					if channelInfo.name == "Note" or channelInfo.name == "BGM" then
 						local sound = self.bms.wav[value]
 						if sound and not channelInfo.mine then
-							note.sounds[1] = {sound, 1}
+							note.data.sounds[1] = {sound, 1}
 							self.chart.resources:add("sound", sound)
 						end
 					elseif channelInfo.name == "BGA" then
 						local image = self.bms.bmp[value]
 						if image then
-							note.images[1] = {image, 1}
+							note.data.images[1] = {image, 1}
 							self.chart.resources:add("image", image)
 						end
 					end
@@ -314,7 +314,7 @@ function ChartDecoder:processData()
 						else
 							note.type = "hold"
 							note.weight = -1
-							note.sounds = {}
+							note.data.sounds = {}
 							longNoteData[channelIndex] = nil
 						end
 					else
@@ -323,7 +323,7 @@ function ChartDecoder:processData()
 							longNoteData[channelIndex].weight = 1
 							note.type = "hold"
 							note.weight = -1
-							note.sounds = {}
+							note.data.sounds = {}
 							longNoteData[channelIndex] = nil
 						else
 							note.type = "tap"

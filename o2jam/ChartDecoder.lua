@@ -158,7 +158,7 @@ function ChartDecoder:process(index)
 			if event.channel:find("AUTO") then
 				local visualPoint = visualColumns:getPoint(point, "auto")
 				local note = Note(visualPoint, "auto", "sample")
-				note.sounds = {{event.value, event.volume}}
+				note.data.sounds = {{event.value, event.volume}}
 				chart.notes:insert(note)
 			else
 				local key = tonumber(event.channel:sub(-1, -1))
@@ -180,7 +180,7 @@ function ChartDecoder:process(index)
 						long_notes[key] = note
 					end
 
-					note.sounds = {{event.value, event.volume}}
+					note.data.sounds = {{event.value, event.volume}}
 				end
 				if not self.minPoint or point < self.minPoint then
 					self.minPoint = point

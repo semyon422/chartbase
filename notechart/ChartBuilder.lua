@@ -69,7 +69,7 @@ function ChartBuilder:setMainAudio(file_name, offset, volume)
 	local vp = visual:getPoint(layer:getPoint(offset or 0))
 
 	local note = Note(vp, "audio", "sample")
-	note.sounds = {{file_name, volume or 1}}
+	note.data = {sounds = {{file_name, volume or 1}}}
 	chart.resources:add("sound", file_name)
 
 	chart.notes:insert(note)

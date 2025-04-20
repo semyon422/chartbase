@@ -63,11 +63,11 @@ function ChartEncoder:encodeEventSamples()
 	local columns = self.chart.inputMode:getColumns()
 	local samples = self.rawOsu.Events.samples
 	for _, note in self.chart.notes:iter() do
-		if note.column:find("auto") == 1 and note.sounds[1] then
+		if note.column:find("auto") == 1 and note.data.sounds[1] then
 			table.insert(samples, {
 				time = note:getTime(),
-				name = note.sounds[1][1],
-				volume = note.sounds[1][2],
+				name = note.data.sounds[1][1],
+				volume = note.data.sounds[1][2],
 			})
 		end
 	end
@@ -86,7 +86,7 @@ function ChartEncoder:encodeHitObjectSounds(obj, note)
 	local startNote = note.startNote
 	---@cast startNote notechart.Note
 
-	local sounds = startNote.sounds
+	local sounds = startNote.data.sounds
 	if sounds and sounds[1] then
 		obj.addition.sampleFile = sounds[1][1]
 		obj.addition.volume = sounds[1][2] * 100

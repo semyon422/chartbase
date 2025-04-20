@@ -122,7 +122,7 @@ function ChartDecoder:addAudio()
 	local visualPoint = visual:getPoint(audio_layer:getPoint(0))
 
 	local note = Note(visualPoint, "audio", "sample")
-	note.sounds = {{audioFileName, 1}}
+	note.data.sounds = {{audioFileName, 1}}
 	self.chart.resources:add("sound", audioFileName)
 
 	self.chart.notes:insert(note)
@@ -175,7 +175,7 @@ function ChartDecoder:getNote(time, column, noteType, sounds)
 	local point = self.layer:getPoint(time)
 	local visualPoint = self.visual:getPoint(point)
 	local note = Note(visualPoint, column, noteType)
-	note.sounds = sounds
+	note.data.sounds = sounds
 	return note
 end
 

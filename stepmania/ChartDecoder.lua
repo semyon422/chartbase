@@ -150,8 +150,8 @@ function ChartDecoder:processNotes()
 		local column = "key" .. _note.column
 		local note = Note(visualPoint, column)
 
-		note.sounds = {}
-		note.images = {}
+		note.data.sounds = {}
+		note.data.images = {}
 
 		if _note.noteType == "1" then
 			note.type = "tap"
@@ -210,7 +210,7 @@ function ChartDecoder:processAudio()
 	local visualPoint = visual:getPoint(audio_layer:getPoint(offset))
 
 	local note = Note(visualPoint, "audio", "sample")
-	note.sounds = {{self.sm.header["MUSIC"], 1}}
+	note.data.sounds = {{self.sm.header["MUSIC"], 1}}
 	self.chart.resources:add("sound", self.sm.header["MUSIC"])
 
 	self.chart.notes:insert(note)
