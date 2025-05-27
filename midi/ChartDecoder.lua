@@ -114,7 +114,7 @@ function ChartDecoder:processData(trackIndex, addedNotes)
 			local vp = visualColumns:getPoint(point, column)
 
 			startNote = Note(vp, column)
-			startNote.sounds = {{hs, event[4]}}
+			startNote.data.sounds = {{hs, event[4]}}
 			startNote.type = addedNotes[eventId] and "sample" or "tap"
 
 			chart.notes:insert(startNote)

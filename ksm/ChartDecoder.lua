@@ -202,8 +202,6 @@ function ChartDecoder:processNotes()
 		local column = inputType .. inputIndex
 		local startNote = Note(visualPoint, column)
 
-		startNote.sounds = {}
-
 		chart.notes:insert(startNote)
 
 		local lastPoint = point
@@ -223,7 +221,6 @@ function ChartDecoder:processNotes()
 			local end_visualPoint = visual:getPoint(end_point)
 
 			local endNote = Note(end_visualPoint, column)
-			endNote.sounds = {}
 
 			if _note.input ~= "laser" then
 				endNote.type = "hold"
