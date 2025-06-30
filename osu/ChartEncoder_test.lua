@@ -73,7 +73,7 @@ SliderTickRate:1
 //Storyboard Layer 3 (Foreground)
 //Storyboard Layer 4 (Overlay)
 //Storyboard Sound Samples
-5,1,0,"sample1.wav",1
+5,1000,0,"sample1.wav",1
 
 [TimingPoints]
 0,500,4,0,0,0,1,0

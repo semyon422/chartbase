@@ -3,9 +3,9 @@ local table_util = require("table_util")
 local string_util = require("string_util")
 
 ---@class osu.EventSample
----@field time number
+---@field time integer
 ---@field name string
----@field volume number
+---@field volume integer
 
 ---@class osu.Events: osu.Section
 ---@operator call: osu.Events

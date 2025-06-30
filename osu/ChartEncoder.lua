@@ -65,7 +65,7 @@ function ChartEncoder:encodeEventSamples()
 	for _, note in self.chart.notes:iter() do
 		if note.column:find("auto") == 1 and note.data.sounds[1] then
 			table.insert(samples, {
-				time = note:getTime(),
+				time = math.floor(note:getTime() * 1000),
 				name = note.data.sounds[1][1],
 				volume = note.data.sounds[1][2],
 			})
