@@ -142,7 +142,7 @@ function ChartDecoder:getChartmeta()
 		background_path = header["STAGEFILE"],
 		tempo = bms.baseTempo or 0,
 		inputmode = tostring(self.chart.inputMode),
-		timings = Timings("bmsrank", tonumber(header["RANK"]) or 3),
+		timings = Timings("bmsrank", tonumber(header["RANK"]) or 2),
 	}
 	setmetatable(chartmeta, Chartmeta)
 	---@cast chartmeta sea.Chartmeta
