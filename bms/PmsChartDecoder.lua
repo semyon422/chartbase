@@ -6,8 +6,10 @@ local Bms = require("bms.BMS")
 local PmsChartDecoder = ChartDecoder + {}
 
 ---@param s string
----@return ncdk2.Chart[]
-function PmsChartDecoder:decode(s)
+---@param hash string?
+---@return {chart: ncdk2.Chart, chartmeta: sea.Chartmeta}[]
+function PmsChartDecoder:decode(s, hash)
+	self.hash = hash
 	local bms = Bms()
 	bms.pms = true
 	local content = s:gsub("\r[\r\n]?", "\n")
