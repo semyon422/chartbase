@@ -14,8 +14,7 @@ local Note = require("ncdk2.notes.Note")
 ---@class notechart.Note: ncdk2.Note
 ---@operator call: notechart.Note
 ---@field type notechart.NoteType
----@field sounds {[1]: string, [2]: number}[]?
----@field images string[]?
+---@field data {sounds: {[1]: string, [2]: number}[]?, images: string[]?}
 local _Note = Note + {}
 
 _Note.__tostring = Note.__tostring
