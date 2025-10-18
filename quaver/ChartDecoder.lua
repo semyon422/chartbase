@@ -147,7 +147,7 @@ function ChartDecoder:decodeVelocities()
 	for _, sv in ipairs(self.qua.SliderVelocities) do
 		local point = layer:getPoint((sv.StartTime or 0) / 1000)
 		local visualPoint = visual:getPoint(point)
-		visualPoint._velocity = Velocity(sv.Multiplier or 0)
+		visualPoint._velocity = Velocity(tonumber(sv.Multiplier) or 1)
 	end
 end
 
