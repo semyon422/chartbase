@@ -72,13 +72,37 @@ SphPreview.version = 0
 ---@field offset number?
 local PreviewLine = {}
 
----@param n number
----@param version number
----@return table
+---@class sph.PreviewByte
+---@field type "time"|"note"
+---@field t_abs_or_rel "abs"|"rel"
+---@field t_abs_add_sec_or_frac "sec"|"frac"
+---@field offset_i integer
+---@field offset_f_int integer
+---@field offset_f_left integer
+---@field offset_f_right integer
+---@
+---@field t_is_double boolean
+---@field time_den 12|16
+---@field time_single integer
+---@field time_double integer
+---@
+---@field n_is_pressed boolean
+--- version 0
+---@field n_column integer?
+---@field n_add_columns boolean?
+---@field reserved_1 boolean?
+--- version 1
+---@field n_columns_group boolean?
+---@field n_columns {[1]: boolean, [2]: boolean, [3]: boolean, [4]: boolean, [5]: boolean}?
+
+---@param n integer
+---@param version integer
+---@return sph.PreviewByte
 local function decode_byte(n, version)
 	local t_is_12th = bit.band(n, 0b00100000) ~= 0
-	local time_den = t_is_12th and 12 or 16
 	local t_is_double = bit.band(n, 0b00010000) ~= 0
+
+	---@type sph.PreviewByte
 	local bt = {
 		type = bit.band(n, 0b10000000) == 0 and "time" or "note",
 		t_abs_or_rel = bit.band(n, 0b01000000) == 0 and "abs" or "rel",
@@ -89,7 +113,7 @@ local function decode_byte(n, version)
 		offset_f_right = bit.band(n, 0b11111111),
 
 		t_is_double = t_is_double,
-		time_den = time_den,
+		time_den = t_is_12th and 12 or 16,
 		time_single = bit.band(n, 0b00001111),
 		time_double = bit.band(n, 0b11111111),
 
@@ -101,6 +125,7 @@ local function decode_byte(n, version)
 		bt.reserved_1 = n == 0b11111111
 	elseif version == 1 then
 		bt.n_columns_group = bit.band(n, 0b00100000) ~= 0
+		---@type {[integer]: boolean}
 		local columns = {}
 		for i = 1, 5 do
 			columns[i] = bit.band(n, bit.lshift(1, i - 1)) ~= 0
@@ -117,11 +142,14 @@ function SphPreview:decode(s)
 	local b = byte.buffer(#s)
 	b:fill(s):seek(0)
 
-	local version = b:uint8()
-	local start_time = b:int16_le()
+	local version = b:read('u8')
+	local start_time = b:read("i16")
 
+	---@type integer, integer, boolean
 	local g_offset, int_prec, columns_group
+	---@type sph.PreviewLine[]
 	local lines = {}
+	---@type sph.PreviewLine
 	local line
 	local function next_line()
 		if line and line.offset then
@@ -138,7 +166,7 @@ function SphPreview:decode(s)
 	local double_den = nil
 
 	while b.offset < b.size do
-		local n = b:uint8()
+		local n = b:read("u8")
 		local obj = decode_byte(n, version)
 		if frac_part then
 			line.offset = line.offset + obj.offset_f_right / 1024
@@ -187,37 +215,38 @@ function SphPreview:decode(s)
 end
 
 ---@param lines sph.PreviewLine[]
----@param version number?
+---@param version integer?
 ---@return string
 function SphPreview:encode(lines, version)
 	version = version or self.version
 
 	local b = byte.buffer(1e6)
-	b:uint8(version)
-	b:int16_le(0)
+	b:write("u8", version)
+	b:write("i16", 0)
 
+	---@type integer, integer
 	local start_time, real_start_time
 
 	for _, line in ipairs(lines) do
 		if line.time then
 			local den_16 = (line.time * 16)[2]
 			local den_12 = (line.time * 12)[2]
-			if 16 % line.time[2] == 0 then  -- 1,2,4,8,16
-				b:uint8(0b01000000 + math.floor(16 * line.time[1] / line.time[2]))
-			elseif 12 % line.time[2] == 0 then  -- 3,6,12
-				b:uint8(0b01100000 + math.floor(12 * line.time[1] / line.time[2]))
-			elseif den_16 <= 16 then  -- exact 1/(16*den_16)
-				b:uint8(0b01010000 + (den_16 - 1))
-				b:uint8(16 * den_16 * line.time[1] / line.time[2])
-			elseif den_12 <= 16 then  -- exact 1/(12*den_12)
-				b:uint8(0b01110000 + (den_12 - 1))
-				b:uint8(12 * den_12 * line.time[1] / line.time[2])
-			else  -- 1/256 approximation
-				b:uint8(0b01011111)
-				b:uint8(math.floor(256 * line.time[1] / line.time[2]))
+			if 16 % line.time[2] == 0 then -- 1,2,4,8,16
+				b:write("u8", 0b01000000 + math.floor(16 * line.time[1] / line.time[2]))
+			elseif 12 % line.time[2] == 0 then -- 3,6,12
+				b:write("u8", 0b01100000 + math.floor(12 * line.time[1] / line.time[2]))
+			elseif den_16 <= 16 then -- exact 1/(16*den_16)
+				b:write("u8", 0b01010000 + (den_16 - 1))
+				b:write("u8", 16 * den_16 * line.time[1] / line.time[2])
+			elseif den_12 <= 16 then -- exact 1/(12*den_12)
+				b:write("u8", 0b01110000 + (den_12 - 1))
+				b:write("u8", 12 * den_12 * line.time[1] / line.time[2])
+			else -- 1/256 approximation
+				b:write("u8", 0b01011111)
+				b:write("u8", math.floor(256 * line.time[1] / line.time[2]))
 			end
 		else
-			b:uint8(0b01000000)
+			b:write("u8", 0b01000000)
 		end
 		if line.offset then
 			if not real_start_time then
@@ -226,13 +255,13 @@ function SphPreview:encode(lines, version)
 			end
 			local diff = line.offset - start_time
 			if diff == 0 then
-				b:uint8(0)
+				b:write("u8", 0)
 			elseif diff % 1 == 0 then
 				while diff > 0 do
 					local d = diff % 32
 					diff = diff - d
 					diff = diff / 32
-					b:uint8(d)
+					b:write("u8", d)
 				end
 			else
 				local int_diff = math.floor(line.offset) - start_time
@@ -240,23 +269,23 @@ function SphPreview:encode(lines, version)
 				if int_diff <= 7 then
 					frac_int_part = int_diff
 				elseif int_diff <= 31 then
-					b:uint8(int_diff)
+					b:write("u8", int_diff)
 				elseif int_diff <= 38 then
-					b:uint8(31)
+					b:write("u8", 31)
 					frac_int_part = int_diff - 31
 				else
 					while int_diff > 0 do
 						local d = int_diff % 32
 						int_diff = int_diff - d
 						int_diff = int_diff / 32
-						b:uint8(d)
+						b:write("u8", d)
 					end
 				end
 				local frac = line.offset % 1 * 1024
 				local frac_left = bit.rshift(frac, 8)
 				local frac_right = bit.band(frac, 0xFF)
-				b:uint8(0b00100000 + bit.lshift(frac_int_part, 2) + frac_left)
-				b:uint8(frac_right)
+				b:write("u8", 0b00100000 + bit.lshift(frac_int_part, 2) + frac_left)
+				b:write("u8", frac_right)
 			end
 			start_time = math.floor(line.offset)
 		end
@@ -270,7 +299,7 @@ function SphPreview:encode(lines, version)
 						bt = bt + 0b01000000
 					end
 					bt = bt + i - 1
-					b:uint8(bt)
+					b:write("u8", bt)
 				end
 			end
 		elseif notes and version == 1 then
@@ -293,7 +322,7 @@ function SphPreview:encode(lines, version)
 							bt = bt + bit.lshift(1, i - 1)
 						end
 					end
-					b:uint8(bt)
+					b:write("u8", bt)
 				end
 				if has_press then
 					local bt = 0b11000000 + (columns_group and 0b00100000 or 0)
@@ -302,7 +331,7 @@ function SphPreview:encode(lines, version)
 							bt = bt + bit.lshift(1, i - 1)
 						end
 					end
-					b:uint8(bt)
+					b:write("u8", bt)
 				end
 				g_offset = g_offset + 5
 				columns_group = not columns_group
@@ -311,15 +340,18 @@ function SphPreview:encode(lines, version)
 	end
 
 	local offset = b.offset
-	b:seek(1)
-	b:int16_le(real_start_time)
+
+	if real_start_time then
+		b:seek(1)
+		b:write("i16", real_start_time)
+	end
 	b:seek(0)
 
 	return b:string(offset)
 end
 
 ---@param pline sph.PreviewLine
----@param long_notes table
+---@param long_notes {[integer]: {column: integer, type: "1"|"2"|"3"}}
 ---@return sph.Line
 local function preview_line_to_line(pline, long_notes)
 	local line = Line()
@@ -350,6 +382,7 @@ end
 ---@return sph.Line[]
 function SphPreview:previewLinesToLines(plines)
 	local long_notes = {}
+	---@type sph.Line[]
 	local lines = {}
 	for i, pline in ipairs(plines) do
 		lines[i] = preview_line_to_line(pline, long_notes)
@@ -366,14 +399,15 @@ end
 
 ---@param line sph.Line
 ---@param prev_pline sph.PreviewLine
----@param long_notes table
+---@param long_notes {[integer]: integer}
 ---@return table?
 local function line_to_preview_line(line, prev_pline, long_notes)
+	---@type boolean[]
 	local notes
 	if line.notes then
 		if prev_pline and line.same then
-			prev_pline.notes = prev_pline.notes or {}
-			notes = prev_pline.notes
+			notes = prev_pline.notes or {}
+			prev_pline.notes = notes
 		else
 			notes = {}
 		end
@@ -396,12 +430,12 @@ local function line_to_preview_line(line, prev_pline, long_notes)
 			end
 			local old_value = notes[column]
 			if old_value == true and t == false then
-				t = true  -- convert 0-length LN to a short note
+				t = true -- convert 0-length LN to a short note
 			elseif old_value == false and t == true then
 				if note.type == "1" then
-					t = false  -- delete note at the end of LN
+					t = false -- delete note at the end of LN
 				elseif note.type == "2" then
-					t = nil  -- connect 2 LNs
+					t = nil -- connect 2 LNs
 				end
 			end
 			notes[column] = t
@@ -434,6 +468,7 @@ end
 ---@return sph.PreviewLine[]
 function SphPreview:linesToPreviewLines(lines)
 	local long_notes = {}
+	---@type sph.PreviewLine[]
 	local plines = {}
 	for i, line in ipairs(lines) do
 		local prev_line = plines[#plines]
@@ -444,7 +479,7 @@ function SphPreview:linesToPreviewLines(lines)
 end
 
 ---@param _lines sph.Line[]
----@param version number?
+---@param version integer?
 ---@return string
 function SphPreview:encodeLines(_lines, version)
 	local lines = self:linesToPreviewLines(_lines)

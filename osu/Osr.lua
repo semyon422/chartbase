@@ -18,54 +18,57 @@ local WIN_EPOCH = 621355968000000000
 
 function Osr:new()
 	self.mode = 3
-	self.version = tonumber(os.date("%Y%m%d"))  -- yyyymmdd
+	self.version = tonumber(os.date("%Y%m%d")) -- yyyymmdd
 	self.beatmap_hash = "00000000000000000000000000000000"
 	self.player_name = "Player"
 	self.replay_hash = "00000000000000000000000000000000"
 	self._300 = 0
 	self._100 = 0
 	self._50 = 0
-	self.gekis = 0  -- Max 300s in mania
-	self.katus = 0  -- 200s in mania
+	self.gekis = 0 -- Max 300s in mania
+	self.katus = 0 -- 200s in mania
 	self.misses = 0
 	self.score = 0
 	self.combo = 0
 	self.pfc = 0
 	self.mods = 0
 	self.life_bar_graph = ""
-	self.timestamp = WIN_EPOCH  -- Windows ticks
+	self.timestamp = WIN_EPOCH -- Windows ticks
 	self.replay_length = 0
 	self.comp_replay = ""
 	self.uncomp_replay = ""
 	self.lzma_props = string.char(93, 0, 0, 32, 0)
 	self.online_score_id = 0
-	self.additional_mod_info = nil  ---@type number?
+	self.additional_mod_info = nil ---@type number?
 	self.events = {}
 
 	self:setTimestamp(os.time())
 end
 
+---@param b byte.Buffer
 local function read_string(b)
-	local a = b:int8()
+	local a = b:read("i8")
 	if a == 0x00 then
 		return ""
 	end
 	assert(a == 0x0b)
 
-	local bytes, length = leb128.udec(b.pointer + b.offset)
+	local bytes, length = leb128.udec(b:cur())
 	b:seek(b.offset + bytes)
 
 	return b:string(length)
 end
 
+---@param b byte.Buffer
+---@param s string
 local function write_string(b, s)
 	if s == "" then
-		b:int8(0x00)
+		b:write("i8", 0x00)
 		return
 	end
-	b:int8(0x0b)
+	b:write("i8", 0x0b)
 
-	local bytes = leb128.uenc(b.pointer + b.offset, #s)
+	local bytes = leb128.uenc(b:cur(), #s)
 	b:seek(b.offset + bytes)
 
 	b:fill(s)
@@ -75,7 +78,7 @@ end
 ---@return osu.OsrEvent[]
 local function decode_replay_events(replay_data)
 	local events = {}
-	for dt, x, y, km in replay_data:gmatch("([^,^|]+)|([^,^|]+)|([^,^|]+)|([^,^|]+),") do
+	for dt, x, y, km in replay_data:gmatch("([^,^|]+)|([^,^|]+)|([^,^|]+)|([^,^|]+),") do ---@diagnostic disable-line: no-unknown
 		table.insert(events, {
 			tonumber(dt),
 			tonumber(x),
@@ -89,6 +92,7 @@ end
 ---@param events osu.OsrEvent[]
 ---@return string
 local function encode_replay_events(events)
+	---@type string[]
 	local out = {}
 	for i, e in ipairs(events) do
 		out[i] = ("%s|%s|%s|%s,"):format(e[1], e[2], e[3], e[4])
@@ -101,71 +105,71 @@ function Osr:decode(s)
 	local b = byte.buffer(#s)
 	b:fill(s):seek(0)
 
-	self.mode = b:int8()
-	self.version = b:int32_le()
+	self.mode = b:read("i8")
+	self.version = b:read("i32")
 	self.beatmap_hash = read_string(b)
 	self.player_name = read_string(b)
 	self.replay_hash = read_string(b)
-	self._300 = b:int16_le()
-	self._100 = b:int16_le()
-	self._50 = b:int16_le()
-	self.gekis = b:int16_le()
-	self.katus = b:int16_le()
-	self.misses = b:int16_le()
-	self.score = b:int32_le()
-	self.combo = b:int16_le()
-	self.pfc = b:int8()
-	self.mods = b:int32_le()
+	self._300 = b:read("i16")
+	self._100 = b:read("i16")
+	self._50 = b:read("i16")
+	self.gekis = b:read("i16")
+	self.katus = b:read("i16")
+	self.misses = b:read("i16")
+	self.score = b:read("i32")
+	self.combo = b:read("i16")
+	self.pfc = b:read("i8")
+	self.mods = b:read("i32")
 	self.life_bar_graph = read_string(b)
-	self.timestamp = b:int64_le()
+	self.timestamp = b:read("i64")
 
-	local replay_length = b:int32_le()  ---@type integer
-	local comp_replay = b:string(replay_length)  ---@type string
+	local replay_length = b:read("i32") ---@type integer
+	local comp_replay = b:string(replay_length) ---@type string
 	local uncomp_replay, lzma_props = _7z.decode_s(comp_replay)
 	self.lzma_props = lzma_props
 	self.events = decode_replay_events(uncomp_replay)
 
-	self.online_score_id = b:int64_le()
+	self.online_score_id = b:read("i64")
 	if b.offset < b.size then
-		self.additional_mod_info = b:double_le()  -- Target Practice accuracy
+		self.additional_mod_info = b:read("f64") -- Target Practice accuracy
 	end
 end
 
 ---@return string
 function Osr:encode()
-	local b = byte.buffer(1024)  -- header buffer
+	local b = byte.buffer(1024) -- header buffer
 
-	b:int8(self.mode)
-	b:int32_le(self.version)
+	b:write("i8", self.mode)
+	b:write("i32", self.version)
 	write_string(b, self.beatmap_hash)
 	write_string(b, self.player_name)
 	write_string(b, self.replay_hash)
-	b:int16_le(self._300)
-	b:int16_le(self._100)
-	b:int16_le(self._50)
-	b:int16_le(self.gekis)
-	b:int16_le(self.katus)
-	b:int16_le(self.misses)
-	b:int32_le(self.score)
-	b:int16_le(self.combo)
-	b:int8(self.pfc)
-	b:int32_le(self.mods)
+	b:write("i16", self._300)
+	b:write("i16", self._100)
+	b:write("i16", self._50)
+	b:write("i16", self.gekis)
+	b:write("i16", self.katus)
+	b:write("i16", self.misses)
+	b:write("i32", self.score)
+	b:write("i16", self.combo)
+	b:write("i8", self.pfc)
+	b:write("i32", self.mods)
 	write_string(b, self.life_bar_graph)
-	b:int64_le(self.timestamp)
+	b:write("i64", self.timestamp)
 
 	local uncomp_replay = encode_replay_events(self.events)
 	local comp_replay = _7z.encode_s(uncomp_replay, self.lzma_props)
 
-	b:int32_le(#comp_replay)
+	b:write("i32", #comp_replay)
 
-	local replay_data_offset = b.offset  ---@type integer
+	local replay_data_offset = b.offset ---@type integer
 
-	b:int64_le(self.online_score_id)
+	b:write("i64", self.online_score_id)
 	if self.additional_mod_info then
-		b:double_le(self.additional_mod_info)
+		b:write("f64", self.additional_mod_info)
 	end
 
-	local end_header_offset = b.offset  ---@type integer
+	local end_header_offset = b.offset ---@type integer
 
 	---@type string[]
 	local out = {}
