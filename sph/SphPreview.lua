@@ -303,7 +303,7 @@ function SphPreview:encode(lines, version)
 				end
 			end
 		elseif notes and version == 1 then
-			local max_c = table_util.max_index(notes)
+			local max_c = table.maxn(notes)
 			local columns_group = false
 			local g_offset = 0
 			while g_offset < max_c do
