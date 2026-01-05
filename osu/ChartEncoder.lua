@@ -89,7 +89,7 @@ function ChartEncoder:encodeHitObjectSounds(obj, note)
 	local sounds = startNote.data.sounds
 	if sounds and sounds[1] then
 		obj.addition.sampleFile = sounds[1][1]
-		obj.addition.volume = sounds[1][2] * 100
+		obj.addition.volume = math.floor(sounds[1][2] * 100)
 	end
 end
 
