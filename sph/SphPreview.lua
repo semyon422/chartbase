@@ -72,70 +72,6 @@ SphPreview.version = 0
 ---@field offset number?
 local PreviewLine = {}
 
----@class sph.PreviewByte
----@field type "time"|"note"
----@field t_abs_or_rel "abs"|"rel"
----@field t_abs_add_sec_or_frac "sec"|"frac"
----@field offset_i integer
----@field offset_f_int integer
----@field offset_f_left integer
----@field offset_f_right integer
----@
----@field t_is_double boolean
----@field time_den 12|16
----@field time_single integer
----@field time_double integer
----@
----@field n_is_pressed boolean
---- version 0
----@field n_column integer?
----@field n_add_columns boolean?
----@field reserved_1 boolean?
---- version 1
----@field n_columns_group boolean?
----@field n_columns {[1]: boolean, [2]: boolean, [3]: boolean, [4]: boolean, [5]: boolean}?
-
----@param n integer
----@param version integer
----@return sph.PreviewByte
-local function decode_byte(n, version)
-	local t_is_12th = bit.band(n, 0b00100000) ~= 0
-	local t_is_double = bit.band(n, 0b00010000) ~= 0
-
-	---@type sph.PreviewByte
-	local bt = {
-		type = bit.band(n, 0b10000000) == 0 and "time" or "note",
-		t_abs_or_rel = bit.band(n, 0b01000000) == 0 and "abs" or "rel",
-		t_abs_add_sec_or_frac = bit.band(n, 0b00100000) == 0 and "sec" or "frac",
-		offset_i = bit.band(n, 0b00011111),
-		offset_f_int = bit.rshift(bit.band(n, 0b00011100), 2),
-		offset_f_left = bit.lshift(bit.band(n, 0b00000011), 8),
-		offset_f_right = bit.band(n, 0b11111111),
-
-		t_is_double = t_is_double,
-		time_den = t_is_12th and 12 or 16,
-		time_single = bit.band(n, 0b00001111),
-		time_double = bit.band(n, 0b11111111),
-
-		n_is_pressed = bit.band(n, 0b01000000) ~= 0,
-	}
-	if version == 0 then
-		bt.n_column = bit.band(n, 0b00111111)
-		bt.n_add_columns = bit.band(n, 0b00111111) == 0b00111111
-		bt.reserved_1 = n == 0b11111111
-	elseif version == 1 then
-		bt.n_columns_group = bit.band(n, 0b00100000) ~= 0
-		---@type {[integer]: boolean}
-		local columns = {}
-		for i = 1, 5 do
-			columns[i] = bit.band(n, bit.lshift(1, i - 1)) ~= 0
-		end
-		bt.n_columns = columns
-	end
-
-	return bt
-end
-
 ---@param s string
 ---@return sph.PreviewLine[]
 function SphPreview:decode(s)
@@ -167,44 +103,50 @@ function SphPreview:decode(s)
 
 	while b.offset < b.size do
 		local n = b:read("u8")
-		local obj = decode_byte(n, version)
 		if frac_part then
-			line.offset = line.offset + obj.offset_f_right / 1024
+			line.offset = line.offset + n / 1024
 			frac_part = false
 		elseif double_den then
-			line.time = Fraction(obj.time_double, double_den)
+			line.time = Fraction(n, double_den)
 			double_den = nil
-		elseif obj.type == "time" then
-			if obj.t_abs_or_rel == "abs" then
-				line.offset = line.offset or start_time
-				if obj.t_abs_add_sec_or_frac == "sec" then
-					line.offset = line.offset + obj.offset_i * (32 ^ int_prec)
-					int_prec = int_prec + 1
-				elseif obj.t_abs_add_sec_or_frac == "frac" then
-					line.offset = line.offset + obj.offset_f_int
-					line.offset = line.offset + obj.offset_f_left / 1024
-					frac_part = true
+		else
+			if bit.band(n, 0b10000000) == 0 then -- type == "time"
+				if bit.band(n, 0b01000000) == 0 then -- abs
+					line.offset = line.offset or start_time
+					if bit.band(n, 0b00100000) == 0 then -- sec
+						line.offset = line.offset + bit.band(n, 0b00011111) * (32 ^ int_prec)
+						int_prec = int_prec + 1
+					else -- frac
+						line.offset = line.offset + bit.rshift(bit.band(n, 0b00011100), 2)
+						line.offset = line.offset + bit.lshift(bit.band(n, 0b00000011), 8) / 1024
+						frac_part = true
+					end
+				else -- rel
+					next_line()
+					local time_single = bit.band(n, 0b00001111)
+					local time_den = bit.band(n, 0b00100000) ~= 0 and 12 or 16
+					if bit.band(n, 0b00010000) ~= 0 then -- double
+						double_den = (time_single + 1) * time_den
+					elseif time_single ~= 0 then
+						line.time = Fraction(time_single, time_den)
+					end
 				end
-			elseif obj.t_abs_or_rel == "rel" then
-				next_line()
-				if obj.t_is_double then
-					double_den = (obj.time_single + 1) * obj.time_den
-				elseif obj.time_single ~= 0 then
-					line.time = Fraction(obj.time_single, obj.time_den)
-				end
-			end
-		elseif obj.type == "note" then
-			line.notes = line.notes or {}
-			if version == 0 then
-				line.notes[obj.n_column + 1] = obj.n_is_pressed
-			elseif version == 1 then
-				if obj.n_columns_group ~= columns_group then
-					g_offset = g_offset + 5
-					columns_group = obj.n_columns_group
-				end
-				for i = 1, 5 do
-					if obj.n_columns[i] then
-						line.notes[i + g_offset] = obj.n_is_pressed
+			else -- type == "note"
+				line.notes = line.notes or {}
+				local n_is_pressed = bit.band(n, 0b01000000) ~= 0
+				if version == 0 then
+					local n_column = bit.band(n, 0b00111111)
+					line.notes[n_column + 1] = n_is_pressed
+				elseif version == 1 then
+					local n_columns_group = bit.band(n, 0b00100000) ~= 0
+					if n_columns_group ~= columns_group then
+						g_offset = g_offset + 5
+						columns_group = n_columns_group
+					end
+					for i = 1, 5 do
+						if bit.band(n, bit.lshift(1, i - 1)) ~= 0 then
+							line.notes[i + g_offset] = n_is_pressed
+						end
 					end
 				end
 			end

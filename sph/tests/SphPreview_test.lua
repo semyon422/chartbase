@@ -477,4 +477,27 @@ function test.collision_long_long_merge(t)
 	})
 end
 
+function test.continuation_bytes(t)
+	local s = {
+		0b0, 0b0, 0b0,  -- header
+
+		-- Test frac_part with high bit (n = 128)
+		0b01000000, -- new line
+		0b00100000, -- frac add (int=0, frac_high=0)
+		0b10000000, -- frac_low = 128 (high bit set!)
+
+		-- Test double_den with high bit (n = 129)
+		0b01010000, -- rel time, double, den=16, single=0 -> den = (0+1)*16 = 16
+		0b10000001, -- numerator = 129 (high bit set!)
+	}
+
+	local str = bytes_to_string(s)
+	local lines = SphPreview:decode(str)
+
+	t:tdeq(lines, {
+		{offset = 128 / 1024},
+		{time = {129, 16}},
+	})
+end
+
 return test
