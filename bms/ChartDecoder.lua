@@ -100,6 +100,12 @@ function ChartDecoder:decodeBms(bms)
 	self.visual = visual
 	self.visualColumns = VisualColumns(visual)
 
+	local visualBga = Visual()
+	visualBga.bga = true
+	layer.visuals.bga = visualBga
+	self.visualBga = visualBga
+	self.visualBgaColumns = VisualColumns(visualBga, false)
+
 	self:setInputMode()
 	self:addFirstTempo()
 	self:processData()
@@ -187,6 +193,7 @@ function ChartDecoder:addFirstTempo()
 		local point = self.layer:getPoint(Fraction(0))
 		point._tempo = Tempo(self.bms.baseTempo)
 		self.visual:getPoint(point)
+		self.visualBga:getPoint(point)
 	end
 end
 
@@ -199,6 +206,7 @@ function ChartDecoder:setTempo(timeData)
 	local point = self.layer:getPoint(timeData.measureTime)
 	point._tempo = Tempo(math.abs(tempo))
 	self.visual:getPoint(point)
+	self.visualBga:getPoint(point)
 end
 
 ---@param timeData table
@@ -216,6 +224,7 @@ function ChartDecoder:setExtendedTempo(timeData)
 	local point = self.layer:getPoint(timeData.measureTime)
 	point._tempo = Tempo(math.abs(tempo))
 	self.visual:getPoint(point)
+	self.visualBga:getPoint(point)
 
 	return true
 end
@@ -236,9 +245,11 @@ function ChartDecoder:setStop(timeData)
 	local point = self.layer:getPoint(timeData.measureTime)
 	point._stop = Stop(Fraction(duration * 4, 16, false) / 192)
 	self.visual:getPoint(point)
+	self.visualBga:getPoint(point)
 
 	point = self.layer:getPoint(timeData.measureTime, true)
 	self.visual:getPoint(point)
+	self.visualBga:getPoint(point)
 end
 
 function ChartDecoder:processData()
@@ -255,11 +266,13 @@ function ChartDecoder:processData()
 		local point = layer:getPoint(Fraction(measureIndex))
 		point._signature = Signature(Fraction(value * 4, 1000, "closest"))
 		self.visual:getPoint(point)
+		self.visualBga:getPoint(point)
 		local next_point = layer:getPoint(Fraction(measureIndex + 1))
 		if not next_point._signature then
 			next_point._signature = Signature()
 		end
 		self.visual:getPoint(next_point)
+		self.visualBga:getPoint(next_point)
 	end
 
 	for _, timeData in ipairs(self.bms.timeList) do
@@ -281,7 +294,8 @@ function ChartDecoder:processData()
 			then
 				for _, value in ipairs(indexDataValues) do
 					local column = channelInfo.inputType .. channelInfo.inputIndex
-					local visualPoint = visualColumns:getPoint(point, column)
+					local _visualColumns = channelInfo.name == "BGA" and self.visualBgaColumns or visualColumns
+					local visualPoint = _visualColumns:getPoint(point, column)
 					local note = Note(visualPoint, column)
 
 					note.data.sounds = {}
